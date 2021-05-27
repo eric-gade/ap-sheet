@@ -19,3 +19,6 @@ Follow the build steps above, then run `mocha --require esm ./tests/`
 
 ## About Demo Component ##
 The Webcomponent (a Custom Element) used by the demo index.html file in this directory is currently only for testing and demonstration purposes
+  
+## Attribution ##
+This repository was forked from a subset of A Priori Investment's [`object_database`](https://github.com/APrioriInvestments/object_database) repository, specfically [this portion](https://github.com/APrioriInvestments/object_database/tree/dev/object_database/web/content/webcomponents/sheet) concerning the sheet component.
