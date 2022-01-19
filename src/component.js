@@ -45,18 +45,19 @@ class Sheet extends HTMLElement {
     }
 
     connectedCallback(){
-        console.log('connected!');
-        this.table.append(this.tableBody);
-        this.append(this.table);
-        let initialRows = parseInt(this.getAttribute('rows'));
-        let initialCols = parseInt(this.getAttribute('columns'));
-        this.resize(initialRows, initialCols);
-
-        // Set tabindex to any value
-        this.setAttribute('tabindex', 0);
-
-        // Add keydown event listener
-        this.addEventListener('keydown', this.handleKeyDown);
+        if(this.isConnected){
+            this.table.append(this.tableBody);
+            this.append(this.table);
+            let initialRows = parseInt(this.getAttribute('rows'));
+            let initialCols = parseInt(this.getAttribute('columns'));
+            this.resize(initialRows, initialCols);
+            
+            // Set tabindex to any value
+            this.setAttribute('tabindex', 0);
+            
+            // Add keydown event listener
+            this.addEventListener('keydown', this.handleKeyDown);
+        }
     }
 
     attributeChangedCallback(name, oldVal, newVal){
@@ -175,7 +176,7 @@ class Sheet extends HTMLElement {
         newPrimaryFrame.lockRows(numLockedRows);
         newPrimaryFrame.lockColumns(numLockedColumns);
         newPrimaryFrame.labelElements();
-        newPrimaryFrame.afterShift = this.afterShift;
+        newPrimaryFrame.afterChange = this.afterChange;
         this.primaryFrame = newPrimaryFrame;
         this.selector.primaryFrame = this.primaryFrame;
         this.tableBody.append(...this.primaryFrame.rowElements);
@@ -183,14 +184,13 @@ class Sheet extends HTMLElement {
         this.selector.drawCursor();
         this.selector.updateElements();
 
-        // Call afterShift the first time to ensure that data
+        // Call afterChange the first time to ensure that data
         // for the initial views is fetched from the remote
         // source
-        this.primaryFrame.afterShift(this.primaryFrame);
+        this.primaryFrame.afterChange(this.primaryFrame);
     }
 
-    afterShift(primaryFrame){
-        console.log('afterShift called');
+    afterChange(primaryFrame){
         let frames = [
             primaryFrame.relativeViewFrame,
             primaryFrame.relativeLockedColumnsFrame,
@@ -199,7 +199,6 @@ class Sheet extends HTMLElement {
             return !primaryFrame.dataFrame.hasCompleteDataForFrame(aFrame);
         });
         if(frames.length){
-            console.log(`Attempting to fetch ${frames.length} frames...`);
             fetchRemoteFrames(frames)
                 .then(frameTuples => {
                     frameTuples.forEach(frameTuple => {

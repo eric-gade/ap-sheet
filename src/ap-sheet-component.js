@@ -93,6 +93,10 @@ class APSheet extends HTMLElement {
         this.append(this.table);
         // Set a tabindex
         this.setAttribute('tabindex', 0);
+
+        // Initial call to afterChange, to load
+        // the first data from the data frame
+        this.afterChange();
     }
 
     createHeader(){
