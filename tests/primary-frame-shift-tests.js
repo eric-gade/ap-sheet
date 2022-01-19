@@ -1831,7 +1831,6 @@ describe('PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
 
         it('Has the correct origin and corner for the relative view', () => {
             let relativeView = primaryFrame.relativeViewFrame;
-            console.log(primaryFrame.dataOffset);
             let expectedOrigin = new Point([2,0]);
             let expectedCorner = new Point([6,3]);
 

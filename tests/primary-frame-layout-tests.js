@@ -160,7 +160,6 @@ describe('PrimaryFrame Layout with 2 locked rows, no columns and dataOffset(2,1)
         let relativeView = primaryFrame.relativeViewFrame;
         let expectedOrigin = new Point([2,3]);
         let expectedCorner = new Point([8,4]);
-        console.log(relativeView);
 
         assert.pointsEqual(relativeView.origin, expectedOrigin);
         assert.pointsEqual(relativeView.corner, expectedCorner);
