@@ -3,6 +3,17 @@ body {
     height: 100vh;
 }
 
+.spreadsheet.editing-cell .view-cell:not(.editing) {
+    opacity: 0.2;
+    transition: opacity 0.2s linear;
+}
+
+.view-cell.editing {
+    transform: scale(1.5);
+    box-shadow: 0px 0px 5px 10px rgba(200, 200, 200, 0.4);
+    transition: transform 0.2s linear; box-shadow 0.2s linear;
+}
+
 .in-locked-row {
     background-color: rgba(150, 150, 150, 0.4);
 }
@@ -11,6 +22,13 @@ body {
 }
 .view-cell {
     background-color: rgba(50, 255, 150, 0.3);
+    border-right: 2px solid rgba(200, 200, 200, 0.5);
+    border-bottom: 2px solid rgba(200, 200, 200, 0.5);
+    border-top: 2px solid transparent;
+    border-left: 2px solid transparent;
+}
+
+.view-cell:last-child {
     border: 2px solid transparent;
 }
 

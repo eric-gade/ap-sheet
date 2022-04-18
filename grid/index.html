@@ -6,45 +6,13 @@
         <script type="module" src="../src/grid-sheet-component.js"></script>
     </head>
     <body>
-        <my-grid id="table" rows="12" columns="3">
+        <my-grid class="spreadsheet" id="table" rows="12" columns="3">
         </my-grid>
-        <div id="display" style="background-color: rgba(230, 230, 230, 0.7); width: 100%; height: 50px;">
-        </div>
     </body>
     <script>
      document.addEventListener('DOMContentLoaded', () => {
          let table = document.getElementById('table');
-         let display = document.getElementById('display');
-         let enterHandler = function(event){
-             if(event.key == "Enter"){
-                 table.dataFrame.putAt(display.relativeCursor, display.textContent);
-                 table.primaryFrame.updateViewElements();
-                 event.preventDefault();
-                 event.stopPropagation();
-                 table.focus();
-             }
-         }
-         table.addEventListener('selection-changed', (event) => {
-             if(event.detail.frame.isEmpty){
-                 // If the selection is just the cursor,
-                 // then display the data value at that cursor
-                 // point.
-                 display.cursor = event.detail.cursor;
-                 display.relativeCursor = event.detail.relativeCursor
-                 display.innerText = event.detail.data.toString();
-                 display.setAttribute('contenteditable', true);
-                 display.addEventListener('keydown', enterHandler);
-             } else {
-                 // Otherwise, we have a selection frame of many
-                 // cells. Display the selection bounds and
-                 // number of cells within
-                 display.removeEventListener('keydown', enterHandler);
-                 display.setAttribute('contenteditable', false);
-                 display.cursor = event.detail.cursor;
-                 display.relativeCursor = event.detail.relativeCursor
-                 display.innerText = `Selection from ${table.selector.selectionFrame.origin} to ${table.selector.selectionFrame.corner} (${table.selector.selectionFrame.area})`;
-             }
-         });
+         table.focus();
      });
     </script>
 </html>

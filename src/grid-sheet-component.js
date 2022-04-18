@@ -8,9 +8,10 @@ const templateString = `
 <style>
 :host {
    display: grid;
-   border: 1px red;
-   align-items: center;
-   justify-content: center;
+}
+
+:host(:focus){
+    outline: none;
 }
 
 ::slotted(*){
@@ -21,7 +22,48 @@ const templateString = `
     overflow: hidden;
     text-overflow: ellipses;
 }
+
+#edit-bar {
+    display: flex;
+    width: 1fr;
+    box-sizing: border-box;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border: 1px solid rgba(100, 100, 100, 0.4);
+    background-color: white;
+    grid-column: 1 / -1;
+    align-items: baseline;
+    justify-content: stretch;
+}
+#edit-area {
+    flex: 1;
+    padding: 2px;
+    padding-right: 10px;
+    outline: none;
+    border: none;
+    background-color: transparent;
+    padding-right: 10px;
+    font-family: inherit;
+    font-size: inherit;
+}
+#info-area {
+    height: 100%;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    margin-left: 10px;
+}
+
+#info-area span:last-child {
+    font-size: 1.3em;
+    margin-left: 8px;
+    margin-right: 6px;
+}
 </style>
+<div id="edit-bar">
+    <div id="info-area"><span>Cursor</span><span>&rarr;</span></div>
+    <input id="edit-area" type="text" disabled="true"/>
+</div>
 <slot></slot>
 `;
 
@@ -51,11 +93,14 @@ class GridSheet extends HTMLElement {
 
         // Bind instace methods
         this.onObservedResize = this.onObservedResize.bind(this);
+        this.onCellEdit = this.onCellEdit.bind(this);
         this.render = this.render.bind(this);
         this.dispatchSelectionChanged = this.dispatchSelectionChanged.bind(this);
 
         // Bind event handlers
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleSelectionChanged = this.handleSelectionChanged.bind(this);
+        this.afterEditChange = this.afterEditChange.bind(this);
     }
 
     connectedCallback(){
@@ -68,12 +113,15 @@ class GridSheet extends HTMLElement {
             this.observer.observe(this.parentElement);
         }
 
+        // Event listeners
         this.addEventListener('keydown', this.handleKeyDown);
+        this.addEventListener('selection-changed', this.handleSelectionChanged);
     }
 
     disconnectedCallback(){
         this.observer.disconnect();
         this.removeEventListener('keydown', this.handleKeyDown);
+        this.removeEventListener('selection-changed', this.handleSelectionChanged);
     }
 
     attributeChangedCallback(name, oldVal, newVal){
@@ -91,7 +139,6 @@ class GridSheet extends HTMLElement {
         // based upon the available free space in the element.
         // Note that for now, we only attempt this on the
         // horizontal (column) axis
-        console.log('resize');
         let rect = this.getBoundingClientRect();
         let currentCellWidth = this.cellWidth;
         let newColumns = Math.floor(rect.width / currentCellWidth);
@@ -99,13 +146,46 @@ class GridSheet extends HTMLElement {
         this.render();
     }
 
+    onCellEdit(){
+        let editArea = this.shadowRoot.getElementById('edit-area');
+        let isDisabled = editArea.hasAttribute('disabled');
+        if(isDisabled){
+            // Highlight the cell that is being edited.
+            let cell = this.primaryFrame.elementAt(this.selector.cursor);
+            this.classList.add('editing-cell');
+            cell.classList.add('editing');
+            
+            // Prep the editor input for editing
+            // and focus on it automatically
+            editArea.removeAttribute("disabled");
+            editArea.select();
+            editArea.focus();
+            editArea.addEventListener('change', this.afterEditChange);
+        }
+        
+    }
+
+    afterEditChange(event){
+        event.currentTarget.removeEventListener('change', this.afterEditChange);
+        event.currentTarget.setAttribute('disabled', 'true');
+        this.focus();
+
+        // Remove styling from the cell that
+        // was being edited
+        let cell = this.primaryFrame.elementAt(this.selector.cursor);
+        this.classList.remove('editing-cell');
+        cell.classList.remove('editing');
+
+        // Update the DataFrame and redraw view frame
+        this.dataFrame.putAt(this.selector.relativeCursor, event.currentTarget.value);
+        this.primaryFrame.updateViewElements();
+    }
+
     updateNumRows(){
-        console.log(`Set to ${this.numRows} rows!`);
         this.render();
     }
 
     updateNumColumns(){
-        console.log(`Set to ${this.numColumns} columns!`);
         this.render();
     }
 
@@ -138,7 +218,6 @@ class GridSheet extends HTMLElement {
     // Event Handling
     // Event Handling
     handleKeyDown(event){
-        console.log(event);
         let isSelecting = event.shiftKey;
 
         // Arrow Key to the Right
@@ -223,6 +302,31 @@ class GridSheet extends HTMLElement {
             event.preventDefault();
             event.stopPropagation();
             this.dispatchSelectionChanged();
+        }
+
+        // Enter key (for editing cell)
+        if(event.key == "Enter" && this.selector.selectionFrame.isEmpty){
+            this.onCellEdit();
+        }
+    }
+
+    handleSelectionChanged(event){
+        let infoArea = this.shadowRoot.getElementById('info-area');
+        let editArea = this.shadowRoot.getElementById('edit-area');
+        if(this.selector.selectionFrame.isEmpty){
+            // In this case, the cursor is the lone selection.
+            // update the info area to demonstrate that.
+            infoArea.querySelector('span:first-child').innerText = "Cursor";
+            editArea.value = this.dataFrame.getAt(this.selector.relativeCursor);
+        } else {
+            // Otherwise, we have selected multiple cells.
+            // Display information about the bounds of the
+            // selection and how many cells it contains
+            let from = `(${this.selector.selectionFrame.origin.x}, ${this.selector.selectionFrame.origin.y})`;
+            let to = `(${this.selector.selectionFrame.corner.x}, ${this.selector.selectionFrame.corner.y})`;
+            let text = `from: ${from} to: ${to} (${this.selector.selectionFrame.area} total cells)`;
+            infoArea.querySelector('span:first-child').innerText = "Selection";
+            editArea.value = text;
         }
     }
 
