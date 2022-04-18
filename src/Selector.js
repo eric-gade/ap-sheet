@@ -4,8 +4,8 @@
  * Handles all selection and cursor
  * interaction over a PrimaryFrame
  */
-import Point from './Point';
-import Frame from './Frame';
+import Point from './Point.js';
+import Frame from './Frame.js';
 
 class Selector {
     constructor(primaryFrame){

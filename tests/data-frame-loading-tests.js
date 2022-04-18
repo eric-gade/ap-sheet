@@ -5,11 +5,12 @@
  * and projecting (to arrays) of data from a
  * DataFrame
  */
-require('jsdom-global')();
-const Frame = require('../src/Frame').Frame;
-const DataFrame = require('../src/DataFrame').DataFrame;
-const Point = require('../src/Point').Point;
-const chai = require('chai');
+import jsdomglobal from "jsdom-global";
+jsdomglobal();
+import {Frame} from "../src/Frame.js";
+import {DataFrame} from "../src/DataFrame.js";
+import {Point} from "../src/Point.js";
+import chai from "chai";
 const assert = chai.assert;
 
 // Add a special test case for comparing Points

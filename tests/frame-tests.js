@@ -1,9 +1,9 @@
 /**
  * APSheet Frame Tests
  */
-const Frame = require('../src/Frame').Frame;
-const Point = require('../src/Point').Point;
-const chai = require('chai');
+import {Frame} from "../src/Frame.js";
+import {Point} from "../src/Point.js";
+import chai from "chai";
 const assert = chai.assert;
 
 describe('Frame Tests', () => {

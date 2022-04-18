@@ -4,11 +4,12 @@
  * Tests concerning the movement of the PrimaryFrame over
  * its given DataFrame
  */
-require('jsdom-global')();
-const PrimaryFrame = require('../src/PrimaryFrame').PrimaryFrame;
-const DataFrame = require('../src/DataFrame').DataFrame;
-const Point = require('../src/Point').Point;
-const chai = require('chai');
+import jsdomglobal from "jsdom-global";
+jsdomglobal();
+import {PrimaryFrame} from "../src/PrimaryFrame.js";
+import {DataFrame} from "../src/DataFrame.js";
+import {Point} from "../src/Point.js";
+import chai from "chai";
 const assert = chai.assert;
 
 // Add a special test case for comparing Points

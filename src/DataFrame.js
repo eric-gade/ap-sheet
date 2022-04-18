@@ -4,11 +4,11 @@
  * Represents a kind of Frame that can store
  * values at each of its Points.
  */
-import Frame from './Frame';
+import Frame from './Frame.js';
 import {
     Point,
     isCoordinate
-} from './Point';
+} from './Point.js';
 
 class DataFrame extends Frame {
     constructor(...args){

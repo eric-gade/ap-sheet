@@ -10,13 +10,14 @@
  *   the Selector frame are correct
  *   relativer to the underlying DataFrame.
  */
-require('jsdom-global')();
-const PrimaryFrame = require('../src/PrimaryFrame').PrimaryFrame;
-const Frame = require('../src/Frame').Frame;
-const DataFrame = require('../src/DataFrame').DataFrame;
-const Selector = require('../src/Selector').Selector;
-const Point = require('../src/Point').Point;
-const chai = require('chai');
+import jsdomglobal from "jsdom-global";
+jsdomglobal();
+import {PrimaryFrame} from "../src/PrimaryFrame.js";
+import {Frame} from "../src/Frame.js";
+import {DataFrame} from "../src/DataFrame.js";
+import {Selector} from "../src/Selector.js";
+import {Point} from "../src/Point.js";
+import chai from "chai";
 const assert = chai.assert;
 
 // Add a special test case for comparing Points
@@ -649,9 +650,9 @@ describe('Selector navigation tests (locked rows and columns).', () => {
 
         // first move a bit to the right
         selector.moveRightBy(20);
-        expectedCursor = new Point([10,2]);
-        expectedRelCursor = new Point([22,2]);
-        expectedAnchor = new Point([22,2]);
+        let expectedCursor = new Point([10,2]);
+        let expectedRelCursor = new Point([22,2]);
+        let expectedAnchor = new Point([22,2]);
 
         assert.pointsEqual(selector.cursor, expectedCursor);
         assert.pointsEqual(selector.relativeCursor, expectedRelCursor);
@@ -695,9 +696,9 @@ describe('Selector navigation tests (locked rows and columns).', () => {
 
         // first move a bit to the right
         selector.moveRightBy(20);
-        expectedCursor = new Point([10,2]);
-        expectedRelCursor = new Point([22,2]);
-        expectedAnchor = new Point([22,2]);
+        let expectedCursor = new Point([10,2]);
+        let expectedRelCursor = new Point([22,2]);
+        let expectedAnchor = new Point([22,2]);
 
         assert.pointsEqual(selector.cursor, expectedCursor);
         assert.pointsEqual(selector.relativeCursor, expectedRelCursor);
@@ -843,9 +844,9 @@ describe('Selector navigation tests (locked rows and columns).', () => {
 
         // first move a bit down
         selector.moveDownBy(10);
-        expectedCursor = new Point([2,5]);
-        expectedRelCursor = new Point([2,12]);
-        expectedAnchor = new Point([2,12]);
+        let expectedCursor = new Point([2,5]);
+        let expectedRelCursor = new Point([2,12]);
+        let expectedAnchor = new Point([2,12]);
 
         assert.pointsEqual(selector.cursor, expectedCursor);
         assert.pointsEqual(selector.relativeCursor, expectedRelCursor);
@@ -889,9 +890,9 @@ describe('Selector navigation tests (locked rows and columns).', () => {
 
         // first move a bit down
         selector.moveDownBy(10);
-        expectedCursor = new Point([2,5]);
-        expectedRelCursor = new Point([2,12]);
-        expectedAnchor = new Point([2,12]);
+        let expectedCursor = new Point([2,5]);
+        let expectedRelCursor = new Point([2,12]);
+        let expectedAnchor = new Point([2,12]);
 
         assert.pointsEqual(selector.cursor, expectedCursor);
         assert.pointsEqual(selector.relativeCursor, expectedRelCursor);

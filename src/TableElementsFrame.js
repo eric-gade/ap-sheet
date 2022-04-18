@@ -5,11 +5,11 @@
  * up of HTML td Elements and whose structures
  * can be made up of tr row Elements
  */
-import Frame from './Frame';
+import Frame from './Frame.js';
 import {
     isCoordinate,
     Point
-} from './Point';
+} from './Point.js';
 
 class TableElementsFrame extends Frame {
     constructor(origin, corner, options){

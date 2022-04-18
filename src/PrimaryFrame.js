@@ -11,13 +11,13 @@
  * It also holds references to an underlying DataFrame
  * and a Selector for interaction.
  */
-import Frame from './Frame';
-import DataFrame from './DataFrame';
-import TableElementsFrame from './TableElementsFrame';
+import Frame from './Frame.js';
+import DataFrame from './DataFrame.js';
+import TableElementsFrame from './TableElementsFrame.js';
 import {
     isCoordinate,
     Point
-} from './Point';
+} from './Point.js';
 
 class PrimaryFrame extends TableElementsFrame {
     constructor(dataFrame, corner, options){
