@@ -3,6 +3,7 @@ import {Selector} from "./Selector.js";
 import PrimaryFrame from "./PrimaryGridFrame.js";
 import {Point} from "./Point.js";
 import {MouseHandler} from './MouseHandler.js';
+import {ClipboardHandler} from './ClipboardHandler.js';
 
 // Simple grid-based sheet component
 const templateString = `
@@ -122,6 +123,11 @@ class GridSheet extends HTMLElement {
             // interaction and events
             this.mouseHandler = new MouseHandler(this);
             this.mouseHandler.connect();
+
+            // Attach ClipboardHandler to handle
+            // copy and paste
+            this.clipboardHandler = new ClipboardHandler(this);
+            this.clipboardHandler.connect();
         }
 
         // Event listeners
@@ -132,6 +138,7 @@ class GridSheet extends HTMLElement {
     disconnectedCallback(){
         this.observer.disconnect();
         this.mouseHandler.disconnect();
+        this.clipboardHandler.disconnect();
         this.removeEventListener('keydown', this.handleKeyDown);
         this.removeEventListener('selection-changed', this.handleSelectionChanged);
     }

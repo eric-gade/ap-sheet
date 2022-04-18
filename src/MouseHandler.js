@@ -2,7 +2,7 @@
  * MouseHandler class
  * ------------------
  * I am a controller object that gets
- * attached and initialized on a custom
+ * attached to and initialized on a custom
  * element that is serving as a sheet instance.
  * My purpose is to confgure and handle all mouse
  * and pointer events on the sheet, including
