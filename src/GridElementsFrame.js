@@ -27,7 +27,7 @@ class GridElementsFrame extends Frame {
         this.elements = [];
         this.forEachPointRow((row, rowIndex) => {
             row.forEach(point => {
-                let element = document.createElement('div');
+                let element = document.createElement('sheet-cell');
                 element.setAttribute('data-y', point.y);
                 element.setAttribute('data-x', point.x);
                 element.setAttribute('data-relative-y', point.y);
