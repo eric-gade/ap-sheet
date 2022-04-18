@@ -11,6 +11,7 @@ body {
 }
 .view-cell {
     background-color: rgba(50, 255, 150, 0.3);
+    border: 2px solid transparent;
 }
 
 #button-area {
