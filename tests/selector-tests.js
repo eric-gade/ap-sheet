@@ -12,7 +12,7 @@
  */
 import jsdomglobal from "jsdom-global";
 jsdomglobal();
-import {PrimaryFrame} from "../src/PrimaryFrame.js";
+import {PrimaryGridFrame as PrimaryFrame} from "../src/PrimaryGridFrame.js";
 import {Frame} from "../src/Frame.js";
 import {DataFrame} from "../src/DataFrame.js";
 import {Selector} from "../src/Selector.js";
