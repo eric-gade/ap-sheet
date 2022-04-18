@@ -520,7 +520,7 @@ class Selector {
      * to use as the anchor.
      */
     setAnchorToElement(anElement){
-        if(!this.primaryFrame.tdElements.includes(anElement)){
+        if(!this.primaryFrame.elements.includes(anElement)){
             throw new Error(`Element ${anElement} not included in PrimaryFrame`);
         }
         let relX = parseInt(anElement.dataset.relativeX);
@@ -543,7 +543,7 @@ class Selector {
      * to use as the cursor
      */
     setCursorToElement(anElement){
-        if(!this.primaryFrame.tdElements.includes(anElement)){
+        if(!this.primaryFrame.elements.includes(anElement)){
             throw new Error(`Element ${anElement} not included in PrimaryFrame`);
         }
         let x = parseInt(anElement.dataset.x);

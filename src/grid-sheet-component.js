@@ -2,16 +2,22 @@ import {DataFrame} from "./DataFrame.js";
 import {Selector} from "./Selector.js";
 import PrimaryFrame from "./PrimaryGridFrame.js";
 import {Point} from "./Point.js";
+import {MouseHandler} from './MouseHandler.js';
 
 // Simple grid-based sheet component
 const templateString = `
 <style>
 :host {
    display: grid;
+   user-select: none;
 }
 
 :host(:focus){
     outline: none;
+}
+
+:host(:hover){
+    cursor: cell;
 }
 
 ::slotted(*){
@@ -111,6 +117,11 @@ class GridSheet extends HTMLElement {
             // Set up the resizing observer
             this.observer = new ResizeObserver(this.onObservedResize);
             this.observer.observe(this.parentElement);
+
+            // Attach a MouseHandler to handle mouse
+            // interaction and events
+            this.mouseHandler = new MouseHandler(this);
+            this.mouseHandler.connect();
         }
 
         // Event listeners
@@ -120,6 +131,7 @@ class GridSheet extends HTMLElement {
 
     disconnectedCallback(){
         this.observer.disconnect();
+        this.mouseHandler.disconnect();
         this.removeEventListener('keydown', this.handleKeyDown);
         this.removeEventListener('selection-changed', this.handleSelectionChanged);
     }

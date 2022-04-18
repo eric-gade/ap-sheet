@@ -22,6 +22,8 @@ class SheetCell extends HTMLElement {
             this.template.content.cloneNode(true)
         );
 
+        this.isCell = true;
+
     }
 
     connectedCallback(){
