@@ -3,6 +3,7 @@ import {Selector} from "./Selector.js";
 import PrimaryFrame from "./PrimaryGridFrame.js";
 import {Point} from "./Point.js";
 import {MouseHandler} from './MouseHandler.js';
+import {KeyHandler} from './KeyHandler.js';
 import {ClipboardHandler} from './ClipboardHandler.js';
 
 // Simple grid-based sheet component
@@ -105,7 +106,6 @@ class GridSheet extends HTMLElement {
         this.dispatchSelectionChanged = this.dispatchSelectionChanged.bind(this);
 
         // Bind event handlers
-        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleSelectionChanged = this.handleSelectionChanged.bind(this);
         this.afterEditChange = this.afterEditChange.bind(this);
     }
@@ -124,6 +124,11 @@ class GridSheet extends HTMLElement {
             this.mouseHandler = new MouseHandler(this);
             this.mouseHandler.connect();
 
+            // Attach a KeyHandler to handle
+            // keydown events
+            this.keyHandler = new KeyHandler(this);
+            this.keyHandler.connect();
+
             // Attach ClipboardHandler to handle
             // copy and paste
             this.clipboardHandler = new ClipboardHandler(this);
@@ -131,15 +136,14 @@ class GridSheet extends HTMLElement {
         }
 
         // Event listeners
-        this.addEventListener('keydown', this.handleKeyDown);
         this.addEventListener('selection-changed', this.handleSelectionChanged);
     }
 
     disconnectedCallback(){
         this.observer.disconnect();
         this.mouseHandler.disconnect();
+        this.keyHandler.disconnect();
         this.clipboardHandler.disconnect();
-        this.removeEventListener('keydown', this.handleKeyDown);
         this.removeEventListener('selection-changed', this.handleSelectionChanged);
     }
 
@@ -232,101 +236,6 @@ class GridSheet extends HTMLElement {
             }
         });
         this.dispatchEvent(selectionEvent);
-    }
-
-    // Event Handling
-    // Event Handling
-    handleKeyDown(event){
-        let isSelecting = event.shiftKey;
-
-        // Arrow Key to the Right
-        if(event.key == 'ArrowRight'){
-            if(event.ctrlKey){
-                this.selector.moveToRightEnd(isSelecting);
-            } else {
-                this.selector.moveRightBy(
-                    1,
-                    isSelecting
-                );
-            }
-            event.preventDefault();
-            event.stopPropagation();
-            this.dispatchSelectionChanged();
-        }
-
-        // Arrow key to the left
-        if(event.key == 'ArrowLeft'){
-            if(event.ctrlKey){
-                this.selector.moveToLeftEnd(isSelecting);
-            } else {
-                this.selector.moveLeftBy(
-                    1,
-                    isSelecting
-                );
-            }
-            event.preventDefault();
-            event.stopPropagation();
-            this.dispatchSelectionChanged();
-        }
-
-        // Arrow key downward
-        if(event.key == 'ArrowDown'){
-            if(event.ctrlKey){
-                this.selector.moveToBottomEnd(isSelecting);
-            } else {
-                this.selector.moveDownBy(
-                    1,
-                    isSelecting
-                );
-            }
-            event.preventDefault();
-            event.stopPropagation();
-            this.dispatchSelectionChanged();
-        }
-
-        // Arrow key up
-        if(event.key == 'ArrowUp'){
-            if(event.ctrlKey){
-                this.selector.moveToTopEnd(isSelecting);
-            } else {
-                this.selector.moveUpBy(
-                    1,
-                    isSelecting
-                );
-            }
-            event.preventDefault();
-            event.stopPropagation();
-            this.dispatchSelectionChanged();
-        }
-
-        // Page up
-        if(event.key == 'PageUp'){
-            if(event.altKey){
-                this.selector.pageLeft(isSelecting);
-            } else {
-                this.selector.pageUp(isSelecting);
-            }
-            event.preventDefault();
-            event.stopPropagation();
-            this.dispatchSelectionChanged();
-        }
-
-        // Page down
-        if(event.key == 'PageDown'){
-            if(event.altKey){
-                this.selector.pageRight(isSelecting);
-            } else {
-                this.selector.pageDown(isSelecting);
-            }
-            event.preventDefault();
-            event.stopPropagation();
-            this.dispatchSelectionChanged();
-        }
-
-        // Enter key (for editing cell)
-        if(event.key == "Enter" && this.selector.selectionFrame.isEmpty){
-            this.onCellEdit();
-        }
     }
 
     handleSelectionChanged(event){
