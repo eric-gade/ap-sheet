@@ -3,8 +3,6 @@ A lazy-loading, spreadsheet-like Table
 
 APSheet presents a Table that can be navigated like a spreadsheet, and whose underlying data can be loaded remotely.
 
-See the [Docs](docs/) for more information.
-
 ## Building and Testing ##
 The following build instructions assume a node environment that has already installed the dependencies listed in the [package file located here](../../package.json).
 
@@ -12,10 +10,11 @@ The following build instructions assume a node environment that has already inst
 1. Install Mocha globally within your node environment `npm install -g mocha`.
 2. Install Webpack globalls within your node environment `npm install -g webpack-cli`
 3. Build the bundle from the source files: `webpack`
-4. Load the example [webcomponent index page](./index.html) in any browser
+4. Run the root directory of the repository in a local webserver, for example using `python3 -m http.server`
+5. Load the example [webcomponent index page](http://localhost:8000/examples/index.html) (if using Python's `http.server`) in any browser
 
 ### Test Steps ###
-Follow the build steps above, then run `mocha --require esm ./tests/`
+Follow the build steps above, then run `npm test`
 
 ## About Demo Component ##
 The Webcomponent (a Custom Element) used by the demo index.html file in this directory is currently only for testing and demonstration purposes
