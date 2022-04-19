@@ -5,6 +5,7 @@ import {Point} from "./Point.js";
 import {MouseHandler} from './MouseHandler.js';
 import {KeyHandler} from './KeyHandler.js';
 import {ClipboardHandler} from './ClipboardHandler.js';
+import {Frame} from "./Frame.js";
 
 // Simple grid-based sheet component
 const templateString = `
@@ -96,12 +97,14 @@ class GridSheet extends HTMLElement {
         this.dataFrame.forEachPoint(point => {
             this.dataFrame.putAt(point, `${point.x}, ${point.y}`);
         });
+        this.dataFrame.callback = this.onDataChanged.bind(this);
         this.primaryFrame = new PrimaryFrame(this.dataFrame, [0,0]);
         this.selector = new Selector(this.primaryFrame);
 
         // Bind instace methods
         this.onObservedResize = this.onObservedResize.bind(this);
         this.onCellEdit = this.onCellEdit.bind(this);
+        this.onDataChanged = this.onDataChanged.bind(this);
         this.render = this.render.bind(this);
         this.dispatchSelectionChanged = this.dispatchSelectionChanged.bind(this);
 
@@ -154,7 +157,28 @@ class GridSheet extends HTMLElement {
         } else if(name == "columns"){
             this.numColumns = parseInt(newVal);
             this.updateNumColumns();
+        } else if(name == "expands"){
+            if(newVal == "true"){
+                this.observer.connect();
+                this.render();
+            } else {
+                this.observer.disconnect();
+                this.render();
+            }
         }
+    }
+
+    onDataChanged(frame){
+        if(frame.isPoint){
+            frame = new Frame(frame, frame);
+        }
+        let event = new CustomEvent('data-updated', {
+            detail: {
+                frames: [frame]
+            }
+        });
+        this.dispatchEvent(event);
+        this.primaryFrame.updateViewElements();
     }
 
     onObservedResize(info){
@@ -261,7 +285,8 @@ class GridSheet extends HTMLElement {
     static get observedAttributes(){
         return [
             "rows",
-            "columns"
+            "columns",
+            "expands"
         ];
     }
 }

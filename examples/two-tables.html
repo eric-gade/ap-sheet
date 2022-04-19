@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Double Connected Tables</title>
+        <link rel="stylesheet" href="style.css">
+        <script type="module" src="../src/GridSheet.js"></script>
+        <script type="module" src="../src/SheetCell.js"></script>
+        <script type="module" src="../src/Conduit.js"></script>
+        <script type="module" src="../src/Frame.js"></script>
+        <style>
+         my-grid:first-child {
+             margin-right: 50px;
+         }
+         #container {
+             display: flex;
+             flex-direction: row;
+             align-items: baseline;
+         }
+        </style>
+    </head>
+    <body>
+        <div id="container">
+        <my-grid class="spreadsheet" id="table1" rows="5" columns="3">
+        </my-grid>
+        <my-grid class="spreadsheet" id="table2" rows="4" columns="4">
+        </my-grid>
+        </div>
+        <p>
+            In this example, there is a conduit from a single Frame
+            in the left table that updates into the top left single cell
+            of the right table, adding all of the point values.
+        </p>
+    </body>
+    <script type="module">
+     import Frame from "../src/Frame.js";
+     import Conduit from "../src/Conduit.js";
+     document.addEventListener('DOMContentLoaded', () => {
+         let table1 = document.getElementById('table1');
+         table1.focus();
+         let table2 = document.getElementById('table2');
+         let sourceFrame = new Frame([1,2], [2,3]);
+         let destFrame = new Frame([0,0], [0,0]);
+
+         // Add a Conduit
+         let conduit = new Conduit(table1, sourceFrame, table2, destFrame, (frame, sheet) => {
+             let data = sheet.dataFrame.getDataArrayForFrame(frame);
+             let result = 0;
+             console.group('callback');
+             data.forEach(row => {
+                 data.forEach(val => {
+                     result += parseInt(val);
+                     console.log(val);
+                 });
+             });
+             console.groupEnd();
+             return result;
+         });
+         conduit.connect();
+     });
+    </script>
+</html>

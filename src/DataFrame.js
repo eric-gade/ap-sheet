@@ -19,6 +19,10 @@ class DataFrame extends Frame {
         // Point
         this.store = {};
 
+        // A callback that is triggered
+        // when data is updated in the DataFrame
+        this.callback = null;
+
         // Bind instance methods
         this.loadFromArray = this.loadFromArray.bind(this);
         this.putAt = this.putAt.bind(this);
@@ -37,7 +41,7 @@ class DataFrame extends Frame {
      * @param {Object} value - The object
      * to store.
      */
-    putAt(location, value){
+    putAt(location, value, notify=true){
         let x, y, key;
         if(location.isPoint){
             x = location.x;
@@ -51,6 +55,9 @@ class DataFrame extends Frame {
             throw "Invalid Point or Coordinate";
         }
         this.store[key] = value;
+        if(notify && this.callback){
+            this.callback(location);
+        }
     }
 
     /**
@@ -121,10 +128,14 @@ class DataFrame extends Frame {
                 ];
                 this.putAt(
                     adjustedCoord,
-                    value
+                    value,
+                    false
                 );
             });
         });
+        if(this.callback){
+            this.callback(comparisonFrame);
+        }
     }
 
     /**
