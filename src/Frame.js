@@ -36,6 +36,8 @@ class Frame {
         this.forEachPoint = this.forEachPoint.bind(this);
         this.forEachCoordinate = this.forEachCoordinate.bind(this);
         this.mapEachPoint = this.mapEachPoint.bind(this);
+        this.mapEachPointRow = this.mapEachPointRow.bind(this);
+        this.mapEachCoordinateRow = this.mapEachCoordinateRow.bind(this);
         this.mapEachCoordinate = this.mapEachCoordinate.bind(this);
         this.forEachCoordinateRow = this.forEachCoordinateRow.bind(this);
         this.forEachPointRow = this.forEachPointRow.bind(this);
@@ -336,6 +338,32 @@ class Frame {
     }
 
     /**
+     * I loop through each "row" of Coordinates inside
+     * myself and call the passed-in callback
+     * with the array of Coordinates and the row
+     * index as the two aarguments.
+     * I return a new array which is the result of calling
+     * the specified callback on each row.
+     * @param {function} callback - A function whose
+     * arguments will be an array of Coordinates and
+     * the row index
+     */
+    mapEachCoordinateRow(callback){
+        if(this.isEmpty){
+            return;
+        }
+        let result = [];
+        for(let y = this.origin.y; y <= this.corner.y; y++){
+            let row = [];
+            for(let x = this.origin.x; x <= this.corner.x; x++){
+                row.push([x,y]);
+            }
+            result.push(callback(row, y));
+        }
+        return result;
+    }
+
+    /**
      * I loop through each "row" of Points inside
      * myself and call the passed-in callback
      * with the array of Points and the row
@@ -350,6 +378,26 @@ class Frame {
                 return new Point(col);
             });
             callback(pointRow, rowIndex);
+        });
+    }
+
+    /**
+     * I loop through each "row" of Points inside
+     * myself and call the passed-in callback
+     * with the array of Points and the row
+     * index as the two aarguments.
+     * I respond with a new array containing the result
+     * of calling the callback on each row.
+     * @param {function} callback - A function whose
+     * arguments will be an array of Points and
+     * the row index
+     */
+    mapEachPointRow(callback){
+        return this.mapEachCoordinateRow((row, rowIndex) => {
+            let pointRow = row.map(col => {
+                return new Point(col);
+            });
+            return callback(pointRow);
         });
     }
 
