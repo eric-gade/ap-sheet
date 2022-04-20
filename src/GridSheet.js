@@ -1,4 +1,4 @@
-import {DBDataFrame as DataFrame} from "./DBDataFrame.js";
+import {DataFrame} from "./DataFrame.js";
 import {Selector} from "./Selector.js";
 import PrimaryFrame from "./PrimaryGridFrame.js";
 import {Point} from "./Point.js";
@@ -93,13 +93,21 @@ class GridSheet extends HTMLElement {
         this.numColumns = 1;
 
         // Set up the internal frames
-        this.dataFrame = new DataFrame([0,0], [1000,1000], "fart"); // Default empty
-        this.dataFrame.forEachPoint(point => {
-            this.dataFrame.putAt(point, `${point.x}, ${point.y}`);
+        this.dataFrame = new DataFrame([0,0], [1000,1000]);
+        let initialData = this.dataFrame.mapEachPointRow(row => {
+            return row.map(point => {
+                return `${point.x}, ${point.y}`;
+            });
         });
+        this.dataFrame.loadFromArray(initialData);
         this.dataFrame.callback = this.onDataChanged.bind(this);
         this.primaryFrame = new PrimaryFrame(this.dataFrame, [0,0]);
         this.selector = new Selector(this.primaryFrame);
+
+        // Initialize resize observer here.
+        // We do this so that any observed attributes will
+        // be able to deal with connecting the observer.
+        this.observer = new ResizeObserver(this.onObservedResize.bind(this));
 
         // Bind instace methods
         this.onObservedResize = this.onObservedResize.bind(this);
@@ -119,7 +127,6 @@ class GridSheet extends HTMLElement {
             this.setAttribute('tabindex', '-1');
 
             // Set up the resizing observer
-            this.observer = new ResizeObserver(this.onObservedResize);
             this.observer.observe(this.parentElement);
 
             // Attach a MouseHandler to handle mouse
@@ -159,10 +166,10 @@ class GridSheet extends HTMLElement {
             this.updateNumColumns();
         } else if(name == "expands"){
             if(newVal == "true"){
-                this.observer.connect();
+                this.observer.observe(this.parentElement);
                 this.render();
             } else {
-                this.observer.disconnect();
+                this.observer.unobserve(this.parentElement);
                 this.render();
             }
         }
