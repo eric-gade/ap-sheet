@@ -51,15 +51,12 @@ class Conduit extends Object {
     }
 
     send(frame, sheet){
-        console.group('Conduit:');
         if(this.transform){
-            console.log(this.transform(frame, sheet));
+            let data = this.transform(frame, sheet);
+            this.toSheet.dataFrame.loadFromArray(data, this.toFrame.origin);
         } else {
-            console.log(frame, sheet);
+            console.warn("What to do if there's no transform specified?");
         }
-        console.groupEnd();
-        
-        this.toSheet.dataFrame.loadFromArray([[500]], this.toFrame.origin);
     }
 };
 

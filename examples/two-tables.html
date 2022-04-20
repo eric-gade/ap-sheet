@@ -43,17 +43,18 @@
 
          // Add a Conduit
          let conduit = new Conduit(table1, sourceFrame, table2, destFrame, (frame, sheet) => {
-             let data = sheet.dataFrame.getDataArrayForFrame(frame);
+             let data = sheet.dataFrame.getDataArrayForFrame(sourceFrame);
              let result = 0;
              console.group('callback');
+             console.log(data);
              data.forEach(row => {
-                 data.forEach(val => {
+                 row.forEach(val => {
                      result += parseInt(val);
                      console.log(val);
                  });
              });
              console.groupEnd();
-             return result;
+             return [[result]];
          });
          conduit.connect();
      });
