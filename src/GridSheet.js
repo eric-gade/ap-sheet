@@ -1,4 +1,4 @@
-import {DataFrame} from "./DataFrame.js";
+import {DBDataFrame as DataFrame} from "./DBDataFrame.js";
 import {Selector} from "./Selector.js";
 import PrimaryFrame from "./PrimaryGridFrame.js";
 import {Point} from "./Point.js";
@@ -93,7 +93,7 @@ class GridSheet extends HTMLElement {
         this.numColumns = 1;
 
         // Set up the internal frames
-        this.dataFrame = new DataFrame([0,0], [1000,1000]); // Default empty
+        this.dataFrame = new DataFrame([0,0], [1000,1000], "fart"); // Default empty
         this.dataFrame.forEachPoint(point => {
             this.dataFrame.putAt(point, `${point.x}, ${point.y}`);
         });
