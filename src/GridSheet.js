@@ -1,4 +1,5 @@
 import {DataFrame} from "./DataFrame.js";
+import {DataStore} from "./persistence/DataStore.js";
 import {Selector} from "./Selector.js";
 import PrimaryFrame from "./PrimaryGridFrame.js";
 import {Point} from "./Point.js";
@@ -101,6 +102,7 @@ class GridSheet extends HTMLElement {
         });
         this.dataFrame.loadFromArray(initialData);
         this.dataFrame.callback = this.onDataChanged.bind(this);
+        this.dataStore = new DataStore(this.dataFrame);
         this.primaryFrame = new PrimaryFrame(this.dataFrame, [0,0]);
         this.selector = new Selector(this.primaryFrame);
 
@@ -176,15 +178,20 @@ class GridSheet extends HTMLElement {
     }
 
     onDataChanged(frame){
-        if(frame.isPoint){
-            frame = new Frame(frame, frame);
-        }
-        let event = new CustomEvent('data-updated', {
-            detail: {
-                frames: [frame]
-            }
-        });
-        this.dispatchEvent(event);
+
+        // Commenting out for now.
+        // for the moment, we simply need to
+        // know that any data has changed and to
+        // update the primaryFrame accordingly
+        // if(frame.isPoint){
+        //     frame = new Frame(frame, frame);
+        // }
+        // let event = new CustomEvent('data-updated', {
+        //     detail: {
+        //         frames: [frame]
+        //     }
+        // });
+        // this.dispatchEvent(event);
         this.primaryFrame.updateViewElements();
     }
 
