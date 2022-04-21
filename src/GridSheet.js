@@ -6,6 +6,11 @@ import {MouseHandler} from './MouseHandler.js';
 import {KeyHandler} from './KeyHandler.js';
 import {ClipboardHandler} from './ClipboardHandler.js';
 import {Frame} from "./Frame.js";
+import {RowTab} from "./Tab.js";
+
+// Add any components
+window.customElements.define('row-tab', RowTab);
+
 
 // Simple grid-based sheet component
 const templateString = `
@@ -68,6 +73,7 @@ const templateString = `
     margin-left: 8px;
     margin-right: 6px;
 }
+
 </style>
 <div id="edit-bar">
     <div id="info-area"><span>Cursor</span><span>&rarr;</span></div>
@@ -90,7 +96,11 @@ class GridSheet extends HTMLElement {
         this.cellWidth = 150;
         this.cellHeight = 36;
         this.numRows = 1;
+        this.numLockedRows = 0;
+        this.numLockedColumns = 0;
         this.numColumns = 1;
+        this.showRowTabs = true;
+        this.showColumnTabs = true;
 
         // Set up the internal frames
         this.dataFrame = new DataFrame([0,0], [1000,1000]);
@@ -114,7 +124,11 @@ class GridSheet extends HTMLElement {
         this.onCellEdit = this.onCellEdit.bind(this);
         this.onDataChanged = this.onDataChanged.bind(this);
         this.render = this.render.bind(this);
+        this.renderGridTemplate = this.renderGridTemplate.bind(this);
+        this.renderRowTabs = this.renderRowTabs.bind(this);
         this.dispatchSelectionChanged = this.dispatchSelectionChanged.bind(this);
+        this.updateLockedRows = this.updateLockedRows.bind(this);
+        this.updateLockedColumns = this.updateLockedColumns.bind(this);
 
         // Bind event handlers
         this.handleSelectionChanged = this.handleSelectionChanged.bind(this);
@@ -164,6 +178,7 @@ class GridSheet extends HTMLElement {
         } else if(name == "columns"){
             this.numColumns = parseInt(newVal);
             this.updateNumColumns();
+            
         } else if(name == "expands"){
             if(newVal == "true"){
                 this.observer.observe(this.parentElement);
@@ -172,6 +187,12 @@ class GridSheet extends HTMLElement {
                 this.observer.unobserve(this.parentElement);
                 this.render();
             }
+        } else if(name == "lockedrows"){
+            this.numLockedRows = parseInt(newVal);
+            this.updateLockedRows();
+        } else if (name =="lockedcolumns"){
+            this.numLockedColumns = parseInt(newVal);
+            this.updateLockedColumns();
         }
     }
 
@@ -185,7 +206,7 @@ class GridSheet extends HTMLElement {
             }
         });
         this.dispatchEvent(event);
-        this.primaryFrame.updateViewElements();
+        this.primaryFrame.updateCellContents();
     }
 
     onObservedResize(info){
@@ -232,10 +253,14 @@ class GridSheet extends HTMLElement {
 
         // Update the DataFrame and redraw view frame
         this.dataFrame.putAt(this.selector.relativeCursor, event.currentTarget.value);
-        this.primaryFrame.updateViewElements();
+        this.primaryFrame.updateCellContents();
     }
 
     updateNumRows(){
+        this.render();
+    }
+
+    updateLockedRows(){
         this.render();
     }
 
@@ -243,18 +268,54 @@ class GridSheet extends HTMLElement {
         this.render();
     }
 
+    updateLockedColumns(){
+        this.render();
+    }
+
     render(){
         this.innerHTML = "";
-        this.style.gridTemplateColumns = `repeat(${this.numColumns}, ${this.cellWidth}px)`;
+        //this.style.gridTemplateColumns = `repeat(${this.numColumns}, ${this.cellWidth}px)`;
+        this.renderGridTemplate();
+        if(this.showRowTabs){
+            this.renderRowTabs();
+        }
         let newCorner = new Point([this.numColumns-1, this.numRows-1]);
         this.primaryFrame = new PrimaryFrame(this.dataFrame, newCorner);
         this.primaryFrame.initialBuild();
         this.primaryFrame.labelElements();
         this.append(...this.primaryFrame.elements);
+        this.primaryFrame.lockRows(this.numLockedRows);
+        this.primaryFrame.lockColumns(this.numLockedColumns);
         this.primaryFrame.updateCellContents();
         this.selector.primaryFrame = this.primaryFrame;
         this.selector.drawCursor();
         this.selector.updateElements();
+    }
+
+    renderGridTemplate(){
+        let gridColumns = this.numColumns;
+        if(this.showColumnTabs){
+            gridColumns += 1;
+        }
+        let gridRows = this.numRows;
+        if(this.showRowTabs){
+            gridRows += 1;
+        }
+        this.style.gridTemplateRows = `repeat(${gridRows}, auto)`;
+        this.style.gridTemplateColumns = `repeat(${gridColumns}, auto)`;
+    }
+
+    renderRowTabs(){
+        Array.from(this.shadowRoot.querySelectorAll('row-tab')).forEach(tab => {
+            tab.remove();
+        });
+        for(let i = 1; i <= this.numRows; i++){
+            let tab = document.createElement('row-tab');
+            tab.style.backgroundColor = "green";
+            tab.style.gridRowStart = `${i}`;
+            tab.style.gridRowEnd = `${i + 1}`;
+            this.shadowRoot.append(tab);
+        }
     }
 
     dispatchSelectionChanged(){
@@ -293,6 +354,8 @@ class GridSheet extends HTMLElement {
         return [
             "rows",
             "columns",
+            "lockedrows",
+            "lockedcolumns",
             "expands"
         ];
     }
