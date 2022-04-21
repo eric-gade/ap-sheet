@@ -6,10 +6,11 @@ import {MouseHandler} from './MouseHandler.js';
 import {KeyHandler} from './KeyHandler.js';
 import {ClipboardHandler} from './ClipboardHandler.js';
 import {Frame} from "./Frame.js";
-import {RowTab} from "./Tab.js";
+import {RowTab, ColumnTab} from "./Tab.js";
 
 // Add any components
 window.customElements.define('row-tab', RowTab);
+window.customElements.define('column-tab', ColumnTab);
 
 
 // Simple grid-based sheet component
@@ -75,10 +76,10 @@ const templateString = `
 }
 
 </style>
-<div id="edit-bar">
+<!-- <div id="edit-bar">
     <div id="info-area"><span>Cursor</span><span>&rarr;</span></div>
     <input id="edit-area" type="text" disabled="true"/>
-</div>
+</div> -->
 <slot></slot>
 `;
 
@@ -126,6 +127,7 @@ class GridSheet extends HTMLElement {
         this.render = this.render.bind(this);
         this.renderGridTemplate = this.renderGridTemplate.bind(this);
         this.renderRowTabs = this.renderRowTabs.bind(this);
+        this.renderColumnTabs = this.renderColumnTabs.bind(this);
         this.dispatchSelectionChanged = this.dispatchSelectionChanged.bind(this);
         this.updateLockedRows = this.updateLockedRows.bind(this);
         this.updateLockedColumns = this.updateLockedColumns.bind(this);
@@ -279,6 +281,12 @@ class GridSheet extends HTMLElement {
         if(this.showRowTabs){
             this.renderRowTabs();
         }
+        if(this.showColumnTabs){
+            this.renderColumnTabs();
+        }
+        if(this.showColumnTabs && this.showRowTabs){
+            this.renderTopCorner();
+        }
         let newCorner = new Point([this.numColumns-1, this.numRows-1]);
         this.primaryFrame = new PrimaryFrame(this.dataFrame, newCorner);
         this.primaryFrame.initialBuild();
@@ -293,29 +301,72 @@ class GridSheet extends HTMLElement {
     }
 
     renderGridTemplate(){
-        let gridColumns = this.numColumns;
         if(this.showColumnTabs){
-            gridColumns += 1;
+            let totalCols = this.numColumns;
+            if(this.showRowTabs){
+                //totalCols += 1;
+                this.style.gridTemplateColumns = `0.3fr repeat(${totalCols}, 1fr)`;
+            } else {
+                this.style.gridTemplateColumns = `repeat(${totalCols}, 1fr)`;
+            }
         }
-        let gridRows = this.numRows;
         if(this.showRowTabs){
-            gridRows += 1;
+            let totalRows = this.numRows;
+            if(this.showColumnTabs){
+                totalRows += 1;
+            }
+            this.style.gridTemplateRows = `repeat(${totalRows}, 1fr)`;
         }
-        this.style.gridTemplateRows = `repeat(${gridRows}, auto)`;
-        this.style.gridTemplateColumns = `repeat(${gridColumns}, auto)`;
     }
 
     renderRowTabs(){
         Array.from(this.shadowRoot.querySelectorAll('row-tab')).forEach(tab => {
             tab.remove();
         });
+        let differential = 0;
+        if(this.showColumnTabs){
+            differential += 1;
+        }
         for(let i = 1; i <= this.numRows; i++){
             let tab = document.createElement('row-tab');
-            tab.style.backgroundColor = "green";
-            tab.style.gridRowStart = `${i}`;
-            tab.style.gridRowEnd = `${i + 1}`;
+            tab.style.gridRowStart = `${i + differential}`;
+            tab.style.gridRowEnd = `${i + 1 + differential}`;
             this.shadowRoot.append(tab);
         }
+    }
+
+    renderColumnTabs(){
+        Array.from(this.shadowRoot.querySelectorAll('column-tab')).forEach(tab => {
+            tab.remove();
+        });
+        let differential = 0;
+        if(this.showRowTabs){
+            differential += 1;
+        }
+        let previousNode = this.shadowRoot.querySelector('slot');
+        for(let i = 1; i <= this.numColumns; i++){
+            let tab = document.createElement('column-tab');
+            tab.style.backgroundColor = "green";
+            tab.style.gridColumnStart = `${i + differential}`;
+            tab.style.gridColumnEnd = `${i + differential + 1}`;
+            tab.style.gridRowStart = "1";
+            tab.style.gridRowEnd = "2";
+            this.shadowRoot.insertBefore(tab, previousNode);
+            previousNode = tab;
+        }
+    }
+
+    renderTopCorner(){
+        // Insert the corner element where the column and
+        // tab rows meet. This prevents wonky grid insertion
+        // of the sheet cells.
+        let element = document.createElement('div');
+        element.id = "top-corner";
+        element.style.backgroundColor = "transparent";
+        element.style.gridColumn = "1 / 2";
+        element.style.gridRow = "1 / 2";
+        this.shadowRoot.insertBefore(element, this.shadowRoot.querySelector('slot'));
+        
     }
 
     dispatchSelectionChanged(){
