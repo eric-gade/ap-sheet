@@ -4,7 +4,7 @@ import PrimaryFrame from "./PrimaryGridFrame.js";
 import {Point} from "./Point.js";
 import {MouseHandler} from './MouseHandler.js';
 import {KeyHandler} from './KeyHandler.js';
-import {ClipboardHandler} from './ClipboardHandler.js';
+import {SyntheticClipboardHandler} from './ClipboardHandler.js';
 import {Frame} from "./Frame.js";
 
 // Simple grid-based sheet component
@@ -68,12 +68,20 @@ const templateString = `
     margin-left: 8px;
     margin-right: 6px;
 }
+#hidden-paste-area {
+    position: absolute;
+    width: 0px;
+    height: 0px;
+}
+
 </style>
+
 <div id="edit-bar">
     <div id="info-area"><span>Cursor</span><span>&rarr;</span></div>
     <input id="edit-area" type="text" disabled="true"/>
 </div>
 <slot></slot>
+<div id="hidden-paste-area" contenteditable="true"></div>
 `;
 
 class GridSheet extends HTMLElement {
@@ -81,7 +89,7 @@ class GridSheet extends HTMLElement {
         super();
         this.template = document.createElement('template');
         this.template.innerHTML = templateString;
-        this.attachShadow({mode: 'open'});
+        this.attachShadow({mode: 'open', delegatesFocus: true});
         this.shadowRoot.appendChild(
             this.template.content.cloneNode(true)
         );
@@ -141,7 +149,7 @@ class GridSheet extends HTMLElement {
 
             // Attach ClipboardHandler to handle
             // copy and paste
-            this.clipboardHandler = new ClipboardHandler(this);
+            this.clipboardHandler = new SyntheticClipboardHandler(this);
             this.clipboardHandler.connect();
         }
 
