@@ -7,11 +7,12 @@ import {KeyHandler} from './KeyHandler.js';
 import {ClipboardHandler} from './ClipboardHandler.js';
 import {Frame} from "./Frame.js";
 import {RowTab, ColumnTab} from "./Tab.js";
+import {Selection} from './Selection.js';
 
 // Add any components
 window.customElements.define('row-tab', RowTab);
 window.customElements.define('column-tab', ColumnTab);
-
+window.customElements.define('sheet-selection', Selection);
 
 // Simple grid-based sheet component
 const templateString = `
@@ -88,6 +89,7 @@ const templateString = `
     <input id="edit-area" type="text" disabled="true"/>
 </div>
 <slot></slot>
+<sheet-selection></sheet-selection>
 `;
 
 class GridSheet extends HTMLElement {
@@ -225,7 +227,7 @@ class GridSheet extends HTMLElement {
         // horizontal (column) axis
         let rect = this.getBoundingClientRect();
         let currentCellWidth = this.cellWidth;
-        let newColumns = Math.floor(rect.width / currentCellWidth);
+        let newColumns = Math.floor((rect.width) / currentCellWidth);
         this.setAttribute('columns', newColumns);
         this.render();
     }
@@ -308,7 +310,7 @@ class GridSheet extends HTMLElement {
 
     renderGridTemplate(){
         // Column lines
-        let col = `repeat(${this.numColumns}, [cell-col-start] 1fr)`;
+        let col = `repeat(${this.numColumns}, [cell-col-start] ${this.cellWidth}px)`;
         if(this.showRowTabs){
             col = `[rtab-start] 0.3fr ${col}`;
         }
@@ -328,10 +330,6 @@ class GridSheet extends HTMLElement {
         Array.from(this.shadowRoot.querySelectorAll('row-tab')).forEach(tab => {
             tab.remove();
         });
-        let differential = 0;
-        if(this.showColumnTabs){
-            differential += 1;
-        }
         for(let i = 1; i <= this.numRows; i++){
             let tab = document.createElement('row-tab');
             tab.style.gridColumn = `rtab-start / span 1`;
@@ -346,10 +344,6 @@ class GridSheet extends HTMLElement {
         Array.from(this.shadowRoot.querySelectorAll('column-tab')).forEach(tab => {
             tab.remove();
         });
-        let differential = 0;
-        if(this.showRowTabs){
-            differential += 1;
-        }
         let previousNode = this.shadowRoot.querySelector('slot');
         for(let i = 1; i <= this.numColumns; i++){
             let tab = document.createElement('column-tab');
@@ -398,6 +392,10 @@ class GridSheet extends HTMLElement {
             infoArea.querySelector('span:first-child').innerText = "Selection";
             editArea.value = text;
         }
+
+        // Update the selection view element
+        let sel = this.shadowRoot.querySelector('sheet-selection');
+        sel.updateFromSelector(this.selector);
     }
 
     static get observedAttributes(){
