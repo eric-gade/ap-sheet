@@ -128,6 +128,7 @@ class GridSheet extends HTMLElement {
         this.renderGridTemplate = this.renderGridTemplate.bind(this);
         this.renderRowTabs = this.renderRowTabs.bind(this);
         this.renderColumnTabs = this.renderColumnTabs.bind(this);
+        this.renderGridTemplateAreas = this.renderGridTemplateAreas.bind(this);
         this.dispatchSelectionChanged = this.dispatchSelectionChanged.bind(this);
         this.updateLockedRows = this.updateLockedRows.bind(this);
         this.updateLockedColumns = this.updateLockedColumns.bind(this);
@@ -367,6 +368,48 @@ class GridSheet extends HTMLElement {
         element.style.gridRow = "1 / 2";
         this.shadowRoot.insertBefore(element, this.shadowRoot.querySelector('slot'));
         
+    }
+
+    renderGridTemplateAreas(){
+        let areaLines = [];
+        let totalCols = this.numColumns;
+        if(this.showRowTabs){
+            totalCols += 1;
+        }
+        let totalRows = this.numRows;
+        if(this.showColumnTabs){
+            totalRows += 1;
+        }
+        if(this.showEditorBar){
+            totalRows += 1;
+            var line = `"`;
+            for(let i = 0; i < totalCol; i++){
+                line += `tbar `;
+            }
+            line = `${line.trim()}"`;
+            areaLines.push(line);
+        }
+        if(this.showColumnTabs){
+            var line = `"`;
+            for(let i = 0; i < totalCols; i++){
+                line += `ctab `;
+            }
+            line = `${line.trim()}"`;
+            areaLines.push(line);
+        }
+        // Now do the cell area
+        for(let i = 0; i < this.numRows; i++){
+            var line = `"`;
+            if(this.showRowTabs){
+                line += `rtab `;
+            }
+            for(let j = 0; j < this.numColumns; j++){
+                line += `cell `;
+            }
+            line = `${line.trim()}"`;
+            areaLines.push(line);
+        }
+        return areaLines.join("\n");
     }
 
     dispatchSelectionChanged(){
