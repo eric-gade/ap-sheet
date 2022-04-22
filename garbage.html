@@ -68,6 +68,15 @@
                      el.textContent = `${colNum}, ${rowNum}`;
                      }
              }
+
+             // Example selection frame
+             let div = document.createElement('div');
+             div.style.backgroundColor = "rgba(220, 220, 220, 0.3)";
+             div.style.gridColumnStart = "cell-col-start 2";
+             div.style.gridColumnEnd = "cell-col-start -1";
+             div.style.gridRowStart = "cell-row-start 1";
+             div.style.gridRowEnd = "cell-row-start -1";
+             grid.append(div);
          });
         </script>
     </body>

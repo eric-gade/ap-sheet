@@ -38,6 +38,13 @@ const templateString = `
     text-overflow: ellipses;
 }
 
+::slotted(sheet-cell){
+    grid-column-start: var(--col-start);
+    grid-column-end: span 1;
+    grid-row-start: var(--row-start);
+    grid-row-end: span 1;
+}
+
 #edit-bar {
     display: flex;
     width: 1fr;
@@ -76,10 +83,10 @@ const templateString = `
 }
 
 </style>
-<!-- <div id="edit-bar">
+<div id="edit-bar" style="grid-column: 1 / -1; grid-row: span 1;">
     <div id="info-area"><span>Cursor</span><span>&rarr;</span></div>
     <input id="edit-area" type="text" disabled="true"/>
-</div> -->
+</div>
 <slot></slot>
 `;
 
@@ -128,7 +135,6 @@ class GridSheet extends HTMLElement {
         this.renderGridTemplate = this.renderGridTemplate.bind(this);
         this.renderRowTabs = this.renderRowTabs.bind(this);
         this.renderColumnTabs = this.renderColumnTabs.bind(this);
-        this.renderGridTemplateAreas = this.renderGridTemplateAreas.bind(this);
         this.dispatchSelectionChanged = this.dispatchSelectionChanged.bind(this);
         this.updateLockedRows = this.updateLockedRows.bind(this);
         this.updateLockedColumns = this.updateLockedColumns.bind(this);
@@ -277,7 +283,6 @@ class GridSheet extends HTMLElement {
 
     render(){
         this.innerHTML = "";
-        //this.style.gridTemplateColumns = `repeat(${this.numColumns}, ${this.cellWidth}px)`;
         this.renderGridTemplate();
         if(this.showRowTabs){
             this.renderRowTabs();
@@ -302,22 +307,21 @@ class GridSheet extends HTMLElement {
     }
 
     renderGridTemplate(){
-        if(this.showColumnTabs){
-            let totalCols = this.numColumns;
-            if(this.showRowTabs){
-                //totalCols += 1;
-                this.style.gridTemplateColumns = `0.3fr repeat(${totalCols}, 1fr)`;
-            } else {
-                this.style.gridTemplateColumns = `repeat(${totalCols}, 1fr)`;
-            }
-        }
+        // Column lines
+        let col = `repeat(${this.numColumns}, [cell-col-start] 1fr)`;
         if(this.showRowTabs){
-            let totalRows = this.numRows;
-            if(this.showColumnTabs){
-                totalRows += 1;
-            }
-            this.style.gridTemplateRows = `repeat(${totalRows}, 1fr)`;
+            col = `[rtab-start] 0.3fr ${col}`;
         }
+        this.style.gridTemplateColumns = col;
+
+        // Row lines
+        let row = `repeat(${this.numRows}, [cell-row-start] 1fr)`;
+        if(this.showColumnTabs){
+            row = `[ctab-start] 1fr ${row}`;
+        }
+        row = `[header-start] 1fr ${row}`;
+        this.style.gridTemplateRows = row;
+        
     }
 
     renderRowTabs(){
@@ -330,9 +334,11 @@ class GridSheet extends HTMLElement {
         }
         for(let i = 1; i <= this.numRows; i++){
             let tab = document.createElement('row-tab');
-            tab.style.gridRowStart = `${i + differential}`;
-            tab.style.gridRowEnd = `${i + 1 + differential}`;
+            tab.style.gridColumn = `rtab-start / span 1`;
+            tab.style.gridRow = `cell-row-start ${i} / span 1`;
             this.shadowRoot.append(tab);
+            tab.setAttribute('data-y', i);
+            tab.setAttribute('data-relative-y', i);
         }
     }
 
@@ -347,13 +353,12 @@ class GridSheet extends HTMLElement {
         let previousNode = this.shadowRoot.querySelector('slot');
         for(let i = 1; i <= this.numColumns; i++){
             let tab = document.createElement('column-tab');
-            tab.style.backgroundColor = "green";
-            tab.style.gridColumnStart = `${i + differential}`;
-            tab.style.gridColumnEnd = `${i + differential + 1}`;
-            tab.style.gridRowStart = "1";
-            tab.style.gridRowEnd = "2";
+            tab.style.gridRow = 'ctab-start / span 1';
+            tab.style.gridColumn = `cell-col-start ${i} / span 1`;
             this.shadowRoot.insertBefore(tab, previousNode);
             previousNode = tab;
+            tab.setAttribute("data-x", i);
+            tab.setAttribute("data-relative-x", i);
         }
     }
 
@@ -361,55 +366,6 @@ class GridSheet extends HTMLElement {
         // Insert the corner element where the column and
         // tab rows meet. This prevents wonky grid insertion
         // of the sheet cells.
-        let element = document.createElement('div');
-        element.id = "top-corner";
-        element.style.backgroundColor = "transparent";
-        element.style.gridColumn = "1 / 2";
-        element.style.gridRow = "1 / 2";
-        this.shadowRoot.insertBefore(element, this.shadowRoot.querySelector('slot'));
-        
-    }
-
-    renderGridTemplateAreas(){
-        let areaLines = [];
-        let totalCols = this.numColumns;
-        if(this.showRowTabs){
-            totalCols += 1;
-        }
-        let totalRows = this.numRows;
-        if(this.showColumnTabs){
-            totalRows += 1;
-        }
-        if(this.showEditorBar){
-            totalRows += 1;
-            var line = `"`;
-            for(let i = 0; i < totalCol; i++){
-                line += `tbar `;
-            }
-            line = `${line.trim()}"`;
-            areaLines.push(line);
-        }
-        if(this.showColumnTabs){
-            var line = `"`;
-            for(let i = 0; i < totalCols; i++){
-                line += `ctab `;
-            }
-            line = `${line.trim()}"`;
-            areaLines.push(line);
-        }
-        // Now do the cell area
-        for(let i = 0; i < this.numRows; i++){
-            var line = `"`;
-            if(this.showRowTabs){
-                line += `rtab `;
-            }
-            for(let j = 0; j < this.numColumns; j++){
-                line += `cell `;
-            }
-            line = `${line.trim()}"`;
-            areaLines.push(line);
-        }
-        return areaLines.join("\n");
     }
 
     dispatchSelectionChanged(){
