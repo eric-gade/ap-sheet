@@ -44,29 +44,27 @@ class Selection extends HTMLElement {
     }
 
     attributeChangedCallback(name, oldVal, newVal){
+        let needsGridUpdate = true;
         if(name == 'corner-x'){
             this.viewFrame.corner.x = parseInt(newVal);
-            this.updateGridPosition();
         } else if(name == 'corner-y'){
             this.viewFrame.corner.y = parseInt(newVal);
-            this.updateGridPosition();
         } else if(name == 'origin-x'){
             this.viewFrame.origin.x = parseInt(newVal);
-            this.updateGridPosition();
         } else if(name == 'origin-y'){
             this.viewFrame.origin.y = parseInt(newVal);
-            this.updateGridPosition();
         } else if(name == 'data-origin-x'){
             this.relativeFrame.origin.x = parseInt(newVal);
-            this.updateGridPosition();
         } else if(name == 'data-origin-y'){
             this.relativeFrame.origin.y = parseInt(newVal);
-            this.updateGridPosition();
         } else if(name == 'data-corner-x'){
             this.relativeFrame.corner.x = parseInt(newVal);
-            this.updateGridPosition();
         } else if(name == 'data-corner-y'){
             this.relativeFrame.corner.y = parseInt(newVal);
+        } else {
+            needsGridUpdate = false;
+        }
+        if(needsGridUpdate){
             this.updateGridPosition();
         }
     }
@@ -80,7 +78,8 @@ class Selection extends HTMLElement {
             return;
         }
         this.classList.remove('empty');
-        let frame = this.viewFrame.intersection(this.relativeFrame);
+        //let frame = this.viewFrame.intersection(this.relativeFrame);
+        let frame = this.viewFrame;
         this.style.setProperty('--col-start', frame.origin.x + 1);
         this.style.setProperty('--col-end', frame.size.x + 1);
         this.style.setProperty('--row-start', frame.origin.y + 1);

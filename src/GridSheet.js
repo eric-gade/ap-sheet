@@ -395,7 +395,17 @@ class GridSheet extends HTMLElement {
 
         // Update the selection view element
         let sel = this.shadowRoot.querySelector('sheet-selection');
-        sel.updateFromSelector(this.selector);
+        sel.updateFromRelativeFrame(event.detail.frame);
+        let viewOrigin = new Point([
+            this.selector.selectionFrame.origin.x - this.primaryFrame.dataOffset.x,
+            this.selector.selectionFrame.origin.y - this.primaryFrame.dataOffset.y]
+        );
+        let viewCorner = new Point([
+            viewOrigin.x + this.selector.selectionFrame.size.x,
+            viewOrigin.y + this.selector.selectionFrame.size.y
+        ]);
+        let totalViewFrame = new Frame(viewOrigin, viewCorner);
+        sel.updateFromViewFrame(totalViewFrame.intersection(this.primaryFrame));
     }
 
     static get observedAttributes(){
