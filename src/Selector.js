@@ -448,33 +448,33 @@ class Selector {
             let element = this.primaryFrame.elementAt(aPoint);
             let hasSelection = !this.selectionFrame.isEmpty;
 
-            // Clear previous selection borders
-            element.classList.remove(
-                'selection-top-border',
-                'selection-bottom-border',
-                'selection-right-border',
-                'selection-left-border'
-            );
+            // // Clear previous selection borders
+            // element.classList.remove(
+            //     'selection-top-border',
+            //     'selection-bottom-border',
+            //     'selection-right-border',
+            //     'selection-left-border'
+            // );
 
-            // If the relative point is in the selectionFrame,
-            // give the element the appropriate class
-            if(hasSelection && this.selectionFrame.contains(relativePoint)){
-                element.classList.add('in-selection');
-                if(relativePoint.y == this.selectionFrame.top){
-                    element.classList.add('selection-top-border');
-                }
-                if(relativePoint.y == this.selectionFrame.bottom){
-                    element.classList.add('selection-bottom-border');
-                }
-                if(relativePoint.x == this.selectionFrame.left){
-                    element.classList.add('selection-left-border');
-                }
-                if(relativePoint.x == this.selectionFrame.right){
-                    element.classList.add('selection-right-border');
-                }
-            } else {
-                element.classList.remove('in-selection');
-            }
+            // // If the relative point is in the selectionFrame,
+            // // give the element the appropriate class
+            // if(hasSelection && this.selectionFrame.contains(relativePoint)){
+            //     element.classList.add('in-selection');
+            //     if(relativePoint.y == this.selectionFrame.top){
+            //         element.classList.add('selection-top-border');
+            //     }
+            //     if(relativePoint.y == this.selectionFrame.bottom){
+            //         element.classList.add('selection-bottom-border');
+            //     }
+            //     if(relativePoint.x == this.selectionFrame.left){
+            //         element.classList.add('selection-left-border');
+            //     }
+            //     if(relativePoint.x == this.selectionFrame.right){
+            //         element.classList.add('selection-right-border');
+            //     }
+            // } else {
+            //     element.classList.remove('in-selection');
+            // }
 
             // Remove all former cursor or anchor styles
             element.classList.remove(
@@ -602,6 +602,29 @@ class Selector {
      */
     get pageSize(){
         return this.primaryFrame.viewFrame.size;
+    }
+
+    /**
+     * Returns a frame corresponding to actual
+     * points on the PrimaryFrame's view where one
+     * might want to draw a visual indication.
+     * Unlike my `selectionFrame`, this frame won't be
+     * data-relative.
+     */
+    get absoluteSelectionFrame(){
+        let origin = new Point([
+            this.selectionFrame.origin.x - this.primaryFrame.dataOffset.x,
+            this.selectionFrame.origin.y - this.primaryFrame.dataOffset.y
+        ]);
+        let corner = new Point([
+            this.selectionFrame.corner.x - this.primaryFrame.dataOffset.x,
+            this.selectionFrame.corner.y - this.primaryFrame.dataOffset.y
+        ]);
+        let fullView = new Frame(origin, corner);
+        if(this.selectionFrame.isEmpty){
+            fullView.isEmpty = true;
+        }
+        return this.primaryFrame.intersection(fullView);
     }
 };
 

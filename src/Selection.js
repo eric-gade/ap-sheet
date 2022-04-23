@@ -41,6 +41,8 @@ class Selection extends HTMLElement {
         this.updateFromViewFrame = this.updateFromViewFrame.bind(this);
         this.updateFromRelativeFrame = this.updateFromRelativeFrame.bind(this);
         this.updateFromSelector = this.updateFromSelector.bind(this);
+        this.hide = this.hide.bind(this);
+        this.show = this.show.bind(this);
     }
 
     attributeChangedCallback(name, oldVal, newVal){
@@ -113,6 +115,14 @@ class Selection extends HTMLElement {
     updateFromSelector(aSelector){
         this.updateFromRelativeFrame(aSelector.primaryFrame.relativeViewFrame);
         this.updateFromViewFrame(aSelector.selectionFrame);
+    }
+
+    hide(){
+        this.classList.add('empty');
+    }
+
+    show(){
+        this.classList.remove('empty');
     }
 
     static get observedAttributes(){
