@@ -308,8 +308,6 @@ class GridSheet extends HTMLElement {
         this.primaryFrame.lockColumns(this.numLockedColumns);
         this.primaryFrame.updateCellContents();
         this.selector.primaryFrame = this.primaryFrame;
-        this.selector.drawCursor();
-        this.selector.updateElements();
     }
 
     renderGridTemplate(){

@@ -64,9 +64,7 @@ class Selector {
         this.selectFromAnchorTo = this.selectFromAnchorTo.bind(this);
         this.setAnchorToElement = this.setAnchorToElement.bind(this);
         this.setCursorToElement = this.setCursorToElement.bind(this);
-        this.updateElements = this.updateElements.bind(this);
-        this.drawAnchor = this.drawAnchor.bind(this);
-        this.drawCursor = this.drawCursor.bind(this);
+        this.triggerCallback = this.triggerCallback.bind(this);
     }
 
     /**
@@ -107,7 +105,7 @@ class Selector {
             this.anchor = this.relativeCursor;
         }
 
-        this.updateElements();
+        this.triggerCallback();
     }
 
     /**
@@ -164,7 +162,7 @@ class Selector {
             this.anchor = this.relativeCursor;
         }
 
-        this.updateElements();
+        this.triggerCallback();
     }
 
     /**
@@ -219,7 +217,7 @@ class Selector {
             this.anchor = this.relativeCursor;
         }
 
-        this.updateElements();
+        this.triggerCallback();
     }
 
     /**
@@ -258,7 +256,7 @@ class Selector {
             this.anchor = this.relativeCursor;
         }
 
-        this.updateElements();
+        this.triggerCallback();
     }
 
     /**
@@ -391,46 +389,6 @@ class Selector {
     }
 
     /**
-     * I find the td element at the current
-     * cursor location on the primaryFrame
-     * and add the appropriate CSS class to it.
-     * If there is a cached previousCursor, I
-     * remove the CSS class from it.
-     */
-    drawCursor(withAnchor=false){
-        // let element = this.primaryFrame.elementAt(this.cursor);
-        // element.classList.add('selector-cursor');
-        // if(withAnchor){
-        //     element.classList.add('selector-anchor');
-        // }
-        // if(this.prevCursorEl && this.prevCursorEl != element){
-        //     this.prevCursorEl.classList.remove('selector-cursor');
-        // }
-        // this.prevCursorEl = element;
-    }
-
-    /**
-     * I find the td element at the current
-     * anchor location on the primaryFrame
-     * and add the appropriate CSS class to it.
-     * Note that if my anchor and cursor points
-     * are equivalent, I only call `drawCursor`
-     */
-    drawAnchor(){
-        if(this.anchor.equals(this.relativeCursor)){
-            return this.drawCursor(true);
-        }
-        let absoluteAnchor = new Point([
-            this.anchor.x - this.primaryFrame.dataOffset.x,
-            this.anchor.y - this.primaryFrame.dataOffset.y
-        ]);
-        if(this.primaryFrame.contains(absoluteAnchor)){
-            let element = this.primaryFrame.elementAt(absoluteAnchor);
-            element.classList.add('selector-anchor');
-        }
-    }
-
-    /**
      * I loop through each of the Points in my
      * underlying primaryFrame and add/remove
      * CSS classes to each corresponding td element
@@ -442,58 +400,12 @@ class Selector {
      *   corresponding data-relative Point is
      *   within the current selectionFrame
      */
-    updateElements(){
+    triggerCallback(){
         // Instead, trigger a callback on the consumer with updated
         // selection and/or cursor information
         if(this.selectionChangedCallback){
             this.selectionChangedCallback();
         }
-        this.primaryFrame.forEachPoint(aPoint => {
-            let relativePoint = this.primaryFrame.relativePointAt(aPoint);
-            let element = this.primaryFrame.elementAt(aPoint);
-            let hasSelection = !this.selectionFrame.isEmpty;
-
-            // // Clear previous selection borders
-            // element.classList.remove(
-            //     'selection-top-border',
-            //     'selection-bottom-border',
-            //     'selection-right-border',
-            //     'selection-left-border'
-            // );
-
-            // // If the relative point is in the selectionFrame,
-            // // give the element the appropriate class
-            // if(hasSelection && this.selectionFrame.contains(relativePoint)){
-            //     element.classList.add('in-selection');
-            //     if(relativePoint.y == this.selectionFrame.top){
-            //         element.classList.add('selection-top-border');
-            //     }
-            //     if(relativePoint.y == this.selectionFrame.bottom){
-            //         element.classList.add('selection-bottom-border');
-            //     }
-            //     if(relativePoint.x == this.selectionFrame.left){
-            //         element.classList.add('selection-left-border');
-            //     }
-            //     if(relativePoint.x == this.selectionFrame.right){
-            //         element.classList.add('selection-right-border');
-            //     }
-            // } else {
-            //     element.classList.remove('in-selection');
-            // }
-
-            // Remove all former cursor or anchor styles
-            element.classList.remove(
-                'selector-anchor',
-                'selector-cursor'
-            );
-        });
-
-        // Give the cursor the correct cursor
-        // class
-        this.drawCursor();
-
-        // Draw the anchor element
-        this.drawAnchor();
     }
 
     /**
