@@ -23,7 +23,7 @@ const templateString = `
 </style>
 `;
 
-class Selection extends HTMLElement {
+class SelectionElement extends HTMLElement {
     constructor(){
         super();
         this.template = document.createElement('template');
@@ -141,6 +141,6 @@ class Selection extends HTMLElement {
 };
 
 export {
-    Selection,
-    Selection as default
+    SelectionElement,
+    SelectionElement as default
 };

@@ -398,15 +398,15 @@ class Selector {
      * remove the CSS class from it.
      */
     drawCursor(withAnchor=false){
-        let element = this.primaryFrame.elementAt(this.cursor);
-        element.classList.add('selector-cursor');
-        if(withAnchor){
-            element.classList.add('selector-anchor');
-        }
-        if(this.prevCursorEl && this.prevCursorEl != element){
-            this.prevCursorEl.classList.remove('selector-cursor');
-        }
-        this.prevCursorEl = element;
+        // let element = this.primaryFrame.elementAt(this.cursor);
+        // element.classList.add('selector-cursor');
+        // if(withAnchor){
+        //     element.classList.add('selector-anchor');
+        // }
+        // if(this.prevCursorEl && this.prevCursorEl != element){
+        //     this.prevCursorEl.classList.remove('selector-cursor');
+        // }
+        // this.prevCursorEl = element;
     }
 
     /**
@@ -443,6 +443,11 @@ class Selector {
      *   within the current selectionFrame
      */
     updateElements(){
+        // Instead, trigger a callback on the consumer with updated
+        // selection and/or cursor information
+        if(this.selectionChangedCallback){
+            this.selectionChangedCallback();
+        }
         this.primaryFrame.forEachPoint(aPoint => {
             let relativePoint = this.primaryFrame.relativePointAt(aPoint);
             let element = this.primaryFrame.elementAt(aPoint);

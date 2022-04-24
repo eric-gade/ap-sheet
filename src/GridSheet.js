@@ -7,12 +7,14 @@ import {KeyHandler} from './KeyHandler.js';
 import {ClipboardHandler} from './ClipboardHandler.js';
 import {Frame} from "./Frame.js";
 import {RowTab, ColumnTab} from "./Tab.js";
-import {Selection} from './Selection.js';
+import {SelectionElement} from './SelectionElement.js';
+import {CursorElement} from './CursorElement.js';
 
 // Add any components
 window.customElements.define('row-tab', RowTab);
 window.customElements.define('column-tab', ColumnTab);
-window.customElements.define('sheet-selection', Selection);
+window.customElements.define('sheet-selection', SelectionElement);
+window.customElements.define('sheet-cursor', CursorElement);
 
 // Simple grid-based sheet component
 const templateString = `
@@ -90,6 +92,7 @@ const templateString = `
 </div>
 <slot></slot>
 <sheet-selection></sheet-selection>
+<sheet-cursor id="cursor"></sheet-cursor>
 `;
 
 class GridSheet extends HTMLElement {
@@ -123,6 +126,7 @@ class GridSheet extends HTMLElement {
         this.dataFrame.callback = this.onDataChanged.bind(this);
         this.primaryFrame = new PrimaryFrame(this.dataFrame, [0,0]);
         this.selector = new Selector(this.primaryFrame);
+        this.selector.selectionChangedCallback = this.dispatchSelectionChanged.bind(this);
 
         // Initialize resize observer here.
         // We do this so that any observed attributes will
@@ -392,6 +396,13 @@ class GridSheet extends HTMLElement {
             infoArea.querySelector('span:first-child').innerText = "Selection";
             editArea.value = text;
         }
+
+        // Update cursor
+        let cursorElement = this.shadowRoot.getElementById('cursor');
+        cursorElement.setAttribute('x', this.selector.cursor.x);
+        cursorElement.setAttribute('y', this.selector.cursor.y);
+        cursorElement.setAttribute('relative-x', this.selector.relativeCursor.x);
+        cursorElement.setAttribute('relative-y', this.selector.relativeCursor.y);
 
         // Update the selection view element
         let sel = this.shadowRoot.querySelector('sheet-selection');
