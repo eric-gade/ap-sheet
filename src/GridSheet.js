@@ -257,7 +257,6 @@ class GridSheet extends HTMLElement {
     }
 
     onDataChanged(frame){
-        console.log('Data changed!');
         if(frame.isPoint){
             frame = new Frame(frame, frame);
         }

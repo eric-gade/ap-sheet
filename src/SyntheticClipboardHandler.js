@@ -21,13 +21,13 @@ class SyntheticClipboardHandler extends Object {
     connect(){
         this.sheet.addEventListener('keydown', this.handleKeyDown);
         //this.sheet.addEventListener('synthetic-copy', this.onCopy);
-        this.sheet.addEventListener('synthetic-paste', this.onPaste);
+        //this.sheet.addEventListener('synthetic-paste', this.onPaste);
     }
 
     disconnect(){
         this.sheet.removeEventListener('keydown', this.handleKeyDown);
         //this.sheet.removeEventListener('synthetic-copy', this.onCopy);
-        this.sheet.removeEventListener('synthetic-paste', this.onPaste);
+        //this.sheet.removeEventListener('synthetic-paste', this.onPaste);
     }
 
     handleKeyDown(event){
@@ -36,7 +36,6 @@ class SyntheticClipboardHandler extends Object {
             event.preventDefault();
             event.stopPropagation();
         } else if(event.key == 'v' && event.ctrlKey){
-            console.log('trying synth paste');
             this.triggerSyntheticPaste();
             event.preventDefault();
             event.stopPropagation();
@@ -69,18 +68,18 @@ class SyntheticClipboardHandler extends Object {
     }
 
     triggerSyntheticPaste(){
-        console.log('trigger');
         if(this.contents){
-            console.log(this.contents);
             // Insert the data array into this sheet's DataFrame
             // at the provided origin point
             this.sheet.dataFrame.loadFromArray(
                 this.contents.data,
-                this.contents.origin
+                this.sheet.selector.relativeCursor
             );
+
+            this.sheet.primaryFrame.updateCellContents();
         }
         let event = new CustomEvent('synthetic-paste', {
-            detail: this.contents
+            detail: Object.assign({}, this.contents, { cursor: this.sheet.selector.relativeCursor})
         });
         this.sheet.dispatchEvent(event);
     }
