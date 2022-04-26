@@ -25,9 +25,13 @@ const rowTabTemplateString = `
         display: flex;
         align-items: center;
         justify-content: center;
+        --tracking-highlight-color: rgba(240, 240, 240, 0.8);
     }
     :host(:last-child){
         border-bottom: 1px solid rgba(150, 150, 150, 0.4);
+    }
+    :host([highlighted]){
+        background-color: var(--tracking-highlight-color);
     }
 </style>
 <span id="label">
@@ -61,7 +65,7 @@ class RowTab extends HTMLElement {
     }
 
     setLabel(num){
-        this.shadowRoot.getElementById('label').innerText = num.toString();
+        this.shadowRoot.getElementById('label').innerText = (num + 1).toString();
     }
 
     static get observedAttributes(){
@@ -85,6 +89,10 @@ const columnTabTemplateString = `
         display: flex;
         align-items: center;
         justify-content: center;
+        --tracking-highlight-color: rgba(240, 240, 240, 0.8);
+    }
+    :host([highlighted]){
+        background-color: var(--tracking-highlight-color);
     }
 </style>
 <span id="label"></span>
@@ -111,7 +119,7 @@ class ColumnTab extends HTMLElement {
             this.column = parseInt(newVal);
         } else if(name == 'data-relative-x'){
             this.relativeColumn = parseInt(newVal);
-            this.setLabel(this.relativeColumn);
+            this.setLabel(this.relativeColumn + 1);
         }
     }
 

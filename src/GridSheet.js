@@ -145,6 +145,8 @@ class GridSheet extends HTMLElement {
         this.dispatchViewShifted = this.dispatchViewShifted.bind(this);
         this.updateLockedRows = this.updateLockedRows.bind(this);
         this.updateLockedColumns = this.updateLockedColumns.bind(this);
+        this.trackSelectionWithRowTabs = this.trackSelectionWithRowTabs.bind(this);
+        this.trackSelectionWithColumnTabs = this.trackSelectionWithColumnTabs.bind(this);
 
         // Bind event handlers
         this.handleSelectionChanged = this.handleSelectionChanged.bind(this);
@@ -343,17 +345,17 @@ class GridSheet extends HTMLElement {
         Array.from(this.shadowRoot.querySelectorAll('row-tab')).forEach(tab => {
             tab.remove();
         });
-        for(let i = 1; i <= this.numRows; i++){
+        for(let i = 0; i < this.numRows; i++){
             let tab = document.createElement('row-tab');
             tab.style.gridColumn = `rtab-start / span 1`;
-            tab.style.gridRow = `cell-row-start ${i} / span 1`;
+            tab.style.gridRow = `cell-row-start ${i+1} / span 1`;
             this.shadowRoot.append(tab);
             tab.setAttribute('data-y', i);
             tab.setAttribute('data-relative-y', i);
 
             // Mark any tabs appearing in a locked row
             // as locked
-            if(i <= this.numLockedRows){
+            if(i < this.numLockedRows){
                 tab.setAttribute('locked', true);
             }
         }
@@ -364,10 +366,10 @@ class GridSheet extends HTMLElement {
             tab.remove();
         });
         let previousNode = this.shadowRoot.querySelector('slot');
-        for(let i = 1; i <= this.numColumns; i++){
+        for(let i = 0; i < this.numColumns; i++){
             let tab = document.createElement('column-tab');
             tab.style.gridRow = 'ctab-start / span 1';
-            tab.style.gridColumn = `cell-col-start ${i} / span 1`;
+            tab.style.gridColumn = `cell-col-start ${i+1} / span 1`;
             this.shadowRoot.insertBefore(tab, previousNode);
             previousNode = tab;
             tab.setAttribute("data-x", i);
@@ -375,7 +377,7 @@ class GridSheet extends HTMLElement {
 
             // Mark any tabs appearing in a locked column
             // as locked
-            if(i <= this.numLockedColumns){
+            if(i < this.numLockedColumns){
                 tab.setAttribute('locked', true);
             }
         }
@@ -464,11 +466,47 @@ class GridSheet extends HTMLElement {
         let sel = this.shadowRoot.querySelector('sheet-selection');
         if(this.selector.selectionFrame.isEmpty){
             sel.hide();
-            return;
+        } else {
+            sel.show();
+            sel.updateFromRelativeFrame(event.detail.frame);
+            sel.updateFromViewFrame(this.selector.absoluteSelectionFrame);
         }
-        sel.show();
-        sel.updateFromRelativeFrame(event.detail.frame);
-        sel.updateFromViewFrame(this.selector.absoluteSelectionFrame);
+
+        // Set any row or column tabs to highlight whether they
+        // correspond to the selection or the cursor's y or x
+        // locations, respectively
+        this.trackSelectionWithRowTabs();
+        this.trackSelectionWithColumnTabs();
+    }
+
+    trackSelectionWithRowTabs(){
+        Array.from(this.shadowRoot.querySelectorAll('row-tab')).forEach(rowTabEl => {
+            let dataStart = this.selector.selectionFrame.origin.y;
+            let dataEnd = this.selector.selectionFrame.corner.y;
+            let inSelection = (dataStart <= rowTabEl.relativeRow && rowTabEl.relativeRow <= dataEnd);
+            if(inSelection && !this.selector.selectionFrame.isEmpty){
+                rowTabEl.setAttribute("highlighted", true);
+            } else if(this.selector.relativeCursor.y == rowTabEl.relativeRow){
+                rowTabEl.setAttribute("highlighted", true);
+            } else {
+                rowTabEl.removeAttribute("highlighted");
+            }
+        });
+    }
+
+    trackSelectionWithColumnTabs(){
+        Array.from(this.shadowRoot.querySelectorAll('column-tab')).forEach(colTabEl => {
+            let dataStart = this.selector.selectionFrame.origin.x;
+            let dataEnd = this.selector.selectionFrame.corner.x;
+            let inSelection = (dataStart <= colTabEl.relativeColumn && colTabEl.relativeColumn <= dataEnd);
+            if(inSelection && !this.selector.selectionFrame.isEmpty){
+                colTabEl.setAttribute("highlighted", true);
+            } else if(this.selector.relativeCursor.x == colTabEl.relativeColumn){
+                colTabEl.setAttribute("highlighted", true);
+            } else {
+                colTabEl.removeAttribute("highlighted");
+            }
+        });
     }
 
     static get observedAttributes(){
