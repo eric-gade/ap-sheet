@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Grid Experiments</title>
+    </head>
+    <body>
+        <main>
+            <div id="grid">
+            </div>
+        </main>
+        <style>
+         #grid {
+             display: grid;
+             grid-template-areas: "ctab ctab ctab ctab ctab ctab ctab ctab ctab ctab ctab"
+             "rtab cell cell cell cell cell cell cell cell cell cell"
+             "rtab cell cell cell cell cell cell cell cell cell cell"
+             "rtab cell cell cell cell cell cell cell cell cell cell"
+             "rtab cell cell cell cell cell cell cell cell cell cell"
+             "rtab cell cell cell cell cell cell cell cell cell cell"
+             "rtab cell cell cell cell cell cell cell cell cell cell"
+             "rtab cell cell cell cell cell cell cell cell cell cell"
+             "rtab cell cell cell cell cell cell cell cell cell cell"
+             "rtab cell cell cell cell cell cell cell cell cell cell"
+             "rtab cell cell cell cell cell cell cell cell cell cell"
+             "rtab cell cell cell cell cell cell cell cell cell cell"
+             "rtab cell cell cell cell cell cell cell cell cell cell";
+             border: 1px solid black;
+             max-width: 1200px;
+             grid-template-rows: [r-tab-start] 1fr repeat(10, [cell-row-start] 1fr);
+             grid-template-columns: [c-tab-start] 1fr repeat(10, [cell-col-start] 1fr);
+         }
+         .cell {
+             grid-column-start: var(--col-start);
+             grid-column-end: span 1;
+             grid-row-start: var(--row-start);
+             grid-row-end: span 1;
+             height: 50px;
+         }
+         .cell:first-child {
+             grid-column-start: cell-col-start;
+             grid-row-start: cell-row-start;
+         }
+        </style>
+        <script>
+         document.addEventListener('DOMContentLoaded', () => {
+             let numCols = 10;
+             let numRows = 12;
+             let grid = document.getElementById('grid');
+             for(let colNum = 0; colNum < numCols; colNum++){
+                 for(let rowNum = 0; rowNum < numRows; rowNum++){
+                     let el = document.createElement('div');
+                     el.classList.add('cell');
+                     /* el.style.setProperty('--col-start', colNum);
+                      * el.style.setProperty('--row-start', rowNum); */
+                     if(colNum == 0){
+                         el.style.setProperty('--col-start', 'cell-col-start');
+                     } else {
+                         el.style.setProperty('--col-start', `cell-col-start ${colNum + 1}`);
+                     }
+                     if(rowNum == 0){
+                         el.style.setProperty('--row-start', 'cell-row-start');
+                     } else {
+                         el.style.setProperty('--row-start', `cell-row-start ${rowNum + 1}`);
+                     }
+                     var randomColor = Math.floor(Math.random()*16777215).toString(16);
+                     el.style.backgroundColor = `#${randomColor}`;
+                     grid.append(el);
+                     el.textContent = `${colNum}, ${rowNum}`;
+                     }
+             }
+
+             // Example selection frame
+             let div = document.createElement('div');
+             div.style.backgroundColor = "rgba(220, 220, 220, 0.3)";
+             div.style.gridColumnStart = "cell-col-start 2";
+             div.style.gridColumnEnd = "cell-col-start -1";
+             div.style.gridRowStart = "cell-row-start 1";
+             div.style.gridRowEnd = "cell-row-start -1";
+             grid.append(div);
+         });
+        </script>
+    </body>
+</html>

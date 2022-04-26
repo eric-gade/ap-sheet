@@ -208,6 +208,8 @@ class PrimaryGridFrame extends GridElementsFrame {
                 }
             });
         }
+
+        this.labelElements();
     }
 
     /**

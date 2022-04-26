@@ -6,6 +6,15 @@ import {MouseHandler} from './MouseHandler.js';
 import {KeyHandler} from './KeyHandler.js';
 import {ClipboardHandler} from './ClipboardHandler.js';
 import {Frame} from "./Frame.js";
+import {RowTab, ColumnTab} from "./Tab.js";
+import {SelectionElement} from './SelectionElement.js';
+import {CursorElement} from './CursorElement.js';
+
+// Add any components
+window.customElements.define('row-tab', RowTab);
+window.customElements.define('column-tab', ColumnTab);
+window.customElements.define('sheet-selection', SelectionElement);
+window.customElements.define('sheet-cursor', CursorElement);
 
 // Simple grid-based sheet component
 const templateString = `
@@ -30,6 +39,13 @@ const templateString = `
     justify-content: center;
     overflow: hidden;
     text-overflow: ellipses;
+}
+
+::slotted(sheet-cell){
+    grid-column-start: var(--col-start);
+    grid-column-end: span 1;
+    grid-row-start: var(--row-start);
+    grid-row-end: span 1;
 }
 
 #edit-bar {
@@ -68,12 +84,15 @@ const templateString = `
     margin-left: 8px;
     margin-right: 6px;
 }
+
 </style>
-<div id="edit-bar">
+<div id="edit-bar" style="grid-column: 1 / -1; grid-row: span 1;">
     <div id="info-area"><span>Cursor</span><span>&rarr;</span></div>
     <input id="edit-area" type="text" disabled="true"/>
 </div>
 <slot></slot>
+<sheet-selection></sheet-selection>
+<sheet-cursor id="cursor"></sheet-cursor>
 `;
 
 class GridSheet extends HTMLElement {
@@ -90,7 +109,11 @@ class GridSheet extends HTMLElement {
         this.cellWidth = 150;
         this.cellHeight = 36;
         this.numRows = 1;
+        this.numLockedRows = 0;
+        this.numLockedColumns = 0;
         this.numColumns = 1;
+        this.showRowTabs = true;
+        this.showColumnTabs = true;
 
         // Set up the internal frames
         this.dataFrame = new DataFrame([0,0], [1000,1000]);
@@ -103,6 +126,7 @@ class GridSheet extends HTMLElement {
         this.dataFrame.callback = this.onDataChanged.bind(this);
         this.primaryFrame = new PrimaryFrame(this.dataFrame, [0,0]);
         this.selector = new Selector(this.primaryFrame);
+        this.selector.selectionChangedCallback = this.dispatchSelectionChanged.bind(this);
 
         // Initialize resize observer here.
         // We do this so that any observed attributes will
@@ -114,7 +138,12 @@ class GridSheet extends HTMLElement {
         this.onCellEdit = this.onCellEdit.bind(this);
         this.onDataChanged = this.onDataChanged.bind(this);
         this.render = this.render.bind(this);
+        this.renderGridTemplate = this.renderGridTemplate.bind(this);
+        this.renderRowTabs = this.renderRowTabs.bind(this);
+        this.renderColumnTabs = this.renderColumnTabs.bind(this);
         this.dispatchSelectionChanged = this.dispatchSelectionChanged.bind(this);
+        this.updateLockedRows = this.updateLockedRows.bind(this);
+        this.updateLockedColumns = this.updateLockedColumns.bind(this);
 
         // Bind event handlers
         this.handleSelectionChanged = this.handleSelectionChanged.bind(this);
@@ -164,6 +193,7 @@ class GridSheet extends HTMLElement {
         } else if(name == "columns"){
             this.numColumns = parseInt(newVal);
             this.updateNumColumns();
+            
         } else if(name == "expands"){
             if(newVal == "true"){
                 this.observer.observe(this.parentElement);
@@ -172,6 +202,12 @@ class GridSheet extends HTMLElement {
                 this.observer.unobserve(this.parentElement);
                 this.render();
             }
+        } else if(name == "lockedrows"){
+            this.numLockedRows = parseInt(newVal);
+            this.updateLockedRows();
+        } else if (name =="lockedcolumns"){
+            this.numLockedColumns = parseInt(newVal);
+            this.updateLockedColumns();
         }
     }
 
@@ -185,7 +221,7 @@ class GridSheet extends HTMLElement {
             }
         });
         this.dispatchEvent(event);
-        this.primaryFrame.updateViewElements();
+        this.primaryFrame.updateCellContents();
     }
 
     onObservedResize(info){
@@ -195,7 +231,7 @@ class GridSheet extends HTMLElement {
         // horizontal (column) axis
         let rect = this.getBoundingClientRect();
         let currentCellWidth = this.cellWidth;
-        let newColumns = Math.floor(rect.width / currentCellWidth);
+        let newColumns = Math.floor((rect.width) / currentCellWidth);
         this.setAttribute('columns', newColumns);
         this.render();
     }
@@ -232,10 +268,14 @@ class GridSheet extends HTMLElement {
 
         // Update the DataFrame and redraw view frame
         this.dataFrame.putAt(this.selector.relativeCursor, event.currentTarget.value);
-        this.primaryFrame.updateViewElements();
+        this.primaryFrame.updateCellContents();
     }
 
     updateNumRows(){
+        this.render();
+    }
+
+    updateLockedRows(){
         this.render();
     }
 
@@ -243,18 +283,85 @@ class GridSheet extends HTMLElement {
         this.render();
     }
 
+    updateLockedColumns(){
+        this.render();
+    }
+
     render(){
         this.innerHTML = "";
-        this.style.gridTemplateColumns = `repeat(${this.numColumns}, ${this.cellWidth}px)`;
+        this.renderGridTemplate();
+        if(this.showRowTabs){
+            this.renderRowTabs();
+        }
+        if(this.showColumnTabs){
+            this.renderColumnTabs();
+        }
+        if(this.showColumnTabs && this.showRowTabs){
+            this.renderTopCorner();
+        }
         let newCorner = new Point([this.numColumns-1, this.numRows-1]);
         this.primaryFrame = new PrimaryFrame(this.dataFrame, newCorner);
         this.primaryFrame.initialBuild();
         this.primaryFrame.labelElements();
         this.append(...this.primaryFrame.elements);
+        this.primaryFrame.lockRows(this.numLockedRows);
+        this.primaryFrame.lockColumns(this.numLockedColumns);
         this.primaryFrame.updateCellContents();
         this.selector.primaryFrame = this.primaryFrame;
-        this.selector.drawCursor();
-        this.selector.updateElements();
+    }
+
+    renderGridTemplate(){
+        // Column lines
+        let col = `repeat(${this.numColumns}, [cell-col-start] ${this.cellWidth}px)`;
+        if(this.showRowTabs){
+            col = `[rtab-start] 0.3fr ${col}`;
+        }
+        this.style.gridTemplateColumns = col;
+
+        // Row lines
+        let row = `repeat(${this.numRows}, [cell-row-start] 1fr)`;
+        if(this.showColumnTabs){
+            row = `[ctab-start] 1fr ${row}`;
+        }
+        row = `[header-start] 1fr ${row}`;
+        this.style.gridTemplateRows = row;
+        
+    }
+
+    renderRowTabs(){
+        Array.from(this.shadowRoot.querySelectorAll('row-tab')).forEach(tab => {
+            tab.remove();
+        });
+        for(let i = 1; i <= this.numRows; i++){
+            let tab = document.createElement('row-tab');
+            tab.style.gridColumn = `rtab-start / span 1`;
+            tab.style.gridRow = `cell-row-start ${i} / span 1`;
+            this.shadowRoot.append(tab);
+            tab.setAttribute('data-y', i);
+            tab.setAttribute('data-relative-y', i);
+        }
+    }
+
+    renderColumnTabs(){
+        Array.from(this.shadowRoot.querySelectorAll('column-tab')).forEach(tab => {
+            tab.remove();
+        });
+        let previousNode = this.shadowRoot.querySelector('slot');
+        for(let i = 1; i <= this.numColumns; i++){
+            let tab = document.createElement('column-tab');
+            tab.style.gridRow = 'ctab-start / span 1';
+            tab.style.gridColumn = `cell-col-start ${i} / span 1`;
+            this.shadowRoot.insertBefore(tab, previousNode);
+            previousNode = tab;
+            tab.setAttribute("data-x", i);
+            tab.setAttribute("data-relative-x", i);
+        }
+    }
+
+    renderTopCorner(){
+        // Insert the corner element where the column and
+        // tab rows meet. This prevents wonky grid insertion
+        // of the sheet cells.
     }
 
     dispatchSelectionChanged(){
@@ -287,12 +394,31 @@ class GridSheet extends HTMLElement {
             infoArea.querySelector('span:first-child').innerText = "Selection";
             editArea.value = text;
         }
+
+        // Update cursor
+        let cursorElement = this.shadowRoot.getElementById('cursor');
+        cursorElement.setAttribute('x', this.selector.cursor.x);
+        cursorElement.setAttribute('y', this.selector.cursor.y);
+        cursorElement.setAttribute('relative-x', this.selector.relativeCursor.x);
+        cursorElement.setAttribute('relative-y', this.selector.relativeCursor.y);
+
+        // Update the selection view element
+        let sel = this.shadowRoot.querySelector('sheet-selection');
+        if(this.selector.selectionFrame.isEmpty){
+            sel.hide();
+            return;
+        }
+        sel.show();
+        sel.updateFromRelativeFrame(event.detail.frame);
+        sel.updateFromViewFrame(this.selector.absoluteSelectionFrame);
     }
 
     static get observedAttributes(){
         return [
             "rows",
             "columns",
+            "lockedrows",
+            "lockedcolumns",
             "expands"
         ];
     }

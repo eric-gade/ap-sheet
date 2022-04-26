@@ -50,7 +50,6 @@ class MouseHandler extends Object {
             this.isSelecting = true;
             this.sheet.selector.setCursorToElement(event.target);
             this.sheet.selector.setAnchorToElement(event.target);
-            this.sheet.selector.updateElements();
             this.sheet.dispatchSelectionChanged();
         }
     }
@@ -63,7 +62,6 @@ class MouseHandler extends Object {
         if(event.target.isCell && this.isSelecting){
             this.sheet.selector.setCursorToElement(event.target);
             this.sheet.selector.selectFromAnchorTo(this.sheet.selector.relativeCursor);
-            this.sheet.selector.updateElements();
             this.sheet.dispatchSelectionChanged();
         }
     }
@@ -78,7 +76,6 @@ class MouseHandler extends Object {
         if(event.target.isCell){
             this.sheet.selector.setCursorToElement(event.target);
             this.sheet.selector.setAnchorToElement(event.target);
-            this.sheet.selector.updateElements();
             this.sheet.dispatchSelectionChanged();
         }
     }
