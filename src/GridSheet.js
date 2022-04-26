@@ -142,11 +142,13 @@ class GridSheet extends HTMLElement {
         this.renderRowTabs = this.renderRowTabs.bind(this);
         this.renderColumnTabs = this.renderColumnTabs.bind(this);
         this.dispatchSelectionChanged = this.dispatchSelectionChanged.bind(this);
+        this.dispatchViewShifted = this.dispatchViewShifted.bind(this);
         this.updateLockedRows = this.updateLockedRows.bind(this);
         this.updateLockedColumns = this.updateLockedColumns.bind(this);
 
         // Bind event handlers
         this.handleSelectionChanged = this.handleSelectionChanged.bind(this);
+        this.handleViewShift = this.handleViewShift.bind(this);
         this.afterEditChange = this.afterEditChange.bind(this);
     }
 
@@ -172,10 +174,15 @@ class GridSheet extends HTMLElement {
             // copy and paste
             this.clipboardHandler = new ClipboardHandler(this);
             this.clipboardHandler.connect();
+
+            // Bind the PrimaryFrame's afterChange callback
+            // to this instance's viewShifted handler.
+            this.primaryFrame.afterChange = this.dispatchViewShifted.bind(this);
         }
 
         // Event listeners
         this.addEventListener('selection-changed', this.handleSelectionChanged);
+        this.addEventListener('sheet-view-shifted', this.handleViewShift);
     }
 
     disconnectedCallback(){
@@ -184,6 +191,7 @@ class GridSheet extends HTMLElement {
         this.keyHandler.disconnect();
         this.clipboardHandler.disconnect();
         this.removeEventListener('selection-changed', this.handleSelectionChanged);
+        this.removeEventListener('sheet-view-shifted', this.handleViewShift);
     }
 
     attributeChangedCallback(name, oldVal, newVal){
@@ -273,6 +281,11 @@ class GridSheet extends HTMLElement {
 
     updateNumRows(){
         this.render();
+
+        // If there are column tabs showing,
+        // mark the ones that should be locked
+        // as locked
+        
     }
 
     updateLockedRows(){
@@ -296,9 +309,6 @@ class GridSheet extends HTMLElement {
         if(this.showColumnTabs){
             this.renderColumnTabs();
         }
-        if(this.showColumnTabs && this.showRowTabs){
-            this.renderTopCorner();
-        }
         let newCorner = new Point([this.numColumns-1, this.numRows-1]);
         this.primaryFrame = new PrimaryFrame(this.dataFrame, newCorner);
         this.primaryFrame.initialBuild();
@@ -307,6 +317,7 @@ class GridSheet extends HTMLElement {
         this.primaryFrame.lockRows(this.numLockedRows);
         this.primaryFrame.lockColumns(this.numLockedColumns);
         this.primaryFrame.updateCellContents();
+        this.primaryFrame.afterChange = this.dispatchViewShifted.bind(this);
         this.selector.primaryFrame = this.primaryFrame;
     }
 
@@ -339,6 +350,12 @@ class GridSheet extends HTMLElement {
             this.shadowRoot.append(tab);
             tab.setAttribute('data-y', i);
             tab.setAttribute('data-relative-y', i);
+
+            // Mark any tabs appearing in a locked row
+            // as locked
+            if(i <= this.numLockedRows){
+                tab.setAttribute('locked', true);
+            }
         }
     }
 
@@ -355,13 +372,13 @@ class GridSheet extends HTMLElement {
             previousNode = tab;
             tab.setAttribute("data-x", i);
             tab.setAttribute("data-relative-x", i);
-        }
-    }
 
-    renderTopCorner(){
-        // Insert the corner element where the column and
-        // tab rows meet. This prevents wonky grid insertion
-        // of the sheet cells.
+            // Mark any tabs appearing in a locked column
+            // as locked
+            if(i <= this.numLockedColumns){
+                tab.setAttribute('locked', true);
+            }
+        }
     }
 
     dispatchSelectionChanged(){
@@ -374,6 +391,47 @@ class GridSheet extends HTMLElement {
             }
         });
         this.dispatchEvent(selectionEvent);
+    }
+
+    dispatchViewShifted(){
+        let viewShiftEvent = new CustomEvent('sheet-view-shifted', {
+            detail: {
+                view: this.primaryFrame.viewFrame,
+                lockedColumns: this.primaryFrame.lockedColumnsFrame,
+                lockedRows: this.primaryFrame.lockedRowsFrame,
+                relativeView: this.primaryFrame.relativeViewFrame,
+                relativeLockedColumns: this.primaryFrame.relativeLockedColumnsFrame,
+                relativeLockedRows: this.primaryFrame.relativeLockedRowsFrame,
+                cursor: new Point([this.selector.cursor.x, this.selector.cursor.y]),
+                relativeCursor: this.selector.relativeCursor
+            }
+        });
+        this.dispatchEvent(viewShiftEvent);
+    }
+
+    handleViewShift(event){
+        // Update row tabs, if we are showing them
+        if(this.showRowTabs){
+            Array.from(this.shadowRoot.querySelectorAll('row-tab')).forEach(tabElement => {
+                let isInLockedRow = tabElement.getAttribute('locked') === "true";
+                if(!isInLockedRow){
+                    tabElement.setAttribute('data-relative-y', this.primaryFrame.dataOffset.y + tabElement.row);
+                }
+            });
+        }
+
+        // Update column tabs, if we are showing them
+        if(this.showColumnTabs){
+            Array.from(this.shadowRoot.querySelectorAll('column-tab')).forEach(colElement => {
+                let inLockedColumn = colElement.getAttribute('locked') === "true";
+                if(!inLockedColumn){
+                    colElement.setAttribute(
+                        'data-relative-x',
+                        this.primaryFrame.dataOffset.x + colElement.column
+                    );
+                }
+            });
+        }
     }
 
     handleSelectionChanged(event){

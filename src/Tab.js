@@ -7,7 +7,10 @@ class RowReference extends Object {
 };
 
 const letters = [
-    "A","B","C","D","E","F","G","H"
+    "A","B","C","D","E","F","G","H",
+    "I","J","K","L","M","N","O","P",
+    "Q","R","S","T","U","V","W","X",
+    "Y","Z"
 ];
 
 
@@ -64,7 +67,8 @@ class RowTab extends HTMLElement {
     static get observedAttributes(){
         return [
             'data-y',
-            'data-relative-y'
+            'data-relative-y',
+            'highlighted'
         ];
     }
 };
