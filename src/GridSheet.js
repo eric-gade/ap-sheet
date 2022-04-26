@@ -8,12 +8,18 @@ import {ClipboardHandler} from './ClipboardHandler.js';
 import {Frame} from "./Frame.js";
 import {RowTab, ColumnTab} from "./Tab.js";
 import {SelectionElement} from './SelectionElement.js';
+import {
+    LockedRowsElement,
+    LockedColumnsElement
+} from './LockedSelectionElement.js';
 import {CursorElement} from './CursorElement.js';
 
 // Add any components
 window.customElements.define('row-tab', RowTab);
 window.customElements.define('column-tab', ColumnTab);
 window.customElements.define('sheet-selection', SelectionElement);
+window.customElements.define('locked-rows', LockedRowsElement);
+window.customElements.define('locked-columns', LockedColumnsElement);
 window.customElements.define('sheet-cursor', CursorElement);
 
 // Simple grid-based sheet component
@@ -85,13 +91,30 @@ const templateString = `
     margin-right: 6px;
 }
 
+locked-rows {
+    background-color: rgba(240, 240, 240, 0.2);
+    border-bottom: 2px solid black;
+}
+locked-columns {
+    background-color: rgba(240, 240, 240, 0.2);
+    border-right: 2px solid black;
+}
+
+row-tab[locked="true"],
+column-tab[locked="true"] {
+    background-color: rgba(240, 240, 240, 0.8);
+}
+
 </style>
 <div id="edit-bar" style="grid-column: 1 / -1; grid-row: span 1;">
     <div id="info-area"><span>Cursor</span><span>&rarr;</span></div>
     <input id="edit-area" type="text" disabled="true"/>
 </div>
 <slot></slot>
-<sheet-selection></sheet-selection>
+<sheet-selection id="main-selection"></sheet-selection>
+<sheet-selection id="locked-rows-selection" class="empty"></sheet-selection>
+<locked-rows id="locked-rows-selection" class="empty"></locked-rows>
+<locked-columns id="locked-columns-selection" class="empty"></locked-columns>
 <sheet-cursor id="cursor"></sheet-cursor>
 `;
 
@@ -292,6 +315,10 @@ class GridSheet extends HTMLElement {
 
     updateLockedRows(){
         this.render();
+        let element = this.shadowRoot.querySelector('locked-rows');
+        if(element){
+            element.updateFromSelector(this.selector);
+        }
     }
 
     updateNumColumns(){
@@ -300,6 +327,10 @@ class GridSheet extends HTMLElement {
 
     updateLockedColumns(){
         this.render();
+        let element = this.shadowRoot.querySelector('locked-columns');
+        if(element){
+            element.updateFromSelector(this.selector);
+        }
     }
 
     render(){
@@ -318,9 +349,21 @@ class GridSheet extends HTMLElement {
         this.append(...this.primaryFrame.elements);
         this.primaryFrame.lockRows(this.numLockedRows);
         this.primaryFrame.lockColumns(this.numLockedColumns);
-        this.primaryFrame.updateCellContents();
         this.primaryFrame.afterChange = this.dispatchViewShifted.bind(this);
         this.selector.primaryFrame = this.primaryFrame;
+
+        // This is HACKY.
+        // Issue: the elements have not yet finished appending
+        // themselves to this GridSheet element by the time
+        // updateCellContents() gets called, so it cannot find
+        // elements!
+        if(this.primaryFrame.elements.length == 0){
+            setTimeout(() => {
+                this.primaryFrame.updateCellContents();
+            }, 60);
+        } else {
+            this.primaryFrame.updateCellContents();
+        }
     }
 
     renderGridTemplate(){
@@ -463,7 +506,7 @@ class GridSheet extends HTMLElement {
         cursorElement.setAttribute('relative-y', this.selector.relativeCursor.y);
 
         // Update the selection view element
-        let sel = this.shadowRoot.querySelector('sheet-selection');
+        let sel = this.shadowRoot.getElementById('main-selection');
         if(this.selector.selectionFrame.isEmpty){
             sel.hide();
         } else {

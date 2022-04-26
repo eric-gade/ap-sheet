@@ -154,21 +154,6 @@ class PrimaryGridFrame extends GridElementsFrame {
      */
     labelElements(){
         let classesToClear = ['in-locked-row', 'in-locked-column', 'view-cell'];
-        // Begin with columns
-        this.lockedColumnsFrame.forEachPoint(aPoint => {
-            let el = this.elementAt(aPoint);
-            if (el !== null) {
-                el.classList.remove(...classesToClear);
-                el.classList.add('in-locked-column');
-            }
-        });
-        this.lockedRowsFrame.forEachPoint(aPoint => {
-            let el = this.elementAt(aPoint);
-            if (el !== null) {
-                el.classList.remove(...classesToClear);
-                el.classList.add('in-locked-row');
-            }
-        });
         this.viewFrame.forEachPoint(aPoint => {
             let el = this.elementAt(aPoint);
             if (el !== null) {
