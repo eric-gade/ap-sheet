@@ -184,6 +184,8 @@ class GridSheet extends HTMLElement {
         // Bind event handlers
         this.handleSelectionChanged = this.handleSelectionChanged.bind(this);
         this.handleViewShift = this.handleViewShift.bind(this);
+        this.handleColumnAdjustment = this.handleColumnAdjustment.bind(this);
+        this.handleRowAdjustment = this.handleRowAdjustment.bind(this);
         this.afterEditChange = this.afterEditChange.bind(this);
     }
 
@@ -345,7 +347,6 @@ class GridSheet extends HTMLElement {
 
     render(){
         this.innerHTML = "";
-        this.renderGridTemplate();
         if(this.showRowTabs){
             this.renderRowTabs();
         }
@@ -361,6 +362,7 @@ class GridSheet extends HTMLElement {
         this.primaryFrame.lockColumns(this.numLockedColumns);
         this.primaryFrame.afterChange = this.dispatchViewShifted.bind(this);
         this.selector.primaryFrame = this.primaryFrame;
+        this.renderGridTemplate();
 
         // This is HACKY.
         // Issue: the elements have not yet finished appending
@@ -378,20 +380,45 @@ class GridSheet extends HTMLElement {
 
     renderGridTemplate(){
         // Column lines
-        let col = `repeat(${this.numColumns}, [cell-col-start] ${this.cellWidth}px)`;
+        let relativeXValues = Array.from(this.querySelectorAll('sheet-cell')).filter(element => {
+            return element.getAttribute('data-y') === "0";
+        }).map(element => {
+            return parseInt(element.getAttribute('data-relative-x'));
+        });
+        let col = "";
+        for(let i = 0; i < relativeXValues.length; i++){
+            let relativeX = relativeXValues[i];
+            if(this.customColumns[relativeX]){
+                col += `[cell-col-start] ${this.customColumns[relativeX]}px `;
+            } else {
+                col += `[cell-col-start] ${this.cellWidth}px`;
+            }
+        }
         if(this.showRowTabs){
             col = `[rtab-start] 0.3fr ${col}`;
         }
         this.style.gridTemplateColumns = col;
 
         // Row lines
-        let row = `repeat(${this.numRows}, [cell-row-start] 1fr)`;
+        let relativeYValues = Array.from(this.querySelectorAll('sheet-cell')).filter(element => {
+            return element.getAttribute('data-x') === "0";
+        }).map(element => {
+            return parseInt(element.getAttribute('data-relative-y'));
+        });
+        let row = "";
+        for(let i = 0; i < relativeYValues.length; i++){
+            let relativeY = relativeYValues[i];
+            if(this.customRows[relativeY]){
+                row += `[cell-row-start] ${this.customRows[relativeY]}px `;
+            } else {
+                row += `[cell-row-start] 1fr `;
+            }
+        }
         if(this.showColumnTabs){
             row = `[ctab-start] 1fr ${row}`;
         }
         row = `[header-start] 1fr ${row}`;
         this.style.gridTemplateRows = row;
-        
     }
 
     renderRowTabs(){
@@ -430,6 +457,9 @@ class GridSheet extends HTMLElement {
                     this.selector.triggerCallback();
                 }
             });
+
+            // Add event listener for row adjustment
+            tab.addEventListener('row-adjustment', this.handleRowAdjustment);
         }
     }
 
@@ -471,6 +501,9 @@ class GridSheet extends HTMLElement {
                     this.selector.triggerCallback();
                 }
             });
+
+            // Add event listener for width adjustment
+            tab.addEventListener('column-adjustment', this.handleColumnAdjustment);
         }
     }
 
@@ -525,6 +558,9 @@ class GridSheet extends HTMLElement {
                 }
             });
         }
+
+        // Update the grid template
+        this.renderGridTemplate();
     }
 
     handleSelectionChanged(event){
@@ -568,6 +604,16 @@ class GridSheet extends HTMLElement {
         // locations, respectively
         this.trackSelectionWithRowTabs();
         this.trackSelectionWithColumnTabs();
+    }
+
+    handleColumnAdjustment(event){
+        this.customColumns[event.target.column] = event.detail.newWidth;
+        this.renderGridTemplate();
+    }
+
+    handleRowAdjustment(event){
+        this.customRows[event.target.row] = event.detail.newHeight;
+        this.renderGridTemplate();
     }
 
     trackSelectionWithRowTabs(){
