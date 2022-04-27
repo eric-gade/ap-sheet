@@ -105,6 +105,11 @@ column-tab[locked="true"] {
     background-color: rgba(240, 240, 240, 0.8);
 }
 
+row-tab,
+column-tab {
+    font-family: monospace;
+}
+
 </style>
 <div id="edit-bar" style="grid-column: 1 / -1; grid-row: span 1;">
     <div id="info-area"><span>Cursor</span><span>&rarr;</span></div>
@@ -137,6 +142,11 @@ class GridSheet extends HTMLElement {
         this.numColumns = 1;
         this.showRowTabs = true;
         this.showColumnTabs = true;
+
+        // Default column and row
+        // customizations
+        this.customColumns = {};
+        this.customRows = {};
 
         // Set up the internal frames
         this.dataFrame = new DataFrame([0,0], [1000,1000]);
@@ -401,6 +411,25 @@ class GridSheet extends HTMLElement {
             if(i < this.numLockedRows){
                 tab.setAttribute('locked', true);
             }
+
+            // Add event listener for clicking to
+            // select whole row
+            tab.addEventListener('click', (event) => {
+                if(event.button == 0){
+                    let targetPoint = new Point([0, event.target.relativeRow]);
+                    this.selector.anchor = targetPoint;
+                    let endPoint = new Point([
+                        this.dataFrame.right,
+                        targetPoint.y
+                    ]);
+                    this.selector.selectFromAnchorTo(endPoint);
+                    this.selector.cursor = new Point([
+                        this.selector.cursor.x,
+                        tab.row
+                    ]);
+                    this.selector.triggerCallback();
+                }
+            });
         }
     }
 
@@ -423,6 +452,25 @@ class GridSheet extends HTMLElement {
             if(i < this.numLockedColumns){
                 tab.setAttribute('locked', true);
             }
+
+            // Add event listener for clicking to
+            // select the whole column
+            tab.addEventListener('click', (event) => {
+                if(event.button === 0){
+                    let targetPoint = new Point([event.target.relativeColumn, 0]);
+                    this.selector.anchor = targetPoint;
+                    let endPoint = new Point([
+                        targetPoint.x,
+                        this.dataFrame.bottom
+                    ]);
+                    this.selector.selectFromAnchorTo(endPoint);
+                    this.selector.cursor = new Point([
+                        tab.column,
+                        this.selector.cursor.y
+                    ]);
+                    this.selector.triggerCallback();
+                }
+            });
         }
     }
 

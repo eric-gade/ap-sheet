@@ -33,6 +33,9 @@ const rowTabTemplateString = `
     :host([highlighted]){
         background-color: var(--tracking-highlight-color);
     }
+    :host(:hover){
+        cursor: pointer;
+    }
 </style>
 <span id="label">
 </span>
@@ -93,6 +96,9 @@ const columnTabTemplateString = `
     }
     :host([highlighted]){
         background-color: var(--tracking-highlight-color);
+    }
+    :host(:hover){
+        cursor: pointer;
     }
 </style>
 <span id="label"></span>
