@@ -27,6 +27,7 @@ class MouseHandler extends Object {
         this.onMouseUp = this.onMouseUp.bind(this);
         // this.onClick = this.onClick.bind(this);
         this.onDoubleClick = this.onDoubleClick.bind(this);
+        this.onWheel = this.onWheel.bind(this);
         this.connect = this.connect.bind(this);
         this.disconnect = this.disconnect.bind(this);
     }
@@ -36,6 +37,7 @@ class MouseHandler extends Object {
         this.sheet.addEventListener('mousedown', this.onMouseDown);
         this.sheet.addEventListener('mouseup', this.onMouseUp);
         this.sheet.addEventListener('dblclick', this.onDoubleClick);
+        this.sheet.addEventListener('wheel', this.onWheel);
     }
 
     removeAllListeners(){
@@ -43,6 +45,7 @@ class MouseHandler extends Object {
         this.sheet.removeEventListener('mousedown', this.onMouseDown);
         this.sheet.removeEventListener('mouseup', this.onMouseUp);
         this.sheet.removeEventListener('dblclick', this.onDoubleClick);
+        this.sheet.removeEventListener('wheel', this.onWheel);
     }
 
     onMouseDown(event){
@@ -78,6 +81,29 @@ class MouseHandler extends Object {
             this.sheet.selector.setAnchorToElement(event.target);
             this.sheet.dispatchSelectionChanged();
         }
+    }
+
+    onWheel(event){
+        if(event.ctrlKey){
+            // Then we switch to up = left
+            // and down = right
+            if(event.deltaY < 0){
+                // We are scrolling up
+                this.sheet.primaryFrame.shiftLeftBy(1);
+            } else {
+                // We are scrolling down
+                this.sheet.primaryFrame.shiftRightBy(1);
+            }
+        } else {
+            if(event.deltaY < 0){
+                // We are scrolling up
+                this.sheet.primaryFrame.shiftUpBy(1);
+            } else {
+                // We are scrolling down
+                this.sheet.primaryFrame.shiftDownBy(1);
+            }
+        }
+        event.preventDefault();
     }
 
     disconnect(){
