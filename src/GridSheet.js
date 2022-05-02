@@ -295,21 +295,22 @@ class GridSheet extends HTMLElement {
             editArea.removeAttribute("disabled");
             editArea.select();
             editArea.focus();
-            editArea.addEventListener('change', this.afterEditChange);
+            editArea.addEventListener('cell-changed', this.afterEditChange);
         }
         
     }
 
     afterEditChange(event){
-        event.currentTarget.removeEventListener('change', this.afterEditChange);
+        event.currentTarget.removeEventListener('cell-changed', this.afterEditChange);
         event.currentTarget.setAttribute('disabled', 'true');
         this.focus();
 
         // Remove styling from the cell that
         // was being edited
-        let cell = this.primaryFrame.elementAt(this.selector.cursor);
         this.classList.remove('editing-cell');
-        cell.classList.remove('editing');
+        this.querySelectorAll(".editing").forEach((el) => {
+            el.classList.remove('editing');
+        })
 
         // Update the DataFrame and redraw view frame
         this.dataFrame.putAt(this.selector.relativeCursor, event.currentTarget.value);
@@ -506,6 +507,14 @@ class GridSheet extends HTMLElement {
             tab.addEventListener('column-adjustment', this.handleColumnAdjustment);
         }
     }
+
+    dispatchCellChanged(){
+        let editArea = this.shadowRoot.getElementById('edit-area')
+        let cellEvent = new CustomEvent('cell-changed', {
+        });
+        editArea.dispatchEvent(cellEvent);
+    }
+
 
     dispatchSelectionChanged(){
         let selectionEvent = new CustomEvent('selection-changed', {

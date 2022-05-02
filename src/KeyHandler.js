@@ -66,6 +66,9 @@ class KeyHandler extends Object {
             }
             event.preventDefault();
             event.stopPropagation();
+            if(this.sheet.classList.contains('editing-cell')){
+              this.sheet.dispatchCellChanged();
+            }
             this.sheet.dispatchSelectionChanged();
         });
         this.registerHandler('ArrowLeft', (event) => {
@@ -79,6 +82,9 @@ class KeyHandler extends Object {
             }
             event.preventDefault();
             event.stopPropagation();
+            if(this.sheet.classList.contains('editing-cell')){
+              this.sheet.dispatchCellChanged();
+            }
             this.sheet.dispatchSelectionChanged();
         });
         this.registerHandler('ArrowDown', (event) => {
@@ -92,6 +98,9 @@ class KeyHandler extends Object {
             }
             event.preventDefault();
             event.stopPropagation();
+            if(this.sheet.classList.contains('editing-cell')){
+              this.sheet.dispatchCellChanged();
+            }
             this.sheet.dispatchSelectionChanged();
         });
         this.registerHandler('ArrowUp', (event) => {
@@ -105,6 +114,9 @@ class KeyHandler extends Object {
             }
             event.preventDefault();
             event.stopPropagation();
+            if(this.sheet.classList.contains('editing-cell')){
+              this.sheet.dispatchCellChanged();
+            }
             this.sheet.dispatchSelectionChanged();
         });
         this.registerHandler('PageUp', (event) => {
@@ -115,6 +127,9 @@ class KeyHandler extends Object {
             }
             event.preventDefault();
             event.stopPropagation();
+            if(this.sheet.classList.contains('editing-cell')){
+              this.sheet.dispatchCellChanged();
+            }
             this.sheet.dispatchSelectionChanged();
         });
         this.registerHandler('PageDown', (event) => {
@@ -125,10 +140,15 @@ class KeyHandler extends Object {
             }
             event.preventDefault();
             event.stopPropagation();
+            if(this.sheet.classList.contains('editing-cell')){
+              this.sheet.dispatchCellChanged();
+            }
             this.sheet.dispatchSelectionChanged();
         });
         this.registerHandler('Enter', (event) => {
-            if(this.sheet.selector.selectionFrame.isEmpty){
+            if(this.sheet.classList.contains('editing-cell')){
+              this.sheet.dispatchCellChanged();
+            } else if(this.sheet.selector.selectionFrame.isEmpty){
                 this.sheet.onCellEdit();
             }
         });
