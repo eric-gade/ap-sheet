@@ -162,6 +162,19 @@ class DataFrame extends Frame {
     }
 
     /**
+     * Clear out the cached dictionary of
+     * points to values.
+     */
+    clear(){
+        this.store = {};
+        if(this.callback){
+            this.callback(
+                new Frame(this.origin, this.corner)
+            );
+        }
+    }
+
+    /**
      * A DataFrame is considered "full" if there
      * are stored values for each of its points.
      * This is equivalent to each point having a key
