@@ -8,12 +8,18 @@ import {ClipboardHandler} from './ClipboardHandler.js';
 import {Frame} from "./Frame.js";
 import {RowTab, ColumnTab} from "./Tab.js";
 import {SelectionElement} from './SelectionElement.js';
+import {
+    LockedRowsElement,
+    LockedColumnsElement
+} from './LockedSelectionElement.js';
 import {CursorElement} from './CursorElement.js';
 
 // Add any components
 window.customElements.define('row-tab', RowTab);
 window.customElements.define('column-tab', ColumnTab);
 window.customElements.define('sheet-selection', SelectionElement);
+window.customElements.define('locked-rows', LockedRowsElement);
+window.customElements.define('locked-columns', LockedColumnsElement);
 window.customElements.define('sheet-cursor', CursorElement);
 
 // Simple grid-based sheet component
@@ -85,13 +91,35 @@ const templateString = `
     margin-right: 6px;
 }
 
+locked-rows {
+    background-color: rgba(240, 240, 240, 0.2);
+    border-bottom: 2px solid black;
+}
+locked-columns {
+    background-color: rgba(240, 240, 240, 0.2);
+    border-right: 2px solid black;
+}
+
+row-tab[locked="true"],
+column-tab[locked="true"] {
+    background-color: rgba(240, 240, 240, 0.8);
+}
+
+row-tab,
+column-tab {
+    font-family: monospace;
+}
+
 </style>
 <div id="edit-bar" style="grid-column: 1 / -1; grid-row: span 1;">
     <div id="info-area"><span>Cursor</span><span>&rarr;</span></div>
     <input id="edit-area" type="text" disabled="true"/>
 </div>
 <slot></slot>
-<sheet-selection></sheet-selection>
+<sheet-selection id="main-selection"></sheet-selection>
+<sheet-selection id="locked-rows-selection" class="empty"></sheet-selection>
+<locked-rows id="locked-rows-selection" class="empty"></locked-rows>
+<locked-columns id="locked-columns-selection" class="empty"></locked-columns>
 <sheet-cursor id="cursor"></sheet-cursor>
 `;
 
@@ -114,6 +142,11 @@ class GridSheet extends HTMLElement {
         this.numColumns = 1;
         this.showRowTabs = true;
         this.showColumnTabs = true;
+
+        // Default column and row
+        // customizations
+        this.customColumns = {};
+        this.customRows = {};
 
         // Set up the internal frames
         this.dataFrame = new DataFrame([0,0], [1000,1000]);
@@ -142,11 +175,17 @@ class GridSheet extends HTMLElement {
         this.renderRowTabs = this.renderRowTabs.bind(this);
         this.renderColumnTabs = this.renderColumnTabs.bind(this);
         this.dispatchSelectionChanged = this.dispatchSelectionChanged.bind(this);
+        this.dispatchViewShifted = this.dispatchViewShifted.bind(this);
         this.updateLockedRows = this.updateLockedRows.bind(this);
         this.updateLockedColumns = this.updateLockedColumns.bind(this);
+        this.trackSelectionWithRowTabs = this.trackSelectionWithRowTabs.bind(this);
+        this.trackSelectionWithColumnTabs = this.trackSelectionWithColumnTabs.bind(this);
 
         // Bind event handlers
         this.handleSelectionChanged = this.handleSelectionChanged.bind(this);
+        this.handleViewShift = this.handleViewShift.bind(this);
+        this.handleColumnAdjustment = this.handleColumnAdjustment.bind(this);
+        this.handleRowAdjustment = this.handleRowAdjustment.bind(this);
         this.afterEditChange = this.afterEditChange.bind(this);
     }
 
@@ -172,10 +211,15 @@ class GridSheet extends HTMLElement {
             // copy and paste
             this.clipboardHandler = new ClipboardHandler(this);
             this.clipboardHandler.connect();
+
+            // Bind the PrimaryFrame's afterChange callback
+            // to this instance's viewShifted handler.
+            this.primaryFrame.afterChange = this.dispatchViewShifted.bind(this);
         }
 
         // Event listeners
         this.addEventListener('selection-changed', this.handleSelectionChanged);
+        this.addEventListener('sheet-view-shifted', this.handleViewShift);
     }
 
     disconnectedCallback(){
@@ -184,6 +228,7 @@ class GridSheet extends HTMLElement {
         this.keyHandler.disconnect();
         this.clipboardHandler.disconnect();
         this.removeEventListener('selection-changed', this.handleSelectionChanged);
+        this.removeEventListener('sheet-view-shifted', this.handleViewShift);
     }
 
     attributeChangedCallback(name, oldVal, newVal){
@@ -273,10 +318,19 @@ class GridSheet extends HTMLElement {
 
     updateNumRows(){
         this.render();
+
+        // If there are column tabs showing,
+        // mark the ones that should be locked
+        // as locked
+        
     }
 
     updateLockedRows(){
         this.render();
+        let element = this.shadowRoot.querySelector('locked-rows');
+        if(element){
+            element.updateFromSelector(this.selector);
+        }
     }
 
     updateNumColumns(){
@@ -285,19 +339,19 @@ class GridSheet extends HTMLElement {
 
     updateLockedColumns(){
         this.render();
+        let element = this.shadowRoot.querySelector('locked-columns');
+        if(element){
+            element.updateFromSelector(this.selector);
+        }
     }
 
     render(){
         this.innerHTML = "";
-        this.renderGridTemplate();
         if(this.showRowTabs){
             this.renderRowTabs();
         }
         if(this.showColumnTabs){
             this.renderColumnTabs();
-        }
-        if(this.showColumnTabs && this.showRowTabs){
-            this.renderTopCorner();
         }
         let newCorner = new Point([this.numColumns-1, this.numRows-1]);
         this.primaryFrame = new PrimaryFrame(this.dataFrame, newCorner);
@@ -306,39 +360,106 @@ class GridSheet extends HTMLElement {
         this.append(...this.primaryFrame.elements);
         this.primaryFrame.lockRows(this.numLockedRows);
         this.primaryFrame.lockColumns(this.numLockedColumns);
-        this.primaryFrame.updateCellContents();
+        this.primaryFrame.afterChange = this.dispatchViewShifted.bind(this);
         this.selector.primaryFrame = this.primaryFrame;
+        this.renderGridTemplate();
+
+        // This is HACKY.
+        // Issue: the elements have not yet finished appending
+        // themselves to this GridSheet element by the time
+        // updateCellContents() gets called, so it cannot find
+        // elements!
+        if(this.primaryFrame.elements.length == 0){
+            setTimeout(() => {
+                this.primaryFrame.updateCellContents();
+            }, 60);
+        } else {
+            this.primaryFrame.updateCellContents();
+        }
     }
 
     renderGridTemplate(){
         // Column lines
-        let col = `repeat(${this.numColumns}, [cell-col-start] ${this.cellWidth}px)`;
+        let relativeXValues = Array.from(this.querySelectorAll('sheet-cell')).filter(element => {
+            return element.getAttribute('data-y') === "0";
+        }).map(element => {
+            return parseInt(element.getAttribute('data-relative-x'));
+        });
+        let col = "";
+        for(let i = 0; i < relativeXValues.length; i++){
+            let relativeX = relativeXValues[i];
+            if(this.customColumns[relativeX]){
+                col += `[cell-col-start] ${this.customColumns[relativeX]}px `;
+            } else {
+                col += `[cell-col-start] ${this.cellWidth}px`;
+            }
+        }
         if(this.showRowTabs){
             col = `[rtab-start] 0.3fr ${col}`;
         }
         this.style.gridTemplateColumns = col;
 
         // Row lines
-        let row = `repeat(${this.numRows}, [cell-row-start] 1fr)`;
+        let relativeYValues = Array.from(this.querySelectorAll('sheet-cell')).filter(element => {
+            return element.getAttribute('data-x') === "0";
+        }).map(element => {
+            return parseInt(element.getAttribute('data-relative-y'));
+        });
+        let row = "";
+        for(let i = 0; i < relativeYValues.length; i++){
+            let relativeY = relativeYValues[i];
+            if(this.customRows[relativeY]){
+                row += `[cell-row-start] ${this.customRows[relativeY]}px `;
+            } else {
+                row += `[cell-row-start] 1fr `;
+            }
+        }
         if(this.showColumnTabs){
             row = `[ctab-start] 1fr ${row}`;
         }
         row = `[header-start] 1fr ${row}`;
         this.style.gridTemplateRows = row;
-        
     }
 
     renderRowTabs(){
         Array.from(this.shadowRoot.querySelectorAll('row-tab')).forEach(tab => {
             tab.remove();
         });
-        for(let i = 1; i <= this.numRows; i++){
+        for(let i = 0; i < this.numRows; i++){
             let tab = document.createElement('row-tab');
             tab.style.gridColumn = `rtab-start / span 1`;
-            tab.style.gridRow = `cell-row-start ${i} / span 1`;
+            tab.style.gridRow = `cell-row-start ${i+1} / span 1`;
             this.shadowRoot.append(tab);
             tab.setAttribute('data-y', i);
             tab.setAttribute('data-relative-y', i);
+
+            // Mark any tabs appearing in a locked row
+            // as locked
+            if(i < this.numLockedRows){
+                tab.setAttribute('locked', true);
+            }
+
+            // Add event listener for clicking to
+            // select whole row
+            tab.addEventListener('click', (event) => {
+                if(event.button == 0){
+                    let targetPoint = new Point([0, event.target.relativeRow]);
+                    this.selector.anchor = targetPoint;
+                    let endPoint = new Point([
+                        this.dataFrame.right,
+                        targetPoint.y
+                    ]);
+                    this.selector.selectFromAnchorTo(endPoint);
+                    this.selector.cursor = new Point([
+                        this.selector.cursor.x,
+                        tab.row
+                    ]);
+                    this.selector.triggerCallback();
+                }
+            });
+
+            // Add event listener for row adjustment
+            tab.addEventListener('row-adjustment', this.handleRowAdjustment);
         }
     }
 
@@ -347,21 +468,43 @@ class GridSheet extends HTMLElement {
             tab.remove();
         });
         let previousNode = this.shadowRoot.querySelector('slot');
-        for(let i = 1; i <= this.numColumns; i++){
+        for(let i = 0; i < this.numColumns; i++){
             let tab = document.createElement('column-tab');
             tab.style.gridRow = 'ctab-start / span 1';
-            tab.style.gridColumn = `cell-col-start ${i} / span 1`;
+            tab.style.gridColumn = `cell-col-start ${i+1} / span 1`;
             this.shadowRoot.insertBefore(tab, previousNode);
             previousNode = tab;
             tab.setAttribute("data-x", i);
             tab.setAttribute("data-relative-x", i);
-        }
-    }
 
-    renderTopCorner(){
-        // Insert the corner element where the column and
-        // tab rows meet. This prevents wonky grid insertion
-        // of the sheet cells.
+            // Mark any tabs appearing in a locked column
+            // as locked
+            if(i < this.numLockedColumns){
+                tab.setAttribute('locked', true);
+            }
+
+            // Add event listener for clicking to
+            // select the whole column
+            tab.addEventListener('click', (event) => {
+                if(event.button === 0){
+                    let targetPoint = new Point([event.target.relativeColumn, 0]);
+                    this.selector.anchor = targetPoint;
+                    let endPoint = new Point([
+                        targetPoint.x,
+                        this.dataFrame.bottom
+                    ]);
+                    this.selector.selectFromAnchorTo(endPoint);
+                    this.selector.cursor = new Point([
+                        tab.column,
+                        this.selector.cursor.y
+                    ]);
+                    this.selector.triggerCallback();
+                }
+            });
+
+            // Add event listener for width adjustment
+            tab.addEventListener('column-adjustment', this.handleColumnAdjustment);
+        }
     }
 
     dispatchSelectionChanged(){
@@ -374,6 +517,50 @@ class GridSheet extends HTMLElement {
             }
         });
         this.dispatchEvent(selectionEvent);
+    }
+
+    dispatchViewShifted(){
+        let viewShiftEvent = new CustomEvent('sheet-view-shifted', {
+            detail: {
+                view: this.primaryFrame.viewFrame,
+                lockedColumns: this.primaryFrame.lockedColumnsFrame,
+                lockedRows: this.primaryFrame.lockedRowsFrame,
+                relativeView: this.primaryFrame.relativeViewFrame,
+                relativeLockedColumns: this.primaryFrame.relativeLockedColumnsFrame,
+                relativeLockedRows: this.primaryFrame.relativeLockedRowsFrame,
+                cursor: new Point([this.selector.cursor.x, this.selector.cursor.y]),
+                relativeCursor: this.selector.relativeCursor
+            }
+        });
+        this.dispatchEvent(viewShiftEvent);
+    }
+
+    handleViewShift(event){
+        // Update row tabs, if we are showing them
+        if(this.showRowTabs){
+            Array.from(this.shadowRoot.querySelectorAll('row-tab')).forEach(tabElement => {
+                let isInLockedRow = tabElement.getAttribute('locked') === "true";
+                if(!isInLockedRow){
+                    tabElement.setAttribute('data-relative-y', this.primaryFrame.dataOffset.y + tabElement.row);
+                }
+            });
+        }
+
+        // Update column tabs, if we are showing them
+        if(this.showColumnTabs){
+            Array.from(this.shadowRoot.querySelectorAll('column-tab')).forEach(colElement => {
+                let inLockedColumn = colElement.getAttribute('locked') === "true";
+                if(!inLockedColumn){
+                    colElement.setAttribute(
+                        'data-relative-x',
+                        this.primaryFrame.dataOffset.x + colElement.column
+                    );
+                }
+            });
+        }
+
+        // Update the grid template
+        this.renderGridTemplate();
     }
 
     handleSelectionChanged(event){
@@ -403,14 +590,60 @@ class GridSheet extends HTMLElement {
         cursorElement.setAttribute('relative-y', this.selector.relativeCursor.y);
 
         // Update the selection view element
-        let sel = this.shadowRoot.querySelector('sheet-selection');
+        let sel = this.shadowRoot.getElementById('main-selection');
         if(this.selector.selectionFrame.isEmpty){
             sel.hide();
-            return;
+        } else {
+            sel.show();
+            sel.updateFromRelativeFrame(event.detail.frame);
+            sel.updateFromViewFrame(this.selector.absoluteSelectionFrame);
         }
-        sel.show();
-        sel.updateFromRelativeFrame(event.detail.frame);
-        sel.updateFromViewFrame(this.selector.absoluteSelectionFrame);
+
+        // Set any row or column tabs to highlight whether they
+        // correspond to the selection or the cursor's y or x
+        // locations, respectively
+        this.trackSelectionWithRowTabs();
+        this.trackSelectionWithColumnTabs();
+    }
+
+    handleColumnAdjustment(event){
+        this.customColumns[event.target.column] = event.detail.newWidth;
+        this.renderGridTemplate();
+    }
+
+    handleRowAdjustment(event){
+        this.customRows[event.target.row] = event.detail.newHeight;
+        this.renderGridTemplate();
+    }
+
+    trackSelectionWithRowTabs(){
+        Array.from(this.shadowRoot.querySelectorAll('row-tab')).forEach(rowTabEl => {
+            let dataStart = this.selector.selectionFrame.origin.y;
+            let dataEnd = this.selector.selectionFrame.corner.y;
+            let inSelection = (dataStart <= rowTabEl.relativeRow && rowTabEl.relativeRow <= dataEnd);
+            if(inSelection && !this.selector.selectionFrame.isEmpty){
+                rowTabEl.setAttribute("highlighted", true);
+            } else if(this.selector.relativeCursor.y == rowTabEl.relativeRow){
+                rowTabEl.setAttribute("highlighted", true);
+            } else {
+                rowTabEl.removeAttribute("highlighted");
+            }
+        });
+    }
+
+    trackSelectionWithColumnTabs(){
+        Array.from(this.shadowRoot.querySelectorAll('column-tab')).forEach(colTabEl => {
+            let dataStart = this.selector.selectionFrame.origin.x;
+            let dataEnd = this.selector.selectionFrame.corner.x;
+            let inSelection = (dataStart <= colTabEl.relativeColumn && colTabEl.relativeColumn <= dataEnd);
+            if(inSelection && !this.selector.selectionFrame.isEmpty){
+                colTabEl.setAttribute("highlighted", true);
+            } else if(this.selector.relativeCursor.x == colTabEl.relativeColumn){
+                colTabEl.setAttribute("highlighted", true);
+            } else {
+                colTabEl.removeAttribute("highlighted");
+            }
+        });
     }
 
     static get observedAttributes(){

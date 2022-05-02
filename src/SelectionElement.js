@@ -90,6 +90,10 @@ class SelectionElement extends HTMLElement {
     }
 
     updateFromViewFrame(aFrame){
+        if(aFrame === null){
+            this.viewFrame.isEmpty = true;
+            return;
+        }
         this.viewFrame.corner.x = aFrame.corner.x;
         this.viewFrame.corner.y = aFrame.corner.y;
         this.viewFrame.origin.x = aFrame.origin.x;
@@ -102,6 +106,10 @@ class SelectionElement extends HTMLElement {
     }
 
     updateFromRelativeFrame(aFrame){
+        if(aFrame === null){
+            this.relativeFrame.isEmpty = true;
+            return;
+        }
         this.relativeFrame.corner.x = aFrame.corner.x;
         this.relativeFrame.corner.y = aFrame.corner.y;
         this.relativeFrame.origin.x = aFrame.origin.x;
