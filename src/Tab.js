@@ -71,6 +71,8 @@ class RowTab extends HTMLElement {
         this.row = 0;
         this.relativeRow = 0;
 
+        this.isRowTab = true;
+
         // a Cached version of the measurment
         this._cachedHeight = null;
         this._cachedMouseY = 0;
@@ -201,6 +203,8 @@ class ColumnTab extends HTMLElement {
 
         this.column = 0;
         this.relativeColumn = 0;
+
+        this.isColumnTab = true;
 
         // a Cached version of the measurment
         this._cachedWidth = null;

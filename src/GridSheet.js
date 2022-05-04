@@ -170,6 +170,7 @@ class GridSheet extends HTMLElement {
         this.onObservedResize = this.onObservedResize.bind(this);
         this.onCellEdit = this.onCellEdit.bind(this);
         this.onDataChanged = this.onDataChanged.bind(this);
+        this.onTabClick = this.onTabClick.bind(this);
         this.render = this.render.bind(this);
         this.renderGridTemplate = this.renderGridTemplate.bind(this);
         this.renderRowTabs = this.renderRowTabs.bind(this);
@@ -441,25 +442,44 @@ class GridSheet extends HTMLElement {
 
             // Add event listener for clicking to
             // select whole row
-            tab.addEventListener('click', (event) => {
-                if(event.button == 0){
-                    let targetPoint = new Point([0, event.target.relativeRow]);
-                    this.selector.anchor = targetPoint;
-                    let endPoint = new Point([
-                        this.dataFrame.right,
-                        targetPoint.y
-                    ]);
-                    this.selector.selectFromAnchorTo(endPoint);
-                    this.selector.cursor = new Point([
-                        this.selector.cursor.x,
-                        tab.row
-                    ]);
-                    this.selector.triggerCallback();
-                }
-            });
+            // tab.addEventListener('click', (event) => {
+            //     if(event.button == 0){
+            //         let targetPoint = new Point([0, event.target.relativeRow]);
+            //         this.selector.anchor = targetPoint;
+            //         let endPoint = new Point([
+            //             this.dataFrame.right,
+            //             targetPoint.y
+            //         ]);
+            //         this.selector.selectFromAnchorTo(endPoint);
+            //         this.selector.cursor = new Point([
+            //             this.selector.cursor.x,
+            //             tab.row
+            //         ]);
+            //         this.selector.triggerCallback();
+            //     }
+            // });
+            tab.addEventListener('click', this.onTabClick.bind(this));
 
             // Add event listener for row adjustment
             tab.addEventListener('row-adjustment', this.handleRowAdjustment);
+        }
+    }
+
+    onTabClick(event){
+        if(event.target.isRowTab && event.button === 0){
+            let rowOrigin = new Point([0, event.target.relativeRow]);
+            let rowCorner = new Point([this.dataFrame.right, event.target.relativeRow]);
+            let rowRelativeFrame = new Frame(rowOrigin, rowCorner);
+            if(event.shiftKey){
+                
+            } else {
+                this.selector.anchor = rowOrigin;
+            }
+            this.selector.selectFromAnchorTo(rowCorner);
+            // Update the cursor?
+            this.selector.triggerCallback();
+        } else if(event.target.isColumnTab && event.button === 0){
+            
         }
     }
 
