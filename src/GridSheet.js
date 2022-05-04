@@ -439,47 +439,10 @@ class GridSheet extends HTMLElement {
             if(i < this.numLockedRows){
                 tab.setAttribute('locked', true);
             }
-
-            // Add event listener for clicking to
-            // select whole row
-            // tab.addEventListener('click', (event) => {
-            //     if(event.button == 0){
-            //         let targetPoint = new Point([0, event.target.relativeRow]);
-            //         this.selector.anchor = targetPoint;
-            //         let endPoint = new Point([
-            //             this.dataFrame.right,
-            //             targetPoint.y
-            //         ]);
-            //         this.selector.selectFromAnchorTo(endPoint);
-            //         this.selector.cursor = new Point([
-            //             this.selector.cursor.x,
-            //             tab.row
-            //         ]);
-            //         this.selector.triggerCallback();
-            //     }
-            // });
             tab.addEventListener('click', this.onTabClick.bind(this));
 
             // Add event listener for row adjustment
             tab.addEventListener('row-adjustment', this.handleRowAdjustment);
-        }
-    }
-
-    onTabClick(event){
-        if(event.target.isRowTab && event.button === 0){
-            let rowOrigin = new Point([0, event.target.relativeRow]);
-            let rowCorner = new Point([this.dataFrame.right, event.target.relativeRow]);
-            let rowRelativeFrame = new Frame(rowOrigin, rowCorner);
-            if(event.shiftKey){
-                
-            } else {
-                this.selector.anchor = rowOrigin;
-            }
-            this.selector.selectFromAnchorTo(rowCorner);
-            // Update the cursor?
-            this.selector.triggerCallback();
-        } else if(event.target.isColumnTab && event.button === 0){
-            
         }
     }
 
@@ -503,27 +466,72 @@ class GridSheet extends HTMLElement {
                 tab.setAttribute('locked', true);
             }
 
-            // Add event listener for clicking to
-            // select the whole column
-            tab.addEventListener('click', (event) => {
-                if(event.button === 0){
-                    let targetPoint = new Point([event.target.relativeColumn, 0]);
-                    this.selector.anchor = targetPoint;
-                    let endPoint = new Point([
-                        targetPoint.x,
-                        this.dataFrame.bottom
-                    ]);
-                    this.selector.selectFromAnchorTo(endPoint);
-                    this.selector.cursor = new Point([
-                        tab.column,
-                        this.selector.cursor.y
-                    ]);
-                    this.selector.triggerCallback();
-                }
-            });
+            tab.addEventListener('click', this.onTabClick.bind(this));
 
             // Add event listener for width adjustment
             tab.addEventListener('column-adjustment', this.handleColumnAdjustment);
+        }
+    }
+
+    onTabClick(event){
+        if(event.target.isRowTab && event.button === 0){
+            let rowOrigin = new Point([0, event.target.relativeRow]);
+            let rowCorner = new Point([this.dataFrame.right, event.target.relativeRow]);
+            this.selector.anchor = rowCorner;
+            if(event.shiftKey){
+                if(rowCorner.y > this.selector.selectionFrame.origin.y){
+                    // The new row is "below" the current selection.
+                    // Set anchor to top right corner of what will be
+                    // the union frame.
+                    this.selector.anchor = new Point([
+                        this.dataFrame.right,
+                        this.selector.selectionFrame.origin.y
+                    ]);
+                } else if(rowCorner.y < this.selector.selectionFrame.origin.y){
+                    // The new row is "above" the current selection.
+                    // The anchor should be set to the bottom right of
+                    // what will be the union frame.
+                    this.selector.anchor = new Point([
+                        this.dataFrame.right,
+                        this.selector.selectionFrame.corner.y
+                    ]);
+                }
+            }
+            this.selector.selectFromAnchorTo(rowOrigin);
+            this.selector.cursor = new Point([
+                this.selector.cursor.x,
+                event.target.row
+            ]);
+            this.selector.triggerCallback();
+        } else if(event.target.isColumnTab && event.button === 0){
+            let colOrigin = new Point([event.target.relativeColumn, 0]);
+            let colCorner = new Point([event.target.relativeColumn, this.dataFrame.bottom]);
+            this.selector.anchor = colCorner;
+            if(event.shiftKey){
+                if(colCorner.x > this.selector.selectionFrame.origin.x){
+                    // The new column is to the right of the current selection.
+                    // Set the anchor to the bottom left corner of what wil
+                    // be the union frame.
+                    this.selector.anchor = new Point([
+                        this.selector.selectionFrame.origin.x,
+                        this.dataFrame.bottom
+                    ]);
+                } else if(colCorner.x < this.selector.selectionFrame.origin.x){
+                    // The new column is to the left of the current selection.
+                    // The anchor should be set to the bottom right
+                    // of what will be the union frame.
+                    this.selector.anchor = new Point([
+                        this.selector.selectionFrame.corner.x,
+                        this.dataFrame.bottom
+                    ]);
+                }
+            }
+            this.selector.selectFromAnchorTo(colOrigin);
+            this.selector.cursor = new Point([
+                event.target.column,
+                this.selector.cursor.y
+            ]);
+            this.selector.triggerCallback();
         }
     }
 
