@@ -6,7 +6,6 @@ class SyntheticClipboardHandler extends Object {
         }
 
         this.sheet = sheet;
-        this.contents = null;
 
         // Bind instance methods
         this.connect = this.connect.bind(this);
@@ -20,14 +19,10 @@ class SyntheticClipboardHandler extends Object {
 
     connect(){
         this.sheet.addEventListener('keydown', this.handleKeyDown);
-        //this.sheet.addEventListener('synthetic-copy', this.onCopy);
-        //this.sheet.addEventListener('synthetic-paste', this.onPaste);
     }
 
     disconnect(){
         this.sheet.removeEventListener('keydown', this.handleKeyDown);
-        //this.sheet.removeEventListener('synthetic-copy', this.onCopy);
-        //this.sheet.removeEventListener('synthetic-paste', this.onPaste);
     }
 
     handleKeyDown(event){
@@ -65,21 +60,26 @@ class SyntheticClipboardHandler extends Object {
         document.execCommand('copy');
         this.dispatchSyntheticCopyWith(container.textContent);
         container.remove();
+
+        // Update the clipboard contents
+        this.constructor.contents = {
+            data: this.sheet.dataFrame.getDataArrayForFrame(this.sheet.selector.selectionFrame)
+        };
     }
 
     triggerSyntheticPaste(){
-        if(this.contents){
+        if(this.constructor.contents){
             // Insert the data array into this sheet's DataFrame
             // at the provided origin point
             this.sheet.dataFrame.loadFromArray(
-                this.contents.data,
+                this.constructor.contents.data,
                 this.sheet.selector.relativeCursor
             );
 
             this.sheet.primaryFrame.updateCellContents();
         }
         let event = new CustomEvent('synthetic-paste', {
-            detail: Object.assign({}, this.contents, { cursor: this.sheet.selector.relativeCursor})
+            detail: Object.assign({}, this.constructor.contents, { cursor: this.sheet.selector.relativeCursor})
         });
         this.sheet.dispatchEvent(event);
     }
@@ -108,10 +108,17 @@ class SyntheticClipboardHandler extends Object {
         let event = new CustomEvent('synthetic-copy', {
             detail: clipboardObject
         });
-        this.contents = clipboardObject;
+        this.constructor.contents = clipboardObject;
         this.sheet.dispatchEvent(event);
     }
 };
+
+
+// We store the current clipboard value on
+// the constructor object itself, so that we
+// can access the same value across multiple
+// clipboard handlers when copying/pasting
+SyntheticClipboardHandler.contents = null;
 
 export {
     SyntheticClipboardHandler,
