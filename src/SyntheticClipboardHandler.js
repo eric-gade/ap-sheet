@@ -45,17 +45,17 @@ class SyntheticClipboardHandler extends Object {
     triggerSyntheticCopy(){
         let container = document.getElementById('hidden-clip-area');
         if(!container){
-            container = document.createElement('div');
+            container = document.createElement('textarea');
             container.style.position = "absolute";
             container.style.width = "0px";
             container.style.height = "0px";
             container.style.opacity = "0";
             container.style.overflow = "hidden";
-            container.setAttribute('contenteditable', true);
             container.style.whiteSpace = "pre";
             document.body.append(container);
         }
         let csvText = this.selectionToCsv();
+        container.value = csvText;
         container.textContent = csvText;
         let sel = document.getSelection();
         sel.removeAllRanges();
