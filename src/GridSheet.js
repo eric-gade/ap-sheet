@@ -4,7 +4,7 @@ import PrimaryFrame from "./PrimaryGridFrame.js";
 import {Point} from "./Point.js";
 import {MouseHandler} from './MouseHandler.js';
 import {KeyHandler} from './KeyHandler.js';
-import {ClipboardHandler} from './ClipboardHandler.js';
+import {SyntheticClipboardHandler as ClipboardHandler} from "./SyntheticClipboardHandler.js";
 import {Frame} from "./Frame.js";
 import {RowTab, ColumnTab} from "./Tab.js";
 import {SelectionElement} from './SelectionElement.js';
