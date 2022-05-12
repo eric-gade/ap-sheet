@@ -196,7 +196,13 @@ class GridSheet extends HTMLElement {
             this.setAttribute('tabindex', '-1');
 
             // Set up the resizing observer
-            this.observer.observe(this.parentElement);
+            let parentElement = this.parentElement;
+            if(!parentElement){
+                // if the DOM parent is not present see if GridSheet is attached
+                // to a shadow DOM host
+                parentElement = this.shadowRoot.host;
+            }
+            this.observer.observe(parentElement);
 
             // Attach a MouseHandler to handle mouse
             // interaction and events
