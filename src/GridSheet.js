@@ -168,7 +168,6 @@ class GridSheet extends HTMLElement {
 
         // Bind instace methods
         this.onObservedResize = this.onObservedResize.bind(this);
-        this.onCellEdit = this.onCellEdit.bind(this);
         this.onDataChanged = this.onDataChanged.bind(this);
         this.onTabClick = this.onTabClick.bind(this);
         this.render = this.render.bind(this);
@@ -187,7 +186,7 @@ class GridSheet extends HTMLElement {
         this.handleViewShift = this.handleViewShift.bind(this);
         this.handleColumnAdjustment = this.handleColumnAdjustment.bind(this);
         this.handleRowAdjustment = this.handleRowAdjustment.bind(this);
-        this.afterEditChange = this.afterEditChange.bind(this);
+        this.handleCellEdited = this.handleCellEdited.bind(this);
     }
 
     connectedCallback(){
@@ -221,6 +220,7 @@ class GridSheet extends HTMLElement {
         // Event listeners
         this.addEventListener('selection-changed', this.handleSelectionChanged);
         this.addEventListener('sheet-view-shifted', this.handleViewShift);
+        this.addEventListener('cell-edited', this.handleCellEdited);
     }
 
     disconnectedCallback(){
@@ -230,6 +230,7 @@ class GridSheet extends HTMLElement {
         this.clipboardHandler.disconnect();
         this.removeEventListener('selection-changed', this.handleSelectionChanged);
         this.removeEventListener('sheet-view-shifted', this.handleViewShift);
+        this.removeEventListener('cell-edited', this.handleCellEdited);
     }
 
     attributeChangedCallback(name, oldVal, newVal){
@@ -280,41 +281,6 @@ class GridSheet extends HTMLElement {
         let newColumns = Math.floor((rect.width) / currentCellWidth);
         this.setAttribute('columns', newColumns);
         this.render();
-    }
-
-    onCellEdit(){
-        let editArea = this.shadowRoot.getElementById('edit-area');
-        let isDisabled = editArea.hasAttribute('disabled');
-        if(isDisabled){
-            // Highlight the cell that is being edited.
-            let cell = this.primaryFrame.elementAt(this.selector.cursor);
-            this.classList.add('editing-cell');
-            cell.classList.add('editing');
-            
-            // Prep the editor input for editing
-            // and focus on it automatically
-            editArea.removeAttribute("disabled");
-            editArea.select();
-            editArea.focus();
-            editArea.addEventListener('change', this.afterEditChange);
-        }
-        
-    }
-
-    afterEditChange(event){
-        event.currentTarget.removeEventListener('change', this.afterEditChange);
-        event.currentTarget.setAttribute('disabled', 'true');
-        this.focus();
-
-        // Remove styling from the cell that
-        // was being edited
-        let cell = this.primaryFrame.elementAt(this.selector.cursor);
-        this.classList.remove('editing-cell');
-        cell.classList.remove('editing');
-
-        // Update the DataFrame and redraw view frame
-        this.dataFrame.putAt(this.selector.relativeCursor, event.currentTarget.value);
-        this.primaryFrame.updateCellContents();
     }
 
     updateNumRows(){
@@ -642,6 +608,11 @@ class GridSheet extends HTMLElement {
     handleRowAdjustment(event){
         this.customRows[event.target.row] = event.detail.newHeight;
         this.renderGridTemplate();
+    }
+
+    handleCellEdited(event){
+        console.log(event.target);
+        this.focus();
     }
 
     trackSelectionWithRowTabs(){

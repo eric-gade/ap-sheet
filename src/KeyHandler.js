@@ -51,6 +51,18 @@ class KeyHandler extends Object {
         let handler = this.handlers[event.key];
         if(handler){
             handler(event);
+        } else {
+            // If no specific handler was found,
+            // check to see if this is a key that
+            // will enter data into the cell and,
+            // if so, enable live editing of the
+            // cell.
+            let cellElement = this.sheet.primaryFrame.elementAt(
+                this.sheet.selector.cursor
+            );
+            cellElement.setAttribute('editing', 'true');
+            cellElement.textContent += event.key;
+            console.log(event);
         }
     }
 

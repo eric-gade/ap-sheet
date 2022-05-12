@@ -26,6 +26,7 @@ class SheetCell extends HTMLElement {
         );
 
         this.isCell = true;
+        this.isEditing = false;
         this.row = 0;
         this.column = 0;
         this.relativeRow = 0;
@@ -34,19 +35,26 @@ class SheetCell extends HTMLElement {
         // Bind methods
         this.updateRow = this.updateRow.bind(this);
         this.updateColumn = this.updateColumn.bind(this);
+        this.startEditing = this.startEditing.bind(this);
+        this.stopEditing = this.stopEditing.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
     }
 
     connectedCallback(){
         if(this.isConnected){
 
             // Event listeners
-
+            this.addEventListener('cell-edited', this.onCellEdited);
             
         }
     }
 
     disconnectedCallback(){
-     
+        this.removeEventListener('cell-edited', this.onCellEdited);
+    }
+
+    onCellEdited(event){
+        console.log(event.bubbles);
     }
 
     attributeChangedCallback(name, oldVal, newVal){
@@ -58,6 +66,12 @@ class SheetCell extends HTMLElement {
             this.updateRow(newVal);
         } else if(name == 'data-relative-y'){
             this.updateRow(newVal, true);
+        } else if(name == 'editing'){
+            if(newVal === "true"){
+                this.startEditing();
+            } else {
+                this.stopEditing();
+            }
         }
     }
 
@@ -90,12 +104,50 @@ class SheetCell extends HTMLElement {
         }
     }
 
+    startEditing(){
+        this.isEditing = true;
+        this.setAttribute('contenteditable', true);
+        this.focus();
+        let sel = document.getSelection();
+        sel.removeAllRanges();
+        let range = document.createRange();
+        range.selectNodeContents(this);
+        sel.addRange(range);
+        sel.collapseToEnd();
+        this.addEventListener('keydown', this.handleKeyDown);
+    }
+
+    stopEditing(){
+        this.isEditing = false;
+        this.removeAttribute('contenteditable');
+        this.blur();
+        this.removeEventListener('keydown', this.handleKeyDown);
+    }
+
+    handleKeyDown(event){
+        event.stopPropagation();
+        console.log(event);
+        if(event.key == 'Enter' && !event.shiftKey){
+            event.preventDefault();
+            this.removeAttribute('editing');
+            let newEvent = new CustomEvent('cell-edited', {
+                detail: {
+                    element: this,
+                    content: this.textContent
+                },
+                bubbles: true
+            });
+            this.dispatchEvent(newEvent);
+        }
+    }
+
     static get observedAttributes(){
         return [
             'data-x',
             'data-y',
             'data-relative-x',
-            'data-relative-y'
+            'data-relative-y',
+            'editing'
         ];
     }
 };
