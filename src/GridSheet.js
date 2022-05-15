@@ -611,7 +611,6 @@ class GridSheet extends HTMLElement {
     }
 
     handleCellEdited(event){
-        console.log(event.target);
         this.focus();
     }
 

@@ -8,10 +8,38 @@
 const templateString = `
 <style>
     :host {
+        position: relative;
         --col-start-name: cell-col-start;
         --row-start-name: cell-row-start;
     }
+    :host(:focus),
+    input:focus {
+        outline: none;
+    }
+
+    input {
+        display: none;
+        box-sizing: border-box;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: inherit;
+        font-family: inherit;
+        font-size: inherit;
+        text-align: inherit;
+        background-color: white;
+        color: inherit;
+        padding: inherit;
+        margin: inherit;
+    }
+    input.show {
+        display: inline-flex;
+        align-items: center;
+    }
 </style>
+<input type="text"/>
 <slot></slot>
 `;
 
@@ -38,23 +66,20 @@ class SheetCell extends HTMLElement {
         this.startEditing = this.startEditing.bind(this);
         this.stopEditing = this.stopEditing.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleDoubleClick = this.handleDoubleClick.bind(this);
+        this.handleInputBlur = this.handleInputBlur.bind(this);
     }
 
     connectedCallback(){
         if(this.isConnected){
 
             // Event listeners
-            this.addEventListener('cell-edited', this.onCellEdited);
-            
+            this.addEventListener('dblclick', this.handleDoubleClick);
         }
     }
 
     disconnectedCallback(){
-        this.removeEventListener('cell-edited', this.onCellEdited);
-    }
-
-    onCellEdited(event){
-        console.log(event.bubbles);
+        this.removeEventListener('dblclick', this.handleDoubleClick);
     }
 
     attributeChangedCallback(name, oldVal, newVal){
@@ -106,30 +131,36 @@ class SheetCell extends HTMLElement {
 
     startEditing(){
         this.isEditing = true;
-        this.setAttribute('contenteditable', true);
-        this.focus();
-        let sel = document.getSelection();
-        sel.removeAllRanges();
-        let range = document.createRange();
-        range.selectNodeContents(this);
-        sel.addRange(range);
-        sel.collapseToEnd();
-        this.addEventListener('keydown', this.handleKeyDown);
+        let input = this.shadowRoot.querySelector('input');
+        input.classList.add('show');
+        input.value = this.textContent;
+        input.addEventListener('keydown', this.handleKeyDown);
+        input.addEventListener('blur', this.handleInputBlur);
+        input.focus();
     }
 
     stopEditing(){
         this.isEditing = false;
-        this.removeAttribute('contenteditable');
-        this.blur();
-        this.removeEventListener('keydown', this.handleKeyDown);
+        let input = this.shadowRoot.querySelector('input');
+        input.removeEventListener('keydown', this.handleKeyDown);
+        input.classList.remove('show');
+        input.removeEventListener('blur', this.handleInputBlur);
+        input.blur();
+    }
+
+    handleInputBlur(event){
+        if(this.isEditing){
+            this.removeAttribute('editing');
+        }
     }
 
     handleKeyDown(event){
-        event.stopPropagation();
-        console.log(event);
         if(event.key == 'Enter' && !event.shiftKey){
             event.preventDefault();
+            event.stopPropagation();
             this.removeAttribute('editing');
+            let input = this.shadowRoot.querySelector('input');
+            this.textContent = input.value;
             let newEvent = new CustomEvent('cell-edited', {
                 detail: {
                     element: this,
@@ -138,6 +169,12 @@ class SheetCell extends HTMLElement {
                 bubbles: true
             });
             this.dispatchEvent(newEvent);
+        }
+    }
+
+    handleDoubleClick(event){
+        if(!this.isEditing){
+            this.setAttribute('editing', true);
         }
     }
 

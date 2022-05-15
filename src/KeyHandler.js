@@ -1,4 +1,4 @@
-/**
+ /**
  * KeyHandler class
  * ----------------
  * I am a controller object that
@@ -51,7 +51,7 @@ class KeyHandler extends Object {
         let handler = this.handlers[event.key];
         if(handler){
             handler(event);
-        } else {
+        } else if(event.key.length === 1){
             // If no specific handler was found,
             // check to see if this is a key that
             // will enter data into the cell and,
@@ -60,9 +60,9 @@ class KeyHandler extends Object {
             let cellElement = this.sheet.primaryFrame.elementAt(
                 this.sheet.selector.cursor
             );
-            cellElement.setAttribute('editing', 'true');
-            cellElement.textContent += event.key;
-            console.log(event);
+            if(!cellElement.hasAttribute('editing')){
+                cellElement.setAttribute('editing', 'true');
+            }
         }
     }
 
@@ -141,7 +141,13 @@ class KeyHandler extends Object {
         });
         this.registerHandler('Enter', (event) => {
             if(this.sheet.selector.selectionFrame.isEmpty){
-                this.sheet.onCellEdit();
+                let cellElement = this.sheet.primaryFrame.elementAt(
+                    this.sheet.selector.cursor
+                );
+                if(!cellElement.isEditing){
+                    cellElement.setAttribute('editing', true);
+                    event.stopPropagation();
+                }
             }
         });
     }
