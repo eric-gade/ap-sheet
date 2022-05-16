@@ -200,7 +200,7 @@ class GridSheet extends HTMLElement {
             if(!parentElement){
                 // if the DOM parent is not present see if GridSheet is attached
                 // to a shadow DOM host
-                parentElement = this.shadowRoot.host;
+                parentElement = this.getRootNode().host;
             }
             this.observer.observe(parentElement);
 
@@ -250,7 +250,7 @@ class GridSheet extends HTMLElement {
             if(!parentElement){
                 // if the DOM parent is not present see if GridSheet is attached
                 // to a shadow DOM host
-                parentElement = this.shadowRoot.host;
+                parentElement = this.getRootNode().host;
             }
             if(newVal == "true"){
                 this.observer.observe(parentElement);
@@ -286,9 +286,10 @@ class GridSheet extends HTMLElement {
         // based upon the available free space in the element.
         // Note that for now, we only attempt this on the
         // horizontal (column) axis
-        let rect = this.getBoundingClientRect();
-        let currentCellWidth = this.cellWidth;
-        let newColumns = Math.floor((rect.width) / currentCellWidth);
+        const roData = info[0];
+        const rect = roData.target.getBoundingClientRect();
+        const currentCellWidth = this.cellWidth;
+        const newColumns = Math.floor((rect.width) / currentCellWidth);
         this.setAttribute('columns', newColumns);
         this.render();
     }
