@@ -169,6 +169,8 @@ class SheetCell extends HTMLElement {
                 bubbles: true
             });
             this.dispatchEvent(newEvent);
+        } else if(event.key.startsWith("Arrow")){
+            event.stopPropagation();
         }
     }
 
