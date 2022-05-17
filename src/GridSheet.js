@@ -196,7 +196,13 @@ class GridSheet extends HTMLElement {
             this.setAttribute('tabindex', '-1');
 
             // Set up the resizing observer
-            this.observer.observe(this.parentElement);
+            let parentElement = this.parentElement;
+            if(!parentElement){
+                // if the DOM parent is not present see if GridSheet is attached
+                // to a shadow DOM host
+                parentElement = this.getRootNode().host;
+            }
+            this.observer.observe(parentElement);
 
             // Attach a MouseHandler to handle mouse
             // interaction and events
@@ -239,13 +245,18 @@ class GridSheet extends HTMLElement {
         } else if(name == "columns"){
             this.numColumns = parseInt(newVal);
             this.updateNumColumns();
-            
         } else if(name == "expands"){
+            let parentElement = this.parentElement;
+            if(!parentElement){
+                // if the DOM parent is not present see if GridSheet is attached
+                // to a shadow DOM host
+                parentElement = this.getRootNode().host;
+            }
             if(newVal == "true"){
-                this.observer.observe(this.parentElement);
+                this.observer.observe(parentElement);
                 this.render();
             } else {
-                this.observer.unobserve(this.parentElement);
+                this.observer.unobserve(parentElement);
                 this.render();
             }
         } else if(name == "lockedrows"){
@@ -275,9 +286,10 @@ class GridSheet extends HTMLElement {
         // based upon the available free space in the element.
         // Note that for now, we only attempt this on the
         // horizontal (column) axis
-        let rect = this.getBoundingClientRect();
-        let currentCellWidth = this.cellWidth;
-        let newColumns = Math.floor((rect.width) / currentCellWidth);
+        const roData = info[0];
+        const rect = roData.target.getBoundingClientRect();
+        const currentCellWidth = this.cellWidth;
+        const newColumns = Math.floor((rect.width) / currentCellWidth);
         this.setAttribute('columns', newColumns);
         this.render();
     }
