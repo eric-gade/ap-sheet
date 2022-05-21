@@ -133,6 +133,9 @@ class GridSheet extends HTMLElement {
             this.template.content.cloneNode(true)
         );
 
+        // Testers
+        this.isSheet = true;
+
         // Default cell dimensions
         this.cellWidth = 150;
         this.cellHeight = 36;

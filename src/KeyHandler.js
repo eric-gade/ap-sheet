@@ -57,7 +57,6 @@ class KeyHandler extends Object {
             // will enter data into the cell and,
             // if so, enable live editing of the
             // cell.
-            console.log(event);
             let cellElement = this.sheet.primaryFrame.elementAt(
                 this.sheet.selector.cursor
             );

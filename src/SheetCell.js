@@ -65,6 +65,8 @@ class SheetCell extends HTMLElement {
         this.updateColumn = this.updateColumn.bind(this);
         this.startEditing = this.startEditing.bind(this);
         this.stopEditing = this.stopEditing.bind(this);
+        this.focusParentSheet = this.focusParentSheet.bind(this);
+        this.triggerCellEdited = this.triggerCellEdited.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleDoubleClick = this.handleDoubleClick.bind(this);
         this.handleInputBlur = this.handleInputBlur.bind(this);
@@ -144,8 +146,26 @@ class SheetCell extends HTMLElement {
         let input = this.shadowRoot.querySelector('input');
         input.removeEventListener('keydown', this.handleKeyDown);
         input.classList.remove('show');
+        this.triggerCellEdited();
         input.removeEventListener('blur', this.handleInputBlur);
         input.blur();
+        this.focusParentSheet();
+    }
+
+    triggerCellEdited(){
+        let input = this.shadowRoot.querySelector('input');
+        if(this.textContent === input.value){
+            return;
+        }
+        this.textContent = input.value;
+        let newEvent = new CustomEvent('cell-edited', {
+            detail: {
+                element: this,
+                content: this.textContent
+            },
+            bubbles: true
+        });
+        this.dispatchEvent(newEvent);
     }
 
     handleInputBlur(event){
@@ -159,16 +179,10 @@ class SheetCell extends HTMLElement {
             event.preventDefault();
             event.stopPropagation();
             this.removeAttribute('editing');
-            let input = this.shadowRoot.querySelector('input');
-            this.textContent = input.value;
-            let newEvent = new CustomEvent('cell-edited', {
-                detail: {
-                    element: this,
-                    content: this.textContent
-                },
-                bubbles: true
-            });
-            this.dispatchEvent(newEvent);
+        } else if(event.key == "Escape"){
+            let cachedContent = this.textContent;
+            this.removeAttribute('editing');
+            this.textContent = cachedContent;
         } else if(event.key.startsWith("Arrow")){
             event.stopPropagation();
         }
@@ -177,6 +191,14 @@ class SheetCell extends HTMLElement {
     handleDoubleClick(event){
         if(!this.isEditing){
             this.setAttribute('editing', true);
+        }
+    }
+
+    focusParentSheet(){
+        // Attempt to find an ancestor that
+        // is a sheet element. Focus it if found.
+        if(this.parentElement && this.parentElement.isSheet){
+            this.parentElement.focus();
         }
     }
 
