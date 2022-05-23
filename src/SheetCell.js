@@ -8,10 +8,38 @@
 const templateString = `
 <style>
     :host {
+        position: relative;
         --col-start-name: cell-col-start;
         --row-start-name: cell-row-start;
     }
+    :host(:focus),
+    input:focus {
+        outline: none;
+    }
+
+    input {
+        display: none;
+        box-sizing: border-box;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: inherit;
+        font-family: inherit;
+        font-size: inherit;
+        text-align: inherit;
+        background-color: white;
+        color: inherit;
+        padding: inherit;
+        margin: inherit;
+    }
+    input.show {
+        display: inline-flex;
+        align-items: center;
+    }
 </style>
+<input type="text"/>
 <slot></slot>
 `;
 
@@ -26,6 +54,7 @@ class SheetCell extends HTMLElement {
         );
 
         this.isCell = true;
+        this.isEditing = false;
         this.row = 0;
         this.column = 0;
         this.relativeRow = 0;
@@ -34,19 +63,25 @@ class SheetCell extends HTMLElement {
         // Bind methods
         this.updateRow = this.updateRow.bind(this);
         this.updateColumn = this.updateColumn.bind(this);
+        this.startEditing = this.startEditing.bind(this);
+        this.stopEditing = this.stopEditing.bind(this);
+        this.focusParentSheet = this.focusParentSheet.bind(this);
+        this.triggerCellEdited = this.triggerCellEdited.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleDoubleClick = this.handleDoubleClick.bind(this);
+        this.handleInputBlur = this.handleInputBlur.bind(this);
     }
 
     connectedCallback(){
         if(this.isConnected){
 
             // Event listeners
-
-            
+            this.addEventListener('dblclick', this.handleDoubleClick);
         }
     }
 
     disconnectedCallback(){
-     
+        this.removeEventListener('dblclick', this.handleDoubleClick);
     }
 
     attributeChangedCallback(name, oldVal, newVal){
@@ -58,6 +93,12 @@ class SheetCell extends HTMLElement {
             this.updateRow(newVal);
         } else if(name == 'data-relative-y'){
             this.updateRow(newVal, true);
+        } else if(name == 'editing'){
+            if(newVal === "true"){
+                this.startEditing();
+            } else {
+                this.stopEditing();
+            }
         }
     }
 
@@ -90,12 +131,84 @@ class SheetCell extends HTMLElement {
         }
     }
 
+    startEditing(){
+        this.isEditing = true;
+        let input = this.shadowRoot.querySelector('input');
+        input.classList.add('show');
+        input.value = this.textContent;
+        input.addEventListener('keydown', this.handleKeyDown);
+        input.addEventListener('blur', this.handleInputBlur);
+        input.focus();
+    }
+
+    stopEditing(){
+        this.isEditing = false;
+        let input = this.shadowRoot.querySelector('input');
+        input.removeEventListener('keydown', this.handleKeyDown);
+        input.classList.remove('show');
+        this.triggerCellEdited();
+        input.removeEventListener('blur', this.handleInputBlur);
+        input.blur();
+        this.focusParentSheet();
+    }
+
+    triggerCellEdited(){
+        let input = this.shadowRoot.querySelector('input');
+        if(this.textContent === input.value){
+            return;
+        }
+        this.textContent = input.value;
+        let newEvent = new CustomEvent('cell-edited', {
+            detail: {
+                element: this,
+                content: this.textContent
+            },
+            bubbles: true
+        });
+        this.dispatchEvent(newEvent);
+    }
+
+    handleInputBlur(event){
+        if(this.isEditing){
+            this.removeAttribute('editing');
+        }
+    }
+
+    handleKeyDown(event){
+        if(event.key == 'Enter' && !event.shiftKey){
+            event.preventDefault();
+            event.stopPropagation();
+            this.removeAttribute('editing');
+        } else if(event.key == "Escape"){
+            let cachedContent = this.textContent;
+            this.removeAttribute('editing');
+            this.textContent = cachedContent;
+        } else if(event.key.startsWith("Arrow")){
+            event.stopPropagation();
+        }
+    }
+
+    handleDoubleClick(event){
+        if(!this.isEditing){
+            this.setAttribute('editing', true);
+        }
+    }
+
+    focusParentSheet(){
+        // Attempt to find an ancestor that
+        // is a sheet element. Focus it if found.
+        if(this.parentElement && this.parentElement.isSheet){
+            this.parentElement.focus();
+        }
+    }
+
     static get observedAttributes(){
         return [
             'data-x',
             'data-y',
             'data-relative-x',
-            'data-relative-y'
+            'data-relative-y',
+            'editing'
         ];
     }
 };

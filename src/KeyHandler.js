@@ -1,4 +1,4 @@
-/**
+ /**
  * KeyHandler class
  * ----------------
  * I am a controller object that
@@ -51,6 +51,18 @@ class KeyHandler extends Object {
         let handler = this.handlers[event.key];
         if(handler){
             handler(event);
+        } else if(event.key.length === 1 && !this.usesModifierKeys(event)){
+            // If no specific handler was found,
+            // check to see if this is a key that
+            // will enter data into the cell and,
+            // if so, enable live editing of the
+            // cell.
+            let cellElement = this.sheet.primaryFrame.elementAt(
+                this.sheet.selector.cursor
+            );
+            if(!cellElement.hasAttribute('editing')){
+                cellElement.setAttribute('editing', 'true');
+            }
         }
     }
 
@@ -129,9 +141,19 @@ class KeyHandler extends Object {
         });
         this.registerHandler('Enter', (event) => {
             if(this.sheet.selector.selectionFrame.isEmpty){
-                this.sheet.onCellEdit();
+                let cellElement = this.sheet.primaryFrame.elementAt(
+                    this.sheet.selector.cursor
+                );
+                if(!cellElement.isEditing){
+                    cellElement.setAttribute('editing', true);
+                    event.stopPropagation();
+                }
             }
         });
+    }
+
+    usesModifierKeys(event){
+        return (event.altKey || event.ctrlKey || event.metaKey);
     }
 };
 
