@@ -293,8 +293,11 @@ class GridSheet extends HTMLElement {
         const roData = info[0];
         const rect = roData.target.getBoundingClientRect();
         const currentCellWidth = this.cellWidth;
+        const currentCellHeight = this.cellHeight;
         const newColumns = Math.floor((rect.width) / currentCellWidth);
+        const newRows = Math.floor((rect.height) / currentCellHeight);
         this.setAttribute('columns', newColumns);
+        this.setAttribute('rows', newRows);
         this.render();
     }
 
