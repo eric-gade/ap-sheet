@@ -28,7 +28,6 @@ class ResizeHandler extends Object {
     }
 
     disconnect(){
-        console.log('resizeHandler disconnecting');
         let parentElement = this.sheet.parentElement;
         if(!parentElement){
             parentElement = this.sheet.getRootNode().host;
@@ -84,7 +83,6 @@ class ResizeHandler extends Object {
     }
 
     _updateHeight(parentHeight){
-        console.log('updateHeight');
         let currentHeight = this.calcCurrentHeight();
         let availableHeight = parentHeight - currentHeight;
         if(availableHeight > 0){
@@ -132,12 +130,17 @@ class ResizeHandler extends Object {
                 );
                 lastRowHeight = lastRow.getBoundingClientRect().height;
             }
-            this.sheet.setAttribute('rows', this.sheet.numRows - numRowsToRemove);
+
+            // We always ensure that there is at least one row
+            let newTotalRows = this.sheet.numRows - numRowsToRemove;
+            if(newTotalRows <= 0){
+                newTotalRows = 1;
+            }
+            this.sheet.setAttribute('rows', newTotalRows);
         }
     }
 
     _updateWidth(parentWidth){
-        console.log('updateWidth');
         let currentWidth = this.calcCurrentWidth();
         let availableWidth = parentWidth - currentWidth;
         if(availableWidth > 0){
@@ -179,7 +182,11 @@ class ResizeHandler extends Object {
                 lastColumn = this.sheet.shadowRoot.querySelector(`column-tab:nth-last-of-type(${currentColumnIndex})`);
                 lastColumnWidth = lastColumn.getBoundingClientRect().width;
             }
-            this.sheet.setAttribute('columns', this.sheet.numColumns - numColumnsToRemove);
+            let newTotalColumns = this.sheet.numColumns - numColumnsToRemove;
+            if(newTotalColumns <= 0){
+                newTotalColumns = 1;
+            }
+            this.sheet.setAttribute('columns', newTotalColumns);
         }
     }
 
