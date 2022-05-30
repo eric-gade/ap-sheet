@@ -100,7 +100,7 @@ class ResizeHandler extends Object {
             if(nextRowHeight === undefined){
                 nextRowHeight = this.sheet.cellHeight;
             }
-            while(availableHeight >= nextRowHeight){
+            while(availableHeight > 0){
                 availableHeight -= nextRowHeight;
                 numRowsToAdd += 1;
                 currentLastRow += 1;
@@ -110,7 +110,7 @@ class ResizeHandler extends Object {
                 }
             }
             this.sheet.setAttribute('rows', this.sheet.numRows + numRowsToAdd);
-        } else if(availableHeight < 0){
+        } else if((availableHeight + this.sheet.cellHeight) < 0){
             // In this case, we are shrinking.
             // We need to remove rows one at a time
             // and make sure we get the available space
@@ -152,7 +152,7 @@ class ResizeHandler extends Object {
             if(nextColumnWidth === undefined){
                 nextColumnWidth = this.sheet.cellWidth;
             }
-            while(availableWidth >= nextColumnWidth){
+            while(availableWidth > 0){
                 availableWidth -= nextColumnWidth;
                 numColumnsToAdd += 1;
                 currentLastCol += 1;
@@ -171,7 +171,7 @@ class ResizeHandler extends Object {
             let currentColumnIndex = 1;
             let lastColumn = this.sheet.shadowRoot.querySelector(`column-tab:nth-last-of-type(${currentColumnIndex})`);
             let lastColumnWidth = lastColumn.getBoundingClientRect().width;
-            while(availableWidth < 0 && this.sheet.numColumns > 1){
+            while((availableWidth + this.sheet.cellWidth) < 0 && this.sheet.numColumns > 1){
                 availableWidth += lastColumnWidth;
                 numColumnsToRemove += 1;
                 currentColumnIndex += 1;

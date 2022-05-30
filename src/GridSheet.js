@@ -29,6 +29,7 @@ const templateString = `
 :host {
    display: grid;
    user-select: none;
+   overflow: hidden; /* For auto-resize without scrolling on */
 }
 
 :host(:focus){
