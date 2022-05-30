@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Basic Grid Tests</title>
+        <link rel="stylesheet" href="style.css">
+        <script type="module" src="../src/GridSheet.js"></script>
+        <script type="module" src="../src/SheetCell.js"></script>
+    </head>
+    <body>
+        <div style="resize: both;padding:3px;background-color:grey;width:50%;overflow:auto">
+            <my-grid class="spreadsheet" id="table" rows="10" columns="5" expands="both">
+            </my-grid>
+        </div>
+    </body>
+    <script>
+     document.addEventListener('DOMContentLoaded', () => {
+         let table = document.getElementById('table');
+         table.focus();
+     });
+    </script>
+</html>
