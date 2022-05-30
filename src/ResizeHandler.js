@@ -121,7 +121,7 @@ class ResizeHandler extends Object {
                 `row-tab:nth-last-of-type(${currentRowIndex})`
             );
             let lastRowHeight = lastRow.getBoundingClientRect().height;
-            while(availableHeight < 0){
+            while(availableHeight < 0 && this.sheet.numRows > 1){
                 availableHeight += lastRowHeight;
                 numRowsToRemove += 1;
                 currentRowIndex += 1;
@@ -131,11 +131,7 @@ class ResizeHandler extends Object {
                 lastRowHeight = lastRow.getBoundingClientRect().height;
             }
 
-            // We always ensure that there is at least one row
             let newTotalRows = this.sheet.numRows - numRowsToRemove;
-            if(newTotalRows <= 0){
-                newTotalRows = 1;
-            }
             this.sheet.setAttribute('rows', newTotalRows);
         }
     }
@@ -175,7 +171,7 @@ class ResizeHandler extends Object {
             let currentColumnIndex = 1;
             let lastColumn = this.sheet.shadowRoot.querySelector(`column-tab:nth-last-of-type(${currentColumnIndex})`);
             let lastColumnWidth = lastColumn.getBoundingClientRect().width;
-            while(availableWidth < 0){
+            while(availableWidth < 0 && this.sheet.numColumns > 1){
                 availableWidth += lastColumnWidth;
                 numColumnsToRemove += 1;
                 currentColumnIndex += 1;
@@ -183,9 +179,6 @@ class ResizeHandler extends Object {
                 lastColumnWidth = lastColumn.getBoundingClientRect().width;
             }
             let newTotalColumns = this.sheet.numColumns - numColumnsToRemove;
-            if(newTotalColumns <= 0){
-                newTotalColumns = 1;
-            }
             this.sheet.setAttribute('columns', newTotalColumns);
         }
     }

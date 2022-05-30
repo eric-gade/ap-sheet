@@ -288,12 +288,10 @@ class GridSheet extends HTMLElement {
     }
 
     updateNumRows(){
+        if(this.numRows <= 0){
+            this.numRows = 1;
+        }
         this.render();
-
-        // If there are column tabs showing,
-        // mark the ones that should be locked
-        // as locked
-        
     }
 
     updateLockedRows(){
@@ -305,6 +303,9 @@ class GridSheet extends HTMLElement {
     }
 
     updateNumColumns(){
+        if(this.numColumns <= 0){
+            this.numColumns = 1;
+        }
         this.render();
     }
 
