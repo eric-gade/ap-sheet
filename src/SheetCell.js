@@ -160,6 +160,10 @@ class SheetCell extends HTMLElement {
         this.textContent = input.value;
         let newEvent = new CustomEvent('cell-edited', {
             detail: {
+                relativeCoordinate: [
+                    parseInt(this.dataset.relativeX),
+                    parseInt(this.dataset.relativeY)
+                ],
                 element: this,
                 content: this.textContent
             },

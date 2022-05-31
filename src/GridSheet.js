@@ -626,6 +626,10 @@ class GridSheet extends HTMLElement {
     }
 
     handleCellEdited(event){
+        this.dataFrame.putAt(
+            event.detail.relativeCoordinate,
+            event.detail.content
+        );
         this.focus();
     }
 
