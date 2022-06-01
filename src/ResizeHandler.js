@@ -5,6 +5,7 @@ class ResizeHandler extends Object {
         this.horizontal = horizontal;
         this.vertical = vertical;
         this.isConnected = false;
+        this._timeout = null;
 
         // Bound instance methods
         this.connect = this.connect.bind(this);
@@ -68,18 +69,23 @@ class ResizeHandler extends Object {
     onObservedResize(info){
         // Attempt to re-set the number of columns and rows
         // based upon the available free space in the element.
-        if(!this.horizontal && !this.vertical){
-            return;
+        if(this._timeout){
+            clearInterval(this._timeout);
         }
-        const roData = info[0];
-        const rect = roData.target.getBoundingClientRect();
-        if(this.horizontal){
-            this._updateWidth(rect.width);
-        }
-        if(this.vertical){
-            this._updateHeight(rect.height);
-        }
-        this.sheet.render();
+        this._timeout = setTimeout(() => {
+            if(!this.horizontal && !this.vertical){
+                return;
+            }
+            const roData = info[0];
+            const rect = roData.target.getBoundingClientRect();
+            if(this.horizontal){
+                this._updateWidth(rect.width);
+            }
+            if(this.vertical){
+                this._updateHeight(rect.height);
+            }
+            this.sheet.render();
+        }, 250);
     }
 
     _updateHeight(parentHeight){
