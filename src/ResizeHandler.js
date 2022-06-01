@@ -77,7 +77,7 @@ class ResizeHandler extends Object {
                 return;
             }
             const roData = info[0];
-            const rect = roData.target.getBoundingClientRect();
+            const rect = roData.contentRect;
             if(this.horizontal){
                 this._updateWidth(rect.width);
             }
@@ -85,7 +85,7 @@ class ResizeHandler extends Object {
                 this._updateHeight(rect.height);
             }
             this.sheet.render();
-        }, 250);
+        }, 20);
     }
 
     _updateHeight(parentHeight){
@@ -138,7 +138,7 @@ class ResizeHandler extends Object {
             }
 
             let newTotalRows = this.sheet.numRows - numRowsToRemove;
-            this.sheet.setAttribute('rows', newTotalRows);
+            this.sheet.setAttribute('rows', newTotalRows + 1);
         }
     }
 
@@ -199,12 +199,7 @@ class ResizeHandler extends Object {
     }
 
     calcCurrentHeight(){
-        // We use the left column's
-        // bottom sheet cell.
-        let bottomCellSelector = `sheet-cell[data-y="${this.sheet.numRows - 1}"]`;
-        let bottomCell = this.sheet.querySelector(bottomCellSelector);
-        let bottom = bottomCell.getBoundingClientRect().bottom;
-        return Math.ceil(bottom);
+        return Math.floor(this.sheet.getBoundingClientRect().height);
     }
 }
 
