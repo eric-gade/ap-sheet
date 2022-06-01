@@ -4,6 +4,7 @@ import PrimaryFrame from "./PrimaryGridFrame.js";
 import {Point} from "./Point.js";
 import {MouseHandler} from './MouseHandler.js';
 import {KeyHandler} from './KeyHandler.js';
+import {ResizeHandler} from './ResizeHandler.js';
 import {SyntheticClipboardHandler as ClipboardHandler} from "./SyntheticClipboardHandler.js";
 import {Frame} from "./Frame.js";
 import {RowTab, ColumnTab} from "./Tab.js";
@@ -28,6 +29,7 @@ const templateString = `
 :host {
    display: grid;
    user-select: none;
+   overflow: hidden; /* For auto-resize without scrolling on */
 }
 
 :host(:focus){
@@ -164,11 +166,6 @@ class GridSheet extends HTMLElement {
         this.selector = new Selector(this.primaryFrame);
         this.selector.selectionChangedCallback = this.dispatchSelectionChanged.bind(this);
 
-        // Initialize resize observer here.
-        // We do this so that any observed attributes will
-        // be able to deal with connecting the observer.
-        this.observer = new ResizeObserver(this.onObservedResize.bind(this));
-
         // Bind instace methods
         this.onObservedResize = this.onObservedResize.bind(this);
         this.onDataChanged = this.onDataChanged.bind(this);
@@ -197,15 +194,17 @@ class GridSheet extends HTMLElement {
             // Stuff up here
             this.setAttribute('tabindex', '-1');
 
-            // Set up the resizing observer
-            let parentElement = this.parentElement;
-            if(!parentElement){
-                // if the DOM parent is not present see if GridSheet is attached
-                // to a shadow DOM host
-                parentElement = this.getRootNode().host;
-            }
-            this.observer.observe(parentElement);
-
+            // Set up the resizing handler
+            // and perform an initial resizing if
+            // needed based on current attribute value
+            this.resizeHandler = new ResizeHandler(this);
+            this.resizeHandler.connect();
+            setTimeout(() => {
+                this.resizeHandler.updateFromExpandsAttr(
+                    this.getAttribute("expands")
+                );
+            }, 30);
+            
             // Attach a MouseHandler to handle mouse
             // interaction and events
             this.mouseHandler = new MouseHandler(this);
@@ -233,7 +232,7 @@ class GridSheet extends HTMLElement {
     }
 
     disconnectedCallback(){
-        this.observer.disconnect();
+        this.resizeHandler.disconnect();
         this.mouseHandler.disconnect();
         this.keyHandler.disconnect();
         this.clipboardHandler.disconnect();
@@ -249,20 +248,8 @@ class GridSheet extends HTMLElement {
         } else if(name == "columns"){
             this.numColumns = parseInt(newVal);
             this.updateNumColumns();
-        } else if(name == "expands"){
-            let parentElement = this.parentElement;
-            if(!parentElement){
-                // if the DOM parent is not present see if GridSheet is attached
-                // to a shadow DOM host
-                parentElement = this.getRootNode().host;
-            }
-            if(newVal == "true"){
-                this.observer.observe(parentElement);
-                this.render();
-            } else {
-                this.observer.unobserve(parentElement);
-                this.render();
-            }
+        } else if(name == "expands" && this.resizeHandler){
+            this.resizeHandler.updateFromExpandsAttr(newVal);
         } else if(name == "lockedrows"){
             this.numLockedRows = parseInt(newVal);
             this.updateLockedRows();
@@ -293,18 +280,19 @@ class GridSheet extends HTMLElement {
         const roData = info[0];
         const rect = roData.target.getBoundingClientRect();
         const currentCellWidth = this.cellWidth;
+        const currentCellHeight = this.cellHeight;
         const newColumns = Math.floor((rect.width) / currentCellWidth);
+        const newRows = Math.floor((rect.height) / currentCellHeight);
         this.setAttribute('columns', newColumns);
+        this.setAttribute('rows', newRows);
         this.render();
     }
 
     updateNumRows(){
+        if(this.numRows <= 0){
+            this.numRows = 1;
+        }
         this.render();
-
-        // If there are column tabs showing,
-        // mark the ones that should be locked
-        // as locked
-        
     }
 
     updateLockedRows(){
@@ -316,6 +304,9 @@ class GridSheet extends HTMLElement {
     }
 
     updateNumColumns(){
+        if(this.numColumns <= 0){
+            this.numColumns = 1;
+        }
         this.render();
     }
 
@@ -377,7 +368,7 @@ class GridSheet extends HTMLElement {
             }
         }
         if(this.showRowTabs){
-            col = `[rtab-start] 0.3fr ${col}`;
+            col = `[rtab-start] 3em ${col}`;
         }
         this.style.gridTemplateColumns = col;
 
