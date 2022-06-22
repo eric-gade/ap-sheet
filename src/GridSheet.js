@@ -50,6 +50,7 @@ const templateString = `
 }
 
 ::slotted(sheet-cell){
+    justify-content: flex-start;
     grid-column-start: var(--col-start);
     grid-column-end: span 1;
     grid-row-start: var(--row-start);

@@ -11,10 +11,17 @@ const templateString = `
         position: relative;
         --col-start-name: cell-col-start;
         --row-start-name: cell-row-start;
+        white-space: nowrap;
+        overflow: pre;
     }
     :host(:focus),
     input:focus {
         outline: none;
+    }
+
+    span {
+        text-align: center;
+        width: 100%;
     }
 
     input {
@@ -40,7 +47,9 @@ const templateString = `
     }
 </style>
 <input type="text"/>
-<slot></slot>
+<span>
+    <slot></slot>
+</span>
 `;
 
 class SheetCell extends HTMLElement {
