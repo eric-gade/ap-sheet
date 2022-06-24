@@ -7,9 +7,13 @@
         <script type="module" src="../src/SheetCell.js"></script>
     </head>
     <body>
-        <div style="resize: both;padding:3px;background-color:grey;width:50%;overflow:auto">
-            <my-grid class="spreadsheet" id="table" rows="10" columns="5" expands="both">
-            </my-grid>
+        <div id="wrapper">
+            <div id="wrap-header">HEADER</div>
+            <div id="wrapped-content" style="background-color:grey;">
+                <my-grid class="spreadsheet" id="table" rows="10" columns="5" expands="both">
+                </my-grid>
+            </div>
+            <div id="wrap-footer">FOOTER</div>
         </div>
     </body>
     <script>
@@ -18,4 +22,35 @@
          table.focus();
      });
     </script>
+    <style>
+     * {
+         box-sizing: border-box;
+     }
+     #wrapper {
+         padding: 20px;
+         display: flex;
+         flex-direction: column;
+         resize: both;
+         overflow: hidden;
+     }
+
+     #wrapped-content {
+         display: block;
+         background-color: yellow;
+         flex: 1;
+         box-sizing: content-box;
+         overflow: auto;
+     }
+
+     my-grid {
+     }
+
+     #wrap-header,
+     #wrap-footer {
+         position: relative;
+         display: block;
+         height: 50px;
+         background-color: red;
+     }
+    </style>
 </html>
