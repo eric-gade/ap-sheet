@@ -91,7 +91,29 @@ class ResizeHandler extends Object {
         }, 250);
     }
 
-    _shrinkHeight(availableHeight){}
+    _shrinkHeight(availableHeight){
+        let freespace = Math.floor(availableHeight);
+        let currentLastRow, lastRowHeight;
+        let numRowsToRemove = 0;
+        let currentRowIndex = 1;
+        while((freespace + this.sheet.cellHeight) < 0){
+            currentLastRow = this.sheet.shadowRoot.querySelector(
+                `row-tab:nth-last-of-type(${currentRowIndex})`
+            );
+            if(!currentLastRow){
+                break;
+            }
+            lastRowHeight = currentLastRow.getBoundingClientRect().height;
+            numRowsToRemove += 1;
+            currentRowIndex += 1;
+            freespace += lastRowHeight;
+        }
+        let newTotalRows = this.sheet.numRows - numRowsToRemove;
+        if(newTotalRows < 1){
+            newTotalRows = 1;
+        }
+        this.sheet.setAttribute('rows', newTotalRows);
+    }
 
     _fillHeight(availableHeight){
         let freespace = Math.floor(availableHeight);
