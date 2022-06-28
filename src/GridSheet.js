@@ -385,7 +385,7 @@ class GridSheet extends HTMLElement {
             if(this.customRows[relativeY]){
                 row += `[cell-row-start] ${this.customRows[relativeY]}px `;
             } else {
-                row += `[cell-row-start] 1fr `;
+                row += `[cell-row-start] ${this.cellHeight}px`;
             }
         }
         if(this.showColumnTabs){

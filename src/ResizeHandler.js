@@ -11,28 +11,22 @@ class ResizeHandler extends Object {
         this.disconnect = this.disconnect.bind(this);
         this.updateFromExpandsAttr = this.updateFromExpandsAttr.bind(this);
         this.onObservedResize = this.onObservedResize.bind(this);
-        this.calcCurrentWidth = this.calcCurrentWidth.bind(this);
-        this.calcCurrentHeight = this.calcCurrentHeight.bind(this);
         this._updateWidth = this._updateWidth.bind(this);
+        this._shrinkWidth = this._shrinkWidth.bind(this);
+        this._fillWidth = this._fillWidth.bind(this);
         this._updateHeight = this._updateHeight.bind(this);
+        this._shrinkHeight = this._shrinkHeight.bind(this);
+        this._fillHeight = this._fillHeight.bind(this);
     }
     
     connect(){
         this.observer = new ResizeObserver(this.onObservedResize.bind(this));
-        let parentElement = this.sheet.parentElement;
-        if(!parentElement){
-            parentElement = this.sheet.getRootNode().host;
-        }
-        this.observer.observe(parentElement);
+        this.observer.observe(this.observedParentElement);
         this.isConnected = true;
     }
 
     disconnect(){
-        let parentElement = this.sheet.parentElement;
-        if(!parentElement){
-            parentElement = this.sheet.getRootNode().host;
-        }
-        this.observer.unobserve(parentElement);
+        this.observer.unobserve(this.observedParentElement);
         this.observer.disconnect();
         this.isConnected = false;
     }
@@ -68,137 +62,143 @@ class ResizeHandler extends Object {
     onObservedResize(info){
         // Attempt to re-set the number of columns and rows
         // based upon the available free space in the element.
-        if(!this.horizontal && !this.vertical){
-            return;
+        if(this._cachedTimeoutId){
+            window.clearTimeout(this._cachedTimeoutId);
         }
-        const roData = info[0];
-        const rect = roData.target.getBoundingClientRect();
-        if(this.horizontal){
-            this._updateWidth(rect.width);
-        }
-        if(this.vertical){
-            this._updateHeight(rect.height);
-        }
-        this.sheet.render();
+        this._cachedTimeoutId = window.setTimeout(() => {
+            if(!this.horizontal && !this.vertical){
+                return;
+            }
+            const roData = info[0];
+            const containerRect = roData.target.getBoundingClientRect();
+            const sheetRect = this.sheet.getBoundingClientRect();
+            if(this.horizontal){
+                this._updateWidth(containerRect.width, sheetRect.width);
+            }
+            if(this.vertical){
+                this._updateHeight(containerRect.height, sheetRect.height);
+            }
+            this.sheet.render();
+            }, 100);
     }
 
-    _updateHeight(parentHeight){
-        let currentHeight = this.calcCurrentHeight();
-        let availableHeight = parentHeight - currentHeight;
-        if(availableHeight > 0){
-            // In this case we are expanding.
-            // We will need to check the cache
-            // of row settings to make sure that
-            // the next available rows are explicitly
-            // set to a width value, otherwise use
-            // the default values for row height
-            let currentLastRow = this.sheet.shadowRoot.querySelector(
+    _shrinkHeight(availableHeight){
+        let currentRowIndex = 1;
+        let currentLastRow = this.sheet.shadowRoot.querySelector(
+            `row-tab:nth-last-of-type(${currentRowIndex})`
+        );
+        let lastRowHeight = currentLastRow.getBoundingClientRect().height;
+        let freespace = Math.floor(availableHeight) + lastRowHeight;
+        let numRowsToRemove = 0;
+        while(freespace < 0){
+            currentLastRow = this.sheet.shadowRoot.querySelector(
+                `row-tab:nth-last-of-type(${currentRowIndex})`
+            );
+            if(!currentLastRow){
+                break;
+            }
+            lastRowHeight = currentLastRow.getBoundingClientRect().height;
+            numRowsToRemove += 1;
+            currentRowIndex += 1;
+            freespace += lastRowHeight;
+        }
+        
+        let newTotalRows = this.sheet.numRows - numRowsToRemove;
+        if(newTotalRows < 1){
+            newTotalRows = 1;
+        }
+        this.sheet.setAttribute('rows', newTotalRows);
+    }
+
+    _fillHeight(availableHeight){
+        let freespace = Math.floor(availableHeight);
+        let currentLastRow, nextRowHeight;
+        let numRowsToAdd = 0;
+        let rowHeightAdded = 0;
+        while(freespace > 0){
+            currentLastRow = this.sheet.shadowRoot.querySelector(
                 `row-tab:last-of-type`
             ).relativeRow;
-            let numRowsToAdd = 0;
-            let nextRowHeight = this.sheet.customRows[currentLastRow];
+            nextRowHeight = this.sheet.customRows[currentLastRow];
             if(nextRowHeight === undefined){
                 nextRowHeight = this.sheet.cellHeight;
             }
-            while(availableHeight > 0){
-                availableHeight -= nextRowHeight;
-                numRowsToAdd += 1;
-                currentLastRow += 1;
-                nextRowHeight = this.sheet.customRows[currentLastRow];
-                if(nextRowHeight === undefined){
-                    nextRowHeight = this.sheet.cellHeight;
-                }
-            }
-            this.sheet.setAttribute('rows', this.sheet.numRows + numRowsToAdd);
-        } else if((availableHeight + this.sheet.cellHeight) < 0){
-            // In this case, we are shrinking.
-            // We need to remove rows one at a time
-            // and make sure we get the available space
-            // to be greater than or equal to zero.
-            let numRowsToRemove = 0;
-            let currentRowIndex = 1;
-            let lastRow = this.sheet.shadowRoot.querySelector(
-                `row-tab:nth-last-of-type(${currentRowIndex})`
-            );
-            let lastRowHeight = lastRow.getBoundingClientRect().height;
-            while(availableHeight < 0 && this.sheet.numRows > 1){
-                availableHeight += lastRowHeight;
-                numRowsToRemove += 1;
-                currentRowIndex += 1;
-                lastRow = this.sheet.shadowRoot.querySelector(
-                    `row-tab:nth-last-of-type(${currentRowIndex})`
-                );
-                lastRowHeight = lastRow.getBoundingClientRect().height;
-            }
+            freespace = freespace - nextRowHeight;
+            rowHeightAdded += nextRowHeight;
+            numRowsToAdd += 1;
+        }
+        this.sheet.setAttribute('rows', this.sheet.numRows + numRowsToAdd);
+        
+    }
 
-            let newTotalRows = this.sheet.numRows - numRowsToRemove;
-            this.sheet.setAttribute('rows', newTotalRows);
+    _updateHeight(parentHeight, sheetHeight){
+        let availableHeight = parentHeight - sheetHeight;
+        if(availableHeight > 0){
+            this._fillHeight(availableHeight);
+        } else if(availableHeight < 0){
+            this._shrinkHeight(availableHeight);
         }
     }
 
-    _updateWidth(parentWidth){
-        let currentWidth = this.calcCurrentWidth();
-        let availableWidth = parentWidth - currentWidth;
-        if(availableWidth > 0){
-            // In this case, we are expanding.
-            // We will need to check the cache
-            // of column settings to make sure that
-            // next available columns are explicitly
-            // set to a width value, otherwise use
-            // the default values for column width.
-            let currentLastCol = this.sheet.shadowRoot.querySelector('column-tab:last-of-type').relativeColumn;
-            let numColumnsToAdd = 0;
-            let nextColumnWidth = this.sheet.customColumns[currentLastCol];
+    _fillWidth(availableWidth){
+        let freespace = Math.floor(availableWidth);
+        let currentLastCol, nextColumnWidth;
+        let numColumnsToAdd = 0;
+        let totalWidthToAdd = 0;
+        while(freespace > 0){
+            currentLastCol = this.sheet.shadowRoot.querySelector('column-tab:last-of-type').relativeColumn;
+            nextColumnWidth = this.sheet.customColumns[currentLastCol];
             if(nextColumnWidth === undefined){
                 nextColumnWidth = this.sheet.cellWidth;
             }
-            while(availableWidth > 0){
-                availableWidth -= nextColumnWidth;
-                numColumnsToAdd += 1;
-                currentLastCol += 1;
-                nextColumnWidth = this.sheet.customColumns[currentLastCol];
-                if(nextColumnWidth === undefined){
-                    nextColumnWidth = this.sheet.cellWidth;
-                }
+            freespace = freespace - nextColumnWidth;
+            totalWidthToAdd += nextColumnWidth;
+            numColumnsToAdd += 1;
+        }
+        this.sheet.setAttribute('columns', this.sheet.numColumns + numColumnsToAdd);
+    }
+
+    _shrinkWidth(availableWidth){
+        let currentColumnIndex = 1;
+        let currentLastCol = this.sheet.shadowRoot.querySelector(`column-tab:nth-last-of-type(${currentColumnIndex})`);
+        let lastColWidth = currentLastCol.getBoundingClientRect().width;
+        let freespace = Math.floor(availableWidth) + lastColWidth;
+        let numColumnsToRemove = 0;
+        let totalWidthToRemove = 0;
+        while(freespace < 0){
+            currentLastCol = this.sheet.shadowRoot.querySelector(`column-tab:nth-last-of-type(${currentColumnIndex})`);
+            if(!currentLastCol){
+                break;
             }
-            this.sheet.setAttribute('columns', this.sheet.numColumns + numColumnsToAdd);
-        } else if(availableWidth < 0){
-            // In this case, we are shrinking.
-            // We need to remove columns one at a time
-            // and make sure we get the available space
-            // to be greater than or equal to zero
-            let numColumnsToRemove = 0;
-            let currentColumnIndex = 1;
-            let lastColumn = this.sheet.shadowRoot.querySelector(`column-tab:nth-last-of-type(${currentColumnIndex})`);
-            let lastColumnWidth = lastColumn.getBoundingClientRect().width;
-            while((availableWidth + this.sheet.cellWidth) < 0 && this.sheet.numColumns > 1){
-                availableWidth += lastColumnWidth;
-                numColumnsToRemove += 1;
-                currentColumnIndex += 1;
-                lastColumn = this.sheet.shadowRoot.querySelector(`column-tab:nth-last-of-type(${currentColumnIndex})`);
-                lastColumnWidth = lastColumn.getBoundingClientRect().width;
-            }
-            let newTotalColumns = this.sheet.numColumns - numColumnsToRemove;
-            this.sheet.setAttribute('columns', newTotalColumns);
+            lastColWidth = currentLastCol.getBoundingClientRect().width;
+            freespace += lastColWidth;
+            numColumnsToRemove += 1;
+            currentColumnIndex += 1;
+            totalWidthToRemove += lastColWidth;
+        }
+        
+        let newTotalColumns = this.sheet.numColumns - numColumnsToRemove;
+        if(newTotalColumns < 1){
+            newTotalColumns = 1;
+        }
+        this.sheet.setAttribute('columns', newTotalColumns);
+    }
+
+    _updateWidth(parentWidth, sheetWidth){
+        let availableWidth = parentWidth - sheetWidth;
+        if(availableWidth > 0){
+            this._fillWidth(availableWidth);
+        } else {
+            this._shrinkWidth(availableWidth);
         }
     }
 
-    calcCurrentWidth(){
-        // We use the top row's
-        // rightmost cell
-        let rightmostCellSelector = `sheet-cell[data-x="${this.sheet.numColumns - 1}"]`;
-        let rightmostCell = this.sheet.querySelector(rightmostCellSelector);
-        let right = rightmostCell.getBoundingClientRect().right;
-        return Math.ceil(right);
-    }
-
-    calcCurrentHeight(){
-        // We use the left column's
-        // bottom sheet cell.
-        let bottomCellSelector = `sheet-cell[data-y="${this.sheet.numRows - 1}"]`;
-        let bottomCell = this.sheet.querySelector(bottomCellSelector);
-        let bottom = bottomCell.getBoundingClientRect().bottom;
-        return Math.ceil(bottom);
+    get observedParentElement(){
+        let parentElement = this.sheet.parentElement;
+        if(!parentElement){
+            parentElement = this.sheet.getRootNode().host;
+        }
+        return parentElement;
     }
 }
 
