@@ -188,6 +188,44 @@ class DataFrame extends Frame {
     }
 
     /**
+     * Responds with a new Frame that represents the
+     * smallest required Frame to represent the store
+     * contents that have actual (defined) values.
+     */
+    get minFrame(){
+        let keyCoords = Object.keys(this.store).map(keyString => {
+            return keyString.split(",").map(numStr => {
+                return parseInt(numStr);
+            });
+        });
+        let xValues = keyCoords.map(coord => coord[0]);
+        let yValues = keyCoords.map(coord => coord[1]);
+        let origin = [
+            Math.min(...xValues),
+            Math.min(...yValues)
+        ];
+        let corner = [
+            Math.max(...xValues),
+            Math.max(...yValues)
+        ];
+        return new Frame(origin, corner);
+    }
+
+    /**
+     * Like minFrame, but preserves the true
+     * origin of the whole dataFrame, ie, responds
+     * with the minimal frame encompassing all
+     * defined values from the origin.
+     */
+    get minFrameFromOrigin(){
+        let minFrame = this.minFrame;
+        return new Frame(
+            [this.origin.x, this.origin.y],
+            [minFrame.corner.x, minFrame.corner.y]
+        );
+    }
+
+    /**
      * Responds true if the given Frame,
      * relative to this DataFrame instance,
      * has a data value set for each of the
