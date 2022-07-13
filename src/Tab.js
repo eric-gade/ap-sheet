@@ -255,6 +255,7 @@ class ColumnTab extends HTMLElement {
                 label += letter;
             }
         }
+        this.setAttribute("data-label", label);
         this.shadowRoot.getElementById('label').innerText = label;
     }
 
