@@ -63,3 +63,21 @@ describe('Projecting total source frame to dest frame', () => {
         );
     });
 });
+
+describe("toArray / loadFromArray idempotency", () => {
+    let sourceFrame = new DataFrame([0,0], [1000, 1000]);
+    beforeEach(() => {
+        sourceFrame.clear();
+    });
+    it("Has identical store when using defined values (example1)", () => {
+        sourceFrame.putAt([4,1], "TEST");
+        sourceFrame.putAt([2,3], "TEST");
+        let dataArray = sourceFrame.toArray();
+        let newFrame = new DataFrame(
+            sourceFrame.origin,
+            sourceFrame.corner
+        );
+        newFrame.loadFromArray(dataArray);
+        assert.deepEqual(newFrame.store, sourceFrame.store);
+    });
+});

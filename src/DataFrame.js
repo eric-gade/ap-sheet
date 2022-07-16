@@ -54,7 +54,14 @@ class DataFrame extends Frame {
         } else {
             throw "Invalid Point or Coordinate";
         }
-        this.store[key] = value;
+
+        // We do not actually store undefined
+        // as a value
+        if(value === undefined){
+            delete this.store[key];
+        } else {
+            this.store[key] = value;
+        }
         if(notify && this.callback){
             this.callback(location);
         }
@@ -159,6 +166,24 @@ class DataFrame extends Frame {
             result.push(mappedRow);
         });
         return result;
+    }
+
+    /**
+     * Respond with a 2d data array corresponding to
+     * the contents of this DataFrame instance.
+     * If `strict` is true, we use `minFrame` under the
+     * hood. Otherwise use the expected `minFrameFromOrigin`.
+     */
+    toArray(strict=false){
+        if(strict){
+            return this.getDataArrayForFrame(
+                this.minFrame
+            );
+        } else {
+            return this.getDataArrayForFrame(
+                this.minFrameFromOrigin
+            );
+        }
     }
 
     /**
