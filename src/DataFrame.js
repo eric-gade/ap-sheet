@@ -54,7 +54,14 @@ class DataFrame extends Frame {
         } else {
             throw "Invalid Point or Coordinate";
         }
-        this.store[key] = value;
+
+        // We do not actually store undefined
+        // as a value
+        if(value === undefined){
+            delete this.store[key];
+        } else {
+            this.store[key] = value;
+        }
         if(notify && this.callback){
             this.callback(location);
         }
@@ -162,6 +169,24 @@ class DataFrame extends Frame {
     }
 
     /**
+     * Respond with a 2d data array corresponding to
+     * the contents of this DataFrame instance.
+     * If `strict` is true, we use `minFrame` under the
+     * hood. Otherwise use the expected `minFrameFromOrigin`.
+     */
+    toArray(strict=false){
+        if(strict){
+            return this.getDataArrayForFrame(
+                this.minFrame
+            );
+        } else {
+            return this.getDataArrayForFrame(
+                this.minFrameFromOrigin
+            );
+        }
+    }
+
+    /**
      * Clear out the cached dictionary of
      * points to values.
      */
@@ -185,6 +210,44 @@ class DataFrame extends Frame {
      */
     get isFull(){
         return(this.area == Object.keys(this.store).length);
+    }
+
+    /**
+     * Responds with a new Frame that represents the
+     * smallest required Frame to represent the store
+     * contents that have actual (defined) values.
+     */
+    get minFrame(){
+        let keyCoords = Object.keys(this.store).map(keyString => {
+            return keyString.split(",").map(numStr => {
+                return parseInt(numStr);
+            });
+        });
+        let xValues = keyCoords.map(coord => coord[0]);
+        let yValues = keyCoords.map(coord => coord[1]);
+        let origin = [
+            Math.min(...xValues),
+            Math.min(...yValues)
+        ];
+        let corner = [
+            Math.max(...xValues),
+            Math.max(...yValues)
+        ];
+        return new Frame(origin, corner);
+    }
+
+    /**
+     * Like minFrame, but preserves the true
+     * origin of the whole dataFrame, ie, responds
+     * with the minimal frame encompassing all
+     * defined values from the origin.
+     */
+    get minFrameFromOrigin(){
+        let minFrame = this.minFrame;
+        return new Frame(
+            [this.origin.x, this.origin.y],
+            [minFrame.corner.x, minFrame.corner.y]
+        );
     }
 
     /**
