@@ -127,15 +127,17 @@ class SelectionElement extends HTMLElement {
        */
     updateFromRelativeCoordinates(origin, corner){
         const frame = new Frame(origin, corner);
-        this.updateFromRelativeFrame(frame);
         // this is part of the (data) frame those data is in view
         const relativeViewFrame = this.parentNode.host.primaryFrame.relativeViewFrame.intersection(frame);
-        const originX = this._getViewCoordinate(relativeViewFrame.origin.x, "x"); 
-        const originY = this._getViewCoordinate(relativeViewFrame.origin.y, "y");
-        const cornerX = this._getViewCoordinate(relativeViewFrame.corner.x, "x");
-        const cornerY = this._getViewCoordinate(relativeViewFrame.corner.y, "y");
-        const viewFrame = new Frame([originX, originY], [cornerX, cornerY]);
-        this.updateFromViewFrame(viewFrame);
+        if(!relativeViewFrame.isEmpty){
+            this.updateFromRelativeFrame(frame);
+            const originX = this._getViewCoordinate(relativeViewFrame.origin.x, "x"); 
+            const originY = this._getViewCoordinate(relativeViewFrame.origin.y, "y");
+            const cornerX = this._getViewCoordinate(relativeViewFrame.corner.x, "x");
+            const cornerY = this._getViewCoordinate(relativeViewFrame.corner.y, "y");
+            const viewFrame = new Frame([originX, originY], [cornerX, cornerY]);
+            this.updateFromViewFrame(viewFrame);
+        }
     }
 
     updateFromSelector(aSelector){
