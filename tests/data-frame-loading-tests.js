@@ -95,6 +95,10 @@ describe('DataFrame data tests', () => {
             const targetFrame = new DataFrame([0,0], [10, 10]);
             expect(() => {targetFrame.copyFrom(sourceFrame, [5,5])}).to.throw();
         });
+        it("source must be a data frame", () => {
+            const targetFrame = new DataFrame([0,0], [10, 10]);
+            expect(() => {targetFrame.copyFrom([1, 2, 3])}).to.throw();
+        });
     });
     describe("toArray / loadFromArray idempotency", () => {
         let sourceFrame = new DataFrame([0,0], [1000, 1000]);

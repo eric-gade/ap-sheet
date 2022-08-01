@@ -207,6 +207,9 @@ class DataFrame extends Frame {
      * does not contain the frame then I throw an error.
      **/
     copyFrom(frame, origin=[0, 0]){
+        if(!(frame instanceof DataFrame)){
+            throw "You must pass in a data frame to copy from";
+        }
         if(!this.intersection(frame).contains(frame)){
             throw "DataFrame too small to copy from frame at origin";
         }
