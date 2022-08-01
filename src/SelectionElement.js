@@ -32,15 +32,16 @@ class SelectionElement extends HTMLElement {
         this.shadowRoot.append(
             this.template.content.cloneNode(true)
         );
-        
+
         this.viewFrame = new Frame([0,0], [0,0]);
         this.relativeFrame = new Frame([0,0], [0,0]);
-        
+
 
         // Bind instance methods
         this.updateGridPosition = this.updateGridPosition.bind(this);
         this.updateFromViewFrame = this.updateFromViewFrame.bind(this);
         this.updateFromRelativeFrame = this.updateFromRelativeFrame.bind(this);
+        this.updateFromRelativeCoordinates = this.updateFromRelativeCoordinates.bind(this);
         this.updateFromSelector = this.updateFromSelector.bind(this);
         this.hide = this.hide.bind(this);
         this.show = this.show.bind(this);
@@ -121,6 +122,24 @@ class SelectionElement extends HTMLElement {
         this.setAttribute('data-origin-y', aFrame.origin.y);
     }
 
+    /* I take (data frame) relative coordinates, update the relative frame
+       and the view frame for the data which is currently in view
+       */
+    updateFromRelativeCoordinates(origin, corner){
+        const frame = new Frame(origin, corner);
+        // this is part of the (data) frame those data is in view
+        const relativeViewFrame = this.parentNode.host.primaryFrame.relativeViewFrame.intersection(frame);
+        if(!relativeViewFrame.isEmpty){
+            this.updateFromRelativeFrame(frame);
+            const originX = this._getViewCoordinate(relativeViewFrame.origin.x, "x"); 
+            const originY = this._getViewCoordinate(relativeViewFrame.origin.y, "y");
+            const cornerX = this._getViewCoordinate(relativeViewFrame.corner.x, "x");
+            const cornerY = this._getViewCoordinate(relativeViewFrame.corner.y, "y");
+            const viewFrame = new Frame([originX, originY], [cornerX, cornerY]);
+            this.updateFromViewFrame(viewFrame);
+        }
+    }
+
     updateFromSelector(aSelector){
         this.updateFromRelativeFrame(aSelector.primaryFrame.relativeViewFrame);
         this.updateFromViewFrame(aSelector.selectionFrame);
@@ -132,6 +151,14 @@ class SelectionElement extends HTMLElement {
 
     show(){
         this.classList.remove('empty');
+    }
+
+    _getViewCoordinate(c, which){
+        const cell = this.parentNode.host.querySelector(`sheet-cell[data-relative-${which}="${c}"]`);
+        if(cell){
+            return cell.getAttribute(`data-${which}`);
+        }
+        return null;
     }
 
     static get observedAttributes(){
