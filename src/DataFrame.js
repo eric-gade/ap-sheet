@@ -27,6 +27,7 @@ class DataFrame extends Frame {
         this.loadFromArray = this.loadFromArray.bind(this);
         this.putAt = this.putAt.bind(this);
         this.getAt = this.getAt.bind(this);
+        this.copyFrom = this.copyFrom.bind(this);
         this.getDataArrayForFrame = this.getDataArrayForFrame.bind(this);
     }
 
@@ -197,6 +198,19 @@ class DataFrame extends Frame {
                 new Frame(this.origin, this.corner)
             );
         }
+    }
+
+    /**
+     * I take a new frame and copy it into this DataFrame
+     * starting with the specified origin. If the frame doesn't
+     * "fit" ie if the intersection of frame with this DataFrame
+     * does not contain the frame then I throw an error.
+     **/
+    copyFrom(frame, origin=[0, 0]){
+        if(!this.intersection(frame).contains(frame)){
+            throw "DataFrame too small to copy from frame at origin";
+        }
+        this.loadFromArray(frame.toArray(), origin=origin);
     }
 
     /**
