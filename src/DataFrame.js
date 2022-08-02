@@ -29,6 +29,7 @@ class DataFrame extends Frame {
         this.getAt = this.getAt.bind(this);
         this.copyFrom = this.copyFrom.bind(this);
         this.getDataArrayForFrame = this.getDataArrayForFrame.bind(this);
+        this.getDataSubFrame = this.getDataSubFrame.bind(this);
     }
 
     /**
@@ -170,6 +171,18 @@ class DataFrame extends Frame {
     }
 
     /**
+     * I return a DataFrame which contains the points (and data)
+     * of this frame starting at the specified (new) origin and corner.
+     */
+    getDataSubFrame(origin, corner){
+        const subframe =  new DataFrame(origin, corner);
+        subframe.forEachPoint((p) => {
+            subframe.putAt(p, this.getAt(p), false); // do not notify
+        })
+        return subframe;
+    }
+
+    /**
      * Respond with a 2d data array corresponding to
      * the contents of this DataFrame instance.
      * If `strict` is true, we use `minFrame` under the
@@ -198,6 +211,12 @@ class DataFrame extends Frame {
                 new Frame(this.origin, this.corner)
             );
         }
+    }
+
+    apply(func, notify=false){
+        this.forEachPoint((p) => {
+            this.putAt(p, func(this.getAt(p)), notify);
+        });
     }
 
     /**

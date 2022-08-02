@@ -100,6 +100,49 @@ describe('DataFrame data tests', () => {
             expect(() => {targetFrame.copyFrom([1, 2, 3])}).to.throw();
         });
     });
+    describe("Sub-DataFrame", () => {
+        const frame = new DataFrame([0,0], [1000, 1000]);
+        frame.putAt([10,10], "TEST_1010");
+        frame.putAt([10,11], "TEST_1010");
+        frame.putAt([11,10], "TEST_1110");
+        frame.putAt([11,11], "TEST_1111");
+        it("Sub-DataFrame has the correct frame and store", () => {
+            const subframe = frame.getDataSubFrame([10, 10], [20, 20]);
+            const expected = new DataFrame([10, 10], [20, 20]);
+            expected.putAt([10,10], "TEST_1010");
+            expected.putAt([10,11], "TEST_1010");
+            expected.putAt([11,10], "TEST_1110");
+            expected.putAt([11,11], "TEST_1111");
+            assert.isTrue(expected.equals(subframe));
+            assert.deepEqual(expected.store, subframe.store);
+        });
+        it("Both origin and corner must be in frame to get Sub-DataFrame", () => {
+            expect(() => {frame.getDataSubFrame([10, 10], [2000, 20])}).to.throw();
+            expect(() => {frame.getDataSubFrame([2000, 10], [2000, 20])}).to.throw();
+        });
+    });
+    describe("Operators", () => {
+        const frame = new DataFrame([0,0], [100, 100]);
+        frame.forEachPoint((p) => {
+            frame.putAt(p, p.x + p.y, false);
+        })
+        it("Apply with function that return same value doens't change frame", () => {
+            const expected = frame.copy();
+            expected.store = frame.store;
+            frame.apply((item) => {return item;});
+            assert.isTrue(expected.equals(frame));
+            assert.deepEqual(expected.store, frame.store);
+        });
+        it("Apply with a more interesting function", () => {
+            const expected = new DataFrame([0,0], [100, 100]);
+            expected.forEachPoint((p) => {
+                expected.putAt(p, p.x + p.y + "_item", false);
+            })
+            frame.apply((item) => {return item + "_item";});
+            assert.isTrue(expected.equals(frame));
+            assert.deepEqual(expected.store, frame.store);
+        });
+    });
     describe("toArray / loadFromArray idempotency", () => {
         let sourceFrame = new DataFrame([0,0], [1000, 1000]);
         beforeEach(() => {
