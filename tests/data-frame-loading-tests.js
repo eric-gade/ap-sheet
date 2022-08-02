@@ -122,11 +122,11 @@ describe('DataFrame data tests', () => {
         });
     });
     describe("Operators", () => {
-        const frame = new DataFrame([0,0], [100, 100]);
-        frame.forEachPoint((p) => {
-            frame.putAt(p, p.x + p.y, false);
-        })
         it("Apply with function that return same value doens't change frame", () => {
+            const frame = new DataFrame([0,0], [100, 100]);
+            frame.forEachPoint((p) => {
+                frame.putAt(p, p.x + p.y, false);
+            })
             const expected = frame.copy();
             expected.store = frame.store;
             frame.apply((item) => {return item;});
@@ -134,6 +134,10 @@ describe('DataFrame data tests', () => {
             assert.deepEqual(expected.store, frame.store);
         });
         it("Apply with a more interesting function", () => {
+            const frame = new DataFrame([0,0], [100, 100]);
+            frame.forEachPoint((p) => {
+                frame.putAt(p, p.x + p.y, false);
+            })
             const expected = new DataFrame([0,0], [100, 100]);
             expected.forEachPoint((p) => {
                 expected.putAt(p, p.x + p.y + "_item", false);
@@ -141,6 +145,31 @@ describe('DataFrame data tests', () => {
             frame.apply((item) => {return item + "_item";});
             assert.isTrue(expected.equals(frame));
             assert.deepEqual(expected.store, frame.store);
+        });
+        it("Add two data frames", () => {
+            const frame = new DataFrame([0,0], [100, 100]);
+            frame.forEachPoint((p) => {
+                frame.putAt(p, p.x + p.y, false);
+            })
+            const another = new DataFrame([0,0], [100, 100]);
+            another.forEachPoint((p) => {
+                another.putAt(p, "_item", false);
+            })
+            const expected = new DataFrame([0,0], [100, 100]);
+            expected.forEachPoint((p) => {
+                expected.putAt(p, p.x + p.y + "_item", false);
+            })
+            frame.add(another);
+            assert.isTrue(expected.equals(frame));
+            assert.deepEqual(expected.store, frame.store);
+        });
+        it("Must be dimensionally aligned to add", () => {
+            const frame = new DataFrame([0,0], [100, 100]);
+            frame.forEachPoint((p) => {
+                frame.putAt(p, p.x + p.y, false);
+            })
+            const another = new DataFrame([10,10], [100, 100]);
+            expect(() => {frame.add(another)}).to.throw();
         });
     });
     describe("toArray / loadFromArray idempotency", () => {

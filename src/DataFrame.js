@@ -213,11 +213,34 @@ class DataFrame extends Frame {
         }
     }
 
+    /**
+     * Replace values in the DataFrame.store with the return of the
+     * func applied to each value.
+     * @param {function} func - A function
+     * @param {boolean} notify - If true will try to call this.callback
+     */
     apply(func, notify=false){
         this.forEachPoint((p) => {
             this.putAt(p, func(this.getAt(p)), notify);
         });
     }
+
+    /**
+     * I do an (store) elemnent pairwise add operation for this and
+     * the df DataFrame (in place)
+     * NOTE: this and df must be equal as frames, ie their coordinates must match up
+     * @param {DataFrame} df - The dataframe to be added
+     * @param {boolean} notify - If true will try to call this.callback
+     */
+    add(df, notify=false){
+        if(!this.equals(df)){
+            throw "DataFrames must be equal as frames (dimensionally aligned) to add";
+        }
+        this.forEachPoint((p) => {
+            this.putAt(p, this.getAt(p) + df.getAt(p), notify);
+        });
+    }
+
 
     /**
      * I take a new frame and copy it into this DataFrame
