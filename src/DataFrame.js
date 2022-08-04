@@ -232,7 +232,7 @@ class DataFrame extends Frame {
      * @param {DataFrame} df - The dataframe to be added
      * @param {boolean} notify - If true will try to call this.callback
      */
-    add(df, notify=false){
+    add(df){
         if(!this.size.equals(df.size)){
             throw "DataFrames must be equal size to add";
         }
@@ -246,7 +246,7 @@ class DataFrame extends Frame {
                 this_array[ridx][cidx] = value + df_array[ridx][cidx];
             })
         })
-        this.loadFromArray(this_array);
+        this.loadFromArray(this_array, this.origin);
     }
 
 
