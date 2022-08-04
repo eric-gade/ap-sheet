@@ -233,12 +233,20 @@ class DataFrame extends Frame {
      * @param {boolean} notify - If true will try to call this.callback
      */
     add(df, notify=false){
-        if(!this.equals(df)){
-            throw "DataFrames must be equal as frames (dimensionally aligned) to add";
+        if(!this.size.equals(df.size)){
+            throw "DataFrames must be equal size to add";
         }
-        this.forEachPoint((p) => {
-            this.putAt(p, this.getAt(p) + df.getAt(p), notify);
-        });
+        // TODO: dumping DS's to arrays like this might cause performance issues
+        // we should consider something that will simulatenously iterate over points
+        // in both frames respecting the order
+        const this_array = this.toArray();
+        const df_array = df.toArray();
+        this_array.forEach((row, ridx) => {
+            this_array[ridx].forEach((value, cidx) => {
+                this_array[ridx][cidx] = value + df_array[ridx][cidx];
+            })
+        })
+        this.loadFromArray(this_array);
     }
 
 

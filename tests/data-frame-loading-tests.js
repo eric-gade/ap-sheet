@@ -151,7 +151,7 @@ describe('DataFrame data tests', () => {
             frame.forEachPoint((p) => {
                 frame.putAt(p, p.x + p.y, false);
             })
-            const another = new DataFrame([0,0], [100, 100]);
+            const another = new DataFrame([10,10], [110, 110]);
             another.forEachPoint((p) => {
                 another.putAt(p, "_item", false);
             })
