@@ -27,7 +27,9 @@ class DataFrame extends Frame {
         this.loadFromArray = this.loadFromArray.bind(this);
         this.putAt = this.putAt.bind(this);
         this.getAt = this.getAt.bind(this);
+        this.copyFrom = this.copyFrom.bind(this);
         this.getDataArrayForFrame = this.getDataArrayForFrame.bind(this);
+        this.getDataSubFrame = this.getDataSubFrame.bind(this);
     }
 
     /**
@@ -169,6 +171,18 @@ class DataFrame extends Frame {
     }
 
     /**
+     * I return a DataFrame which contains the points (and data)
+     * of this frame starting at the specified (new) origin and corner.
+     */
+    getDataSubFrame(origin, corner){
+        const subframe =  new DataFrame(origin, corner);
+        subframe.forEachPoint((p) => {
+            subframe.putAt(p, this.getAt(p), false); // do not notify
+        })
+        return subframe;
+    }
+
+    /**
      * Respond with a 2d data array corresponding to
      * the contents of this DataFrame instance.
      * If `strict` is true, we use `minFrame` under the
@@ -197,6 +211,59 @@ class DataFrame extends Frame {
                 new Frame(this.origin, this.corner)
             );
         }
+    }
+
+    /**
+     * Replace values in the DataFrame.store with the return of the
+     * func applied to each value.
+     * @param {function} func - A function
+     * @param {boolean} notify - If true will try to call this.callback
+     */
+    apply(func, notify=false){
+        this.forEachPoint((p) => {
+            this.putAt(p, func(this.getAt(p)), notify);
+        });
+    }
+
+    /**
+     * I do an (store) elemnent pairwise add operation for this and
+     * the df DataFrame (in place)
+     * NOTE: this and df must be equal as frames, ie their coordinates must match up
+     * @param {DataFrame} df - The dataframe to be added
+     * @param {boolean} notify - If true will try to call this.callback
+     */
+    add(df, notify=false){
+        if(!this.size.equals(df.size)){
+            throw "DataFrames must be equal size to add";
+        }
+        // TODO: dumping DS's to arrays like this might cause performance issues
+        // we should consider something that will simulatenously iterate over points
+        // in both frames respecting the order
+        const this_array = this.toArray();
+        const df_array = df.toArray();
+        this_array.forEach((row, ridx) => {
+            this_array[ridx].forEach((value, cidx) => {
+                this_array[ridx][cidx] = value + df_array[ridx][cidx];
+            })
+        })
+        this.loadFromArray(this_array);
+    }
+
+
+    /**
+     * I take a new frame and copy it into this DataFrame
+     * starting with the specified origin. If the frame doesn't
+     * "fit" ie if the intersection of frame with this DataFrame
+     * does not contain the frame then I throw an error.
+     **/
+    copyFrom(frame, origin=[0, 0]){
+        if(!(frame instanceof DataFrame)){
+            throw "You must pass in a data frame to copy from";
+        }
+        if(!this.intersection(frame).contains(frame)){
+            throw "DataFrame too small to copy from frame at origin";
+        }
+        this.loadFromArray(frame.toArray(), origin=origin);
     }
 
     /**
