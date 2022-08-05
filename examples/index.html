@@ -1,21 +1,43 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-    <head>
-        <title>Basic Grid Tests</title>
-        <link rel="stylesheet" href="style.css">
-        <script type="module" src="../src/GridSheet.js"></script>
-        <script type="module" src="../src/SheetCell.js"></script>
-    </head>
-    <body>
-        <my-grid class="spreadsheet" id="table" rows="12" columns="3" expands="true">
-        </my-grid>
+  <head>
+    <title>Basic Grid Tests</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="../src/GridSheet.js"></script>
+    <script type="module" src="../src/SheetCell.js"></script>
+  </head>
+  <body>
+    <my-grid
+      class="spreadsheet"
+      id="table"
+      rows="12"
+      columns="3"
+      expands="true"
+    >
+    </my-grid>
 
-        <a href="two-tables.html">Click here for the two tables example</a>
-    </body>
-    <script>
-     document.addEventListener('DOMContentLoaded', () => {
-         let table = document.getElementById('table');
-         table.focus();
-     });
-    </script>
+    <a href="two-tables.html">Click here for the two tables example</a>
+  </body>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      let table = document.getElementById("table");
+      table.focus();
+
+      document.body.addEventListener("drop", (event) => {
+        let transferData = JSON.parse(event.dataTransfer.getData("text/json"));
+        let displayData = JSON.stringify(transferData, null, 4);
+        let container = document.createElement("div");
+        container.style.display = "block";
+        container.style.position = "absolute";
+        container.style.width = "300px";
+        container.textContent = displayData;
+        container.style.top = `${event.y}px`;
+        container.style.left = `${event.x}px`;
+        document.body.append(container);
+      });
+      document.body.addEventListener("dragover", (event) => {
+        event.preventDefault();
+      });
+    });
+  </script>
 </html>

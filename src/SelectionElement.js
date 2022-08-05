@@ -20,6 +20,10 @@ const templateString = `
     :host(.empty){
         display: none;
     }
+
+    :host([draggable]){
+        pointer-events: auto;
+}
 </style>
 `;
 
@@ -43,8 +47,19 @@ class SelectionElement extends HTMLElement {
         this.updateFromRelativeFrame = this.updateFromRelativeFrame.bind(this);
         this.updateFromRelativeCoordinates = this.updateFromRelativeCoordinates.bind(this);
         this.updateFromSelector = this.updateFromSelector.bind(this);
+        this.handleParentKeyDown = this.handleParentKeyDown.bind(this);
+        this.handleParentKeyUp = this.handleParentKeyUp.bind(this);
+        this.handleDragStart = this.handleDragStart.bind(this);
         this.hide = this.hide.bind(this);
         this.show = this.show.bind(this);
+    }
+
+    connectedCallback(){
+        if(this.isConnected){
+            let parentElement = this.parentElement || this.getRootNode().host;
+            parentElement.addEventListener('keydown', this.handleParentKeyDown);
+            parentElement.addEventListener('keyup', this.handleParentKeyUp);
+        }
     }
 
     attributeChangedCallback(name, oldVal, newVal){
@@ -143,6 +158,38 @@ class SelectionElement extends HTMLElement {
     updateFromSelector(aSelector){
         this.updateFromRelativeFrame(aSelector.primaryFrame.relativeViewFrame);
         this.updateFromViewFrame(aSelector.selectionFrame);
+    }
+
+    handleParentKeyDown(event){
+        if(event.altKey && !this.classList.contains('empty')){
+            const parentElement = this.parentElement || this.getRootNode().host;
+            parentElement.style.pointerEvents = "none";
+            this.setAttribute('draggable', true);
+            this.addEventListener('dragstart', this.handleDragStart);
+        }
+    }
+
+    handleParentKeyUp(event){
+        if(!event.altKey){
+            const parentElement = this.parentElement || this.getRootNode().host;
+            parentElement.style.pointerEvents = "";
+            this.removeAttribute('draggable');
+            this.removeEventListener('dragstart', this.handleDragStart);
+        }
+    }
+
+    handleDragStart(event){
+        const parentElement = this.parentElement || this.getRootNode().host;
+        event.dataTransfer.setData(
+            'text/json',
+            JSON.stringify({
+                viewFrameOrigin: this.viewFrame.origin,
+                viewFrameCorner: this.viewFrame.corner,
+                relativeFrameOrigin: this.relativeFrame.origin,
+                relativeFrameCorner: this.relativeFrame.corner,
+                parentId: parentElement.id
+            })
+        );
     }
 
     hide(){
