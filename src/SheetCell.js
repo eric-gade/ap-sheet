@@ -22,6 +22,7 @@ const templateString = `
     span {
         text-align: center;
         width: 100%;
+        pointer-events: none;
     }
 
     input {
