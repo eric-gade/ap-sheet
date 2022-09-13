@@ -186,7 +186,7 @@ class DataFrame extends Frame {
      * Respond with a 2d data array corresponding to
      * the contents of this DataFrame instance.
      * If `strict` is true, we use `minFrame` under the
-     * hood. Otherwise use the expected `minFrameFromOrigin`.
+     * hood. Otherwise use the expected `this`.
      */
     toArray(strict=false){
         if(strict){
@@ -195,7 +195,7 @@ class DataFrame extends Frame {
             );
         } else {
             return this.getDataArrayForFrame(
-                this.minFrameFromOrigin
+                this
             );
         }
     }
