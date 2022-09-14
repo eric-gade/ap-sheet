@@ -180,6 +180,7 @@ class SelectionElement extends HTMLElement {
 
     handleDragStart(event){
         const parentElement = this.parentElement || this.getRootNode().host;
+        event.dataTransfer.setData("selection-drag", true);
         event.dataTransfer.setData(
             'text/json',
             JSON.stringify({

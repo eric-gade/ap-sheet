@@ -13,6 +13,7 @@ const templateString = `
         --row-start-name: cell-row-start;
         white-space: nowrap;
         overflow: pre;
+        pointer-event: initial;
     }
     :host(:focus),
     input:focus {
@@ -22,6 +23,7 @@ const templateString = `
     span {
         text-align: center;
         width: 100%;
+        pointer-events: none;
     }
 
     input {
