@@ -144,7 +144,7 @@ class KeyHandler extends Object {
                 let cellElement = this.sheet.primaryFrame.elementAt(
                     this.sheet.selector.cursor
                 );
-                if(!cellElement.isEditing){
+                if(!this.sheet.hasAttribute("read-only-view") && !cellElement.isEditing){
                     cellElement.setAttribute('editing', true);
                     event.stopPropagation();
                 }

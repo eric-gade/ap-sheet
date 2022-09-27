@@ -204,7 +204,7 @@ class SheetCell extends HTMLElement {
     }
 
     handleDoubleClick(event){
-        if(!this.isEditing){
+        if(!this.parentElement.hasAttribute("read-only-view") && !this.isEditing){
             this.setAttribute('editing', true);
         }
     }
