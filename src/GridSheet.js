@@ -190,7 +190,6 @@ class GridSheet extends HTMLElement {
         this.handleColumnAdjustment = this.handleColumnAdjustment.bind(this);
         this.handleRowAdjustment = this.handleRowAdjustment.bind(this);
         this.handleCellEdited = this.handleCellEdited.bind(this);
-        this.handleDataFrameResized = this.handleDataFrameResized.bind(this);
     }
 
     connectedCallback() {
@@ -282,6 +281,7 @@ class GridSheet extends HTMLElement {
                     // Nothing for now
                 },
             });
+            this.dispatchEvent(resizeEvent);
         }
         this.dispatchEvent(event);
         this.primaryFrame.updateCellContents();
@@ -680,17 +680,6 @@ class GridSheet extends HTMLElement {
             event.detail.content
         );
         this.focus();
-    }
-
-    handleDataFrameResized(event) {
-        const maxRows = this.dataFrame.corner.y;
-        const maxCols = this.dataFrame.corner.x;
-        if (this.numRows > maxRows) {
-            this.setAttribute("rows", maxRows);
-        }
-        if (this.numCols > maxCols) {
-            this.setAttribute("columns", maxCols);
-        }
     }
 
     trackSelectionWithRowTabs() {
