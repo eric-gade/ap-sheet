@@ -5,11 +5,10 @@
  * and projecting (to arrays) of data from a
  * DataFrame
  */
-import jsdomglobal from "jsdom-global";
-jsdomglobal();
 import { Frame } from "../src/Frame.js";
 import { DataFrame } from "../src/DataFrame.js";
 import { Point } from "../src/Point.js";
+import sinon from "sinon";
 import chai from "chai";
 import { expect } from "chai";
 const assert = chai.assert;
@@ -196,4 +195,21 @@ describe("DataFrame data tests", () => {
             assert.deepEqual(newFrame.store, sourceFrame.store);
         });
     });
+    describe("loadFromArray callback and resizing", () => {
+        it("expands to greater dimension when loading data that goes beyond existing corner", () => {
+            let sourceFrame = new DataFrame([0, 0], [30, 30]);
+            let newFrame = new DataFrame([0, 0], [20, 20]);
+            const callback = sinon.spy();
+            newFrame.callback = callback;
+            newFrame.loadFromArray(sourceFrame.toArray());
+            assert.isTrue(callback.calledOnce);
+            assert.isTrue(callback.calledWithMatch(sinon.match.any, true));
+            assert.equal(newFrame.corner.x, 30);
+            assert.equal(newFrame.corner.y, 30);
+        });
+    });
+});
+
+after(() => {
+    resetDOM();
 });

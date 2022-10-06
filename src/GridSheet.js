@@ -265,15 +265,24 @@ class GridSheet extends HTMLElement {
         }
     }
 
-    onDataChanged(frame) {
+    onDataChanged(frame, wasResized = false) {
         if (frame.isPoint) {
             frame = new Frame(frame, frame);
         }
         let event = new CustomEvent("data-updated", {
             detail: {
                 frames: [frame],
+                wasResized,
             },
         });
+        if (wasResized) {
+            let resizeEvent = new CustomEvent("data-frame-resized", {
+                detail: {
+                    // Nothing for now
+                },
+            });
+            this.dispatchEvent(resizeEvent);
+        }
         this.dispatchEvent(event);
         this.primaryFrame.updateCellContents();
     }

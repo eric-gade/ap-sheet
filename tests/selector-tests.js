@@ -10,8 +10,6 @@
  *   the Selector frame are correct
  *   relativer to the underlying DataFrame.
  */
-import jsdomglobal from "jsdom-global";
-jsdomglobal();
 import { PrimaryGridFrame as PrimaryFrame } from "../src/PrimaryGridFrame.js";
 import { Frame } from "../src/Frame.js";
 import { DataFrame } from "../src/DataFrame.js";
@@ -929,4 +927,8 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         assert.isFalse(selector.selectionFrame.isEmpty);
         assert.isTrue(selector.selectionFrame.equals(expectedSelectionFrame));
     });
+});
+
+after(() => {
+    resetDOM();
 });

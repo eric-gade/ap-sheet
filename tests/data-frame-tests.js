@@ -2,8 +2,6 @@
  * APSheet DataFrame Generic Tests
  * ------------------------------------
  */
-import jsdomglobal from "jsdom-global";
-jsdomglobal();
 import { Frame } from "../src/Frame.js";
 import { DataFrame } from "../src/DataFrame.js";
 import { Point } from "../src/Point.js";
@@ -114,4 +112,8 @@ describe("DataFrame Generic Tests", () => {
         assert.equal(dataArray[0].length, expectedRowLength);
         assert.equal(dataArray.length, expectedColumnLength);
     });
+});
+
+after(() => {
+    resetDOM();
 });
