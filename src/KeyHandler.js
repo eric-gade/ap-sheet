@@ -143,6 +143,30 @@ class KeyHandler extends Object {
                 }
             }
         });
+        this.registerHandler("Delete", (event) => {
+            if (this.sheet.selector.selectionFrame.isEmpty) {
+                this.sheet.dataFrame.putAt(
+                    this.sheet.selector.anchor,
+                    undefined
+                );
+            } else {
+                this.sheet.dataFrame.clearFrame(
+                    this.sheet.selector.selectionFrame
+                );
+            }
+        });
+        this.registerHandler("Backspace", (event) => {
+            if (this.sheet.selector.selectionFrame.isEmpty) {
+                this.sheet.dataFrame.putAt(
+                    this.sheet.selector.anchor,
+                    undefined
+                );
+            } else {
+                this.sheet.dataFrame.clearFrame(
+                    this.sheet.selector.selectionFrame
+                );
+            }
+        });
     }
 
     usesModifierKeys(event) {
