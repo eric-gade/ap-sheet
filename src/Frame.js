@@ -9,16 +9,16 @@
  * These two points are enough to make
  * calculations about other features of the Frame.
  */
-import {Point, isCoordinate} from './Point.js';
+import { Point, isCoordinate } from "./Point.js";
 
 const validateGeometry = (origin, corner) => {
-    if(origin.x > corner.x || origin.y > corner.y){
+    if (origin.x > corner.x || origin.y > corner.y) {
         throw "Origin must be top-left and corner must be bottom-right";
     }
 };
 
 class Frame {
-    constructor(origin, corner){
+    constructor(origin, corner) {
         this.origin = new Point(origin);
         this.corner = new Point(corner);
         validateGeometry(this.origin, this.corner);
@@ -52,19 +52,30 @@ class Frame {
      * object to check for inclusion in the Frame
      * @returns {boolean}
      */
-    contains(aPointOrFrame){
-        if(this.isEmpty){
+    contains(aPointOrFrame) {
+        if (this.isEmpty) {
             return false;
         }
-        if(aPointOrFrame.isPoint){
-            let validX = (aPointOrFrame.x >= this.origin.x && aPointOrFrame.x <= this.corner.x);
-            let validY = (aPointOrFrame.y >= this.origin.y && aPointOrFrame.y <= this.corner.y);
-            return (validX && validY);
-        } else if(aPointOrFrame.isFrame){
-            return (this.contains(aPointOrFrame.origin) && this.contains(aPointOrFrame.corner));
-        } else if(isCoordinate(aPointOrFrame)){
-            let validX = aPointOrFrame[0] >= this.origin.x && aPointOrFrame[0] <= this.corner.x;
-            let validY = aPointOrFrame[1] >= this.origin.y && aPointOrFrame[1] <= this.corner.y;
+        if (aPointOrFrame.isPoint) {
+            let validX =
+                aPointOrFrame.x >= this.origin.x &&
+                aPointOrFrame.x <= this.corner.x;
+            let validY =
+                aPointOrFrame.y >= this.origin.y &&
+                aPointOrFrame.y <= this.corner.y;
+            return validX && validY;
+        } else if (aPointOrFrame.isFrame) {
+            return (
+                this.contains(aPointOrFrame.origin) &&
+                this.contains(aPointOrFrame.corner)
+            );
+        } else if (isCoordinate(aPointOrFrame)) {
+            let validX =
+                aPointOrFrame[0] >= this.origin.x &&
+                aPointOrFrame[0] <= this.corner.x;
+            let validY =
+                aPointOrFrame[1] >= this.origin.y &&
+                aPointOrFrame[1] <= this.corner.y;
             return validX && validY;
         }
         return false;
@@ -78,14 +89,16 @@ class Frame {
      * to compare this instance to
      * @returns {boolean}
      */
-    equals(otherFrame){
-        if(this.isEmpty && otherFrame.isEmpty){
+    equals(otherFrame) {
+        if (this.isEmpty && otherFrame.isEmpty) {
             return true;
-        } else if(this.isEmpty || otherFrame.isEmpty){
+        } else if (this.isEmpty || otherFrame.isEmpty) {
             return false;
         }
-        return (this.origin.equals(otherFrame.origin)
-                && this.corner.equals(otherFrame.corner));
+        return (
+            this.origin.equals(otherFrame.origin) &&
+            this.corner.equals(otherFrame.corner)
+        );
     }
 
     /**
@@ -103,14 +116,14 @@ class Frame {
      * Frame instance.
      * @returns {Frame}
      */
-    translate(translationPoint, inPlace=true){
-        if(this.isEmpty){
-            if(inPlace){
+    translate(translationPoint, inPlace = true) {
+        if (this.isEmpty) {
+            if (inPlace) {
                 return this;
             }
             return this.constructor.newEmpty();
         }
-        if(inPlace){
+        if (inPlace) {
             let newFrame = new Frame(this.origin, this.corner);
             newFrame.translate(translationPoint, false);
             return newFrame;
@@ -135,12 +148,12 @@ class Frame {
      * and the passed-in Frame. Will be an empty
      * Frame if there is no intersection
      */
-    intersection(otherFrame){
-        if(this.isEmpty || otherFrame.isEmpty){
+    intersection(otherFrame) {
+        if (this.isEmpty || otherFrame.isEmpty) {
             return this.constructor.newEmpty();
         }
 
-        if(this.contains(otherFrame)){
+        if (this.contains(otherFrame)) {
             /*
              * TTTTTTTT
              * TTOOOTTT
@@ -151,7 +164,7 @@ class Frame {
             return new Frame(otherFrame.origin, otherFrame.corner);
         }
 
-        if(otherFrame.contains(this)){
+        if (otherFrame.contains(this)) {
             /*
              * OOOOOOOO
              * OOTTTOOO
@@ -162,26 +175,32 @@ class Frame {
             return new Frame(this.origin, this.corner);
         }
 
-        if(this.contains(otherFrame.origin) && otherFrame.contains(this.corner)){
+        if (
+            this.contains(otherFrame.origin) &&
+            otherFrame.contains(this.corner)
+        ) {
             /*
-              * TTTTTT
-              * TTTOOOOOO
-              * TTTOOOOOO
-              * TTTOOOOOO
-              *    OOOOOO
-              */
+             * TTTTTT
+             * TTTOOOOOO
+             * TTTOOOOOO
+             * TTTOOOOOO
+             *    OOOOOO
+             */
             return new Frame(otherFrame.origin, this.corner);
         }
 
-        if(otherFrame.contains(this.origin) && this.contains(otherFrame.corner)){
+        if (
+            otherFrame.contains(this.origin) &&
+            this.contains(otherFrame.corner)
+        ) {
             /*
-              * OOOOOO
-              * OOOOOO
-              * OOOTTTTTT
-              * OOOTTTTTT
-              *    TTTTTT
-              *    TTTTTT
-              */
+             * OOOOOO
+             * OOOOOO
+             * OOOTTTTTT
+             * OOOTTTTTT
+             *    TTTTTT
+             *    TTTTTT
+             */
             return new Frame(this.origin, otherFrame.corner);
         }
 
@@ -190,24 +209,18 @@ class Frame {
         // We create a union frame and then get the min and
         // max for all intersection points
         let unionFrame = this.union(otherFrame);
-        let intersectPoints = unionFrame.points.filter(aPoint => {
-            return (this.contains(aPoint) && otherFrame.contains(aPoint));
+        let intersectPoints = unionFrame.points.filter((aPoint) => {
+            return this.contains(aPoint) && otherFrame.contains(aPoint);
         });
-        if(intersectPoints.length > 0){
-            let xVals = intersectPoints.map(aPoint => {
+        if (intersectPoints.length > 0) {
+            let xVals = intersectPoints.map((aPoint) => {
                 return aPoint.x;
             });
-            let yVals = intersectPoints.map(aPoint => {
+            let yVals = intersectPoints.map((aPoint) => {
                 return aPoint.y;
             });
-            let newOrigin = new Point([
-                Math.min(...xVals),
-                Math.min(...yVals)
-            ]);
-            let newCorner = new Point([
-                Math.max(...xVals),
-                Math.max(...yVals)
-            ]);
+            let newOrigin = new Point([Math.min(...xVals), Math.min(...yVals)]);
+            let newCorner = new Point([Math.max(...xVals), Math.max(...yVals)]);
             return new Frame(newOrigin, newCorner);
         }
 
@@ -225,7 +238,7 @@ class Frame {
      * representing the enclosure of myself and
      * the passed in Frame.
      */
-    union(otherFrame){
+    union(otherFrame) {
         let cornerX;
         let cornerY;
         let originX;
@@ -233,12 +246,12 @@ class Frame {
 
         let newOrigin = new Point([
             Math.min(this.origin.x, otherFrame.origin.x),
-            Math.min(this.origin.y, otherFrame.origin.y)
+            Math.min(this.origin.y, otherFrame.origin.y),
         ]);
 
         let newCorner = new Point([
             Math.max(this.corner.x, otherFrame.corner.x),
-            Math.max(this.corner.y, otherFrame.corner.y)
+            Math.max(this.corner.y, otherFrame.corner.y),
         ]);
 
         return new Frame(newOrigin, newCorner);
@@ -250,13 +263,13 @@ class Frame {
      * @param {function} callback - The function
      * to call over each point.
      */
-    forEachPoint(callback){
-        if(this.isEmpty){
+    forEachPoint(callback) {
+        if (this.isEmpty) {
             return;
         }
-        for(let x = this.origin.x; x <= this.corner.x; x++){
-            for(let y = this.origin.y; y <= this.corner.y; y++){
-                callback(new Point([x,y]));
+        for (let x = this.origin.x; x <= this.corner.x; x++) {
+            for (let y = this.origin.y; y <= this.corner.y; y++) {
+                callback(new Point([x, y]));
             }
         }
     }
@@ -271,9 +284,9 @@ class Frame {
      * @returns {Array} An accumulated array of
      * objects.
      */
-    mapEachPoint(callback){
+    mapEachPoint(callback) {
         let result = [];
-        this.forEachPoint(point => {
+        this.forEachPoint((point) => {
             result.push(callback(point));
         });
         return result;
@@ -286,12 +299,12 @@ class Frame {
      * @param {function} callback - The function
      * to call on each coordinate array
      */
-    forEachCoordinate(callback){
-        if(this.isEmpty){
+    forEachCoordinate(callback) {
+        if (this.isEmpty) {
             return;
         }
-        for(let x = this.origin.x; x <= this.corner.x; x++){
-            for(let y = this.origin.y; y <= this.corner.y; y++){
+        for (let x = this.origin.x; x <= this.corner.x; x++) {
+            for (let y = this.origin.y; y <= this.corner.y; y++) {
                 callback([x, y]);
             }
         }
@@ -307,9 +320,9 @@ class Frame {
      * @returns {Array} The resulting array of mapped return
      * valued from the callback
      */
-    mapEachCoordinate(callback){
+    mapEachCoordinate(callback) {
         let result = [];
-        this.mapEachCoordinate(coordinate => {
+        this.mapEachCoordinate((coordinate) => {
             result.push(callback(coordinate));
         });
         return result;
@@ -324,14 +337,14 @@ class Frame {
      * arguments will be an array of Coordinates and
      * the row index
      */
-    forEachCoordinateRow(callback){
-        if(this.isEmpty){
+    forEachCoordinateRow(callback) {
+        if (this.isEmpty) {
             return;
         }
-        for(let y = this.origin.y; y <= this.corner.y; y++){
+        for (let y = this.origin.y; y <= this.corner.y; y++) {
             let row = [];
-            for(let x = this.origin.x; x <= this.corner.x; x++){
-                row.push([x,y]);
+            for (let x = this.origin.x; x <= this.corner.x; x++) {
+                row.push([x, y]);
             }
             callback(row, y);
         }
@@ -348,15 +361,15 @@ class Frame {
      * arguments will be an array of Coordinates and
      * the row index
      */
-    mapEachCoordinateRow(callback){
-        if(this.isEmpty){
+    mapEachCoordinateRow(callback) {
+        if (this.isEmpty) {
             return;
         }
         let result = [];
-        for(let y = this.origin.y; y <= this.corner.y; y++){
+        for (let y = this.origin.y; y <= this.corner.y; y++) {
             let row = [];
-            for(let x = this.origin.x; x <= this.corner.x; x++){
-                row.push([x,y]);
+            for (let x = this.origin.x; x <= this.corner.x; x++) {
+                row.push([x, y]);
             }
             result.push(callback(row, y));
         }
@@ -372,9 +385,9 @@ class Frame {
      * arguments will be an array of Points and
      * the row index
      */
-    forEachPointRow(callback){
+    forEachPointRow(callback) {
         this.forEachCoordinateRow((row, rowIndex) => {
-            let pointRow = row.map(col => {
+            let pointRow = row.map((col) => {
                 return new Point(col);
             });
             callback(pointRow, rowIndex);
@@ -392,9 +405,9 @@ class Frame {
      * arguments will be an array of Points and
      * the row index
      */
-    mapEachPointRow(callback){
+    mapEachPointRow(callback) {
         return this.mapEachCoordinateRow((row, rowIndex) => {
-            let pointRow = row.map(col => {
+            let pointRow = row.map((col) => {
                 return new Point(col);
             });
             return callback(pointRow);
@@ -408,11 +421,11 @@ class Frame {
      * The order is from the x dimension first.
      * @returns {[Point]} - An array of Points
      */
-    get points(){
+    get points() {
         let points = [];
-        if(!this.isEmpty){
-            for(let x = this.origin.x; x <= this.corner.x; x++){
-                for(let y = this.origin.y; y <= this.corner.y; y++){
+        if (!this.isEmpty) {
+            for (let x = this.origin.x; x <= this.corner.x; x++) {
+                for (let y = this.origin.y; y <= this.corner.y; y++) {
                     points.push(new Point([x, y]));
                 }
             }
@@ -428,11 +441,11 @@ class Frame {
      * @returns {[Array]} - An array of coordinate
      * pairs
      */
-    get coordinates(){
+    get coordinates() {
         let coordinates = [];
-        if(!this.isEmpty){
-            for(let x = this.origin.x; x <= this.corner.x; x++){
-                for(let y = this.origin.y; y <= this.corner.y; y++){
+        if (!this.isEmpty) {
+            for (let x = this.origin.x; x <= this.corner.x; x++) {
+                for (let y = this.origin.y; y <= this.corner.y; y++) {
                     coordinates.push([x, y]);
                 }
             }
@@ -449,13 +462,13 @@ class Frame {
      * @returns {Point} - A Point representing
      * my size
      */
-    get size(){
-        if(this.isEmpty){
-            return new Point([0,0]);
+    get size() {
+        if (this.isEmpty) {
+            return new Point([0, 0]);
         }
-        let x = (this.corner.x) - this.origin.x;
-        let y = (this.corner.y) - this.origin.y;
-        return new Point([x,y]);
+        let x = this.corner.x - this.origin.x;
+        let y = this.corner.y - this.origin.y;
+        return new Point([x, y]);
     }
 
     /**
@@ -469,11 +482,11 @@ class Frame {
      * @returns {number} - A number representing
      * my total number of dimensions
      */
-    get dimensions(){
-        if(this.isEmpty){
+    get dimensions() {
+        if (this.isEmpty) {
             return 0;
         }
-        if(this.origin.equals(this.corner)){
+        if (this.origin.equals(this.corner)) {
             return 1;
         }
         return 2;
@@ -486,51 +499,45 @@ class Frame {
      * @returns {number} - A number representing
      * my total number of contained Points
      */
-    get area(){
-        if(this.isEmpty){
+    get area() {
+        if (this.isEmpty) {
             return 0;
         }
-        let maxX = (this.corner.x - this.origin.x) + 1;
-        let maxY = (this.corner.y - this.origin.y) + 1;
+        let maxX = this.corner.x - this.origin.x + 1;
+        let maxY = this.corner.y - this.origin.y + 1;
         return maxX * maxY;
     }
 
     /* Convenience Getters */
-    get left(){
+    get left() {
         return this.origin.x;
     }
 
-    get right(){
+    get right() {
         return this.corner.x;
     }
 
-    get top(){
+    get top() {
         return this.origin.y;
     }
 
-    get bottom(){
+    get bottom() {
         return this.corner.y;
     }
 
-    get topLeft(){
+    get topLeft() {
         return new Point(this.origin);
     }
 
-    get topRight(){
-        return new Point([
-            this.corner.x,
-            this.origin.y
-        ]);
+    get topRight() {
+        return new Point([this.corner.x, this.origin.y]);
     }
 
-    get bottomLeft(){
-        return new Point([
-            this.origin.x,
-            this.corner.y
-        ]);
+    get bottomLeft() {
+        return new Point([this.origin.x, this.corner.y]);
     }
 
-    get bottomRight(){
+    get bottomRight() {
         return new Point(this.corner);
     }
 
@@ -542,11 +549,8 @@ class Frame {
      * that has my same origin, corner, and
      * isEmpty values
      */
-    copy(){
-        let copyFrame = new Frame(
-            this.origin,
-            this.corner
-        );
+    copy() {
+        let copyFrame = new Frame(this.origin, this.corner);
         copyFrame.isEmpty = this.isEmpty;
         return copyFrame;
     }
@@ -557,8 +561,8 @@ class Frame {
      * @returns {String} - The string
      * representation of myself
      */
-    toString(){
-        if(this.isEmpty){
+    toString() {
+        if (this.isEmpty) {
             return `Frame(empty)`;
         }
         return `Frame(${this.origin}, ${this.corner})`;
@@ -571,8 +575,8 @@ class Frame {
      * that has a 0,0 origin and corner and
      * that is set to empty.
      */
-    static newEmpty(){
-        let newFrame = new this([0,0], [0,0]);
+    static newEmpty() {
+        let newFrame = new this([0, 0], [0, 0]);
         newFrame.isEmpty = true;
         return newFrame;
     }
@@ -591,18 +595,18 @@ class Frame {
      * @returns {Frame} - A new Frame instance that has
      * the correctly computed origin and corner
      */
-    static fromPointToPoint(firstPoint, secondPoint){
-        if(firstPoint.equals(secondPoint)){
+    static fromPointToPoint(firstPoint, secondPoint) {
+        if (firstPoint.equals(secondPoint)) {
             return new Frame(firstPoint, secondPoint);
         }
         let origin = new Point([
             Math.min(firstPoint.x, secondPoint.x),
-            Math.min(firstPoint.y, secondPoint.y)
+            Math.min(firstPoint.y, secondPoint.y),
         ]);
 
         let corner = new Point([
             Math.max(firstPoint.x, secondPoint.x),
-            Math.max(firstPoint.y, secondPoint.y)
+            Math.max(firstPoint.y, secondPoint.y),
         ]);
 
         return new this(origin, corner);
@@ -619,18 +623,12 @@ class Frame {
      * @returns {Frame} - A new Frame instance with
      * the correct origin and corner
      */
-    static newOfSize(width, height){
+    static newOfSize(width, height) {
         // We return -1 for each
         // dimension because Frame
         // is zero-indexed
-        return new this(
-            [0,0],
-            [width-1, height-1]
-        );
+        return new this([0, 0], [width - 1, height - 1]);
     }
 }
 
-export {
-    Frame as default,
-    Frame
-};
+export { Frame as default, Frame };

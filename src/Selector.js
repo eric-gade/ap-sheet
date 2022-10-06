@@ -4,13 +4,13 @@
  * Handles all selection and cursor
  * interaction over a PrimaryFrame
  */
-import Point from './Point.js';
-import Frame from './Frame.js';
+import Point from "./Point.js";
+import Frame from "./Frame.js";
 
 class Selector {
-    constructor(primaryFrame){
-        if(!primaryFrame || !primaryFrame.isPrimaryFrame){
-            throw 'Selector must be initialized with a valid PrimaryFrame!';
+    constructor(primaryFrame) {
+        if (!primaryFrame || !primaryFrame.isPrimaryFrame) {
+            throw "Selector must be initialized with a valid PrimaryFrame!";
         }
         this.primaryFrame = primaryFrame;
 
@@ -30,7 +30,7 @@ class Selector {
         // single celled selectionFrame
         this.cursor = new Point([
             this.selectionFrame.origin.x,
-            this.selectionFrame.origin.y
+            this.selectionFrame.origin.y,
         ]);
 
         // Anchor is a point that is relative
@@ -83,20 +83,18 @@ class Selector {
      * "select" during the move, meaning update the
      * internal selectionFrame.
      */
-    moveRightBy(amount, selecting=false){
-        let nextCursor = new Point([
-            this.cursor.x,
-            this.cursor.y
-        ]);
-        let rightDiff = (nextCursor.x + amount) - this.primaryFrame.viewFrame.right;
-        if(rightDiff > 0){
+    moveRightBy(amount, selecting = false) {
+        let nextCursor = new Point([this.cursor.x, this.cursor.y]);
+        let rightDiff =
+            nextCursor.x + amount - this.primaryFrame.viewFrame.right;
+        if (rightDiff > 0) {
             nextCursor.x = this.primaryFrame.right;
             this.primaryFrame.shiftRightBy(rightDiff);
         } else {
             nextCursor.x += amount;
         }
 
-        if(selecting){
+        if (selecting) {
             this.cursor = nextCursor;
             this.selectFromAnchorTo(this.relativeCursor);
         } else {
@@ -125,23 +123,20 @@ class Selector {
      * not to "select" during the move and
      * update my current selectionFrame
      */
-    moveLeftBy(amount, selecting=false){
-        let nextCursor = new Point([
-            this.cursor.x,
-            this.cursor.y
-        ]);
-        let nextPos = (this.cursor.x - amount);
-        if(this.primaryFrame.isAtLeft){
+    moveLeftBy(amount, selecting = false) {
+        let nextCursor = new Point([this.cursor.x, this.cursor.y]);
+        let nextPos = this.cursor.x - amount;
+        if (this.primaryFrame.isAtLeft) {
             // If the view is already all the way left,
             // then a nextPos that is less than the
             // whole frame is all that matters, ie
             // we can navigate into locked columns,
             // if any.
-            if(nextPos <= this.primaryFrame.left){
+            if (nextPos <= this.primaryFrame.left) {
                 nextPos = this.primaryFrame.left;
             }
             nextCursor.x = nextPos;
-        } else if(nextPos < this.primaryFrame.viewFrame.left) {
+        } else if (nextPos < this.primaryFrame.viewFrame.left) {
             // If the nextPos less than the viewFrame left,
             // we need to move the view left by
             // the difference, then move the cursor
@@ -153,7 +148,7 @@ class Selector {
             nextCursor.x = nextPos;
         }
 
-        if(selecting){
+        if (selecting) {
             this.cursor = nextCursor;
             this.selectFromAnchorTo(this.relativeCursor);
         } else {
@@ -181,23 +176,20 @@ class Selector {
      * "select" during the move and update the
      * selectionFrame.
      */
-    moveUpBy(amount, selecting=false){
-        let nextCursor = new Point([
-            this.cursor.x,
-            this.cursor.y
-        ]);
-        let nextPos = (this.cursor.y - amount);
-        if(this.primaryFrame.isAtTop){
+    moveUpBy(amount, selecting = false) {
+        let nextCursor = new Point([this.cursor.x, this.cursor.y]);
+        let nextPos = this.cursor.y - amount;
+        if (this.primaryFrame.isAtTop) {
             // If the view is already at the top,
             // then a nextPos that is less than the
             // whole frame is all that matters, ie
             // we can navigate into locked rows,
             // if any.
-            if(nextPos <= this.primaryFrame.top){
+            if (nextPos <= this.primaryFrame.top) {
                 nextPos = this.primaryFrame.top;
             }
             nextCursor.y = nextPos;
-        } else if(nextPos < this.primaryFrame.viewFrame.top){
+        } else if (nextPos < this.primaryFrame.viewFrame.top) {
             // If the nextPos is less than viewFrame top,
             // we need to move the view up by the difference,
             // then move the cursor to the topmost position.
@@ -208,7 +200,7 @@ class Selector {
             nextCursor.y = nextPos;
         }
 
-        if(selecting){
+        if (selecting) {
             this.cursor = nextCursor;
             this.selectFromAnchorTo(this.relativeCursor);
         } else {
@@ -234,20 +226,18 @@ class Selector {
      * "select" during the move, updating the
      * selectionFrame
      */
-    moveDownBy(amount, selecting=false){
-        let nextCursor = new Point([
-            this.cursor.x,
-            this.cursor.y
-        ]);
-        let downDiff = (nextCursor.y + amount) - this.primaryFrame.viewFrame.bottom;
-        if(downDiff > 0){
+    moveDownBy(amount, selecting = false) {
+        let nextCursor = new Point([this.cursor.x, this.cursor.y]);
+        let downDiff =
+            nextCursor.y + amount - this.primaryFrame.viewFrame.bottom;
+        if (downDiff > 0) {
             nextCursor.y = this.primaryFrame.bottom;
             this.primaryFrame.shiftDownBy(downDiff);
         } else {
             nextCursor.y += amount;
         }
 
-        if(selecting){
+        if (selecting) {
             this.cursor = nextCursor;
             this.selectFromAnchorTo(this.relativeCursor);
         } else {
@@ -269,11 +259,8 @@ class Selector {
      * not to "select" during the move and
      * update the underlying selectionFrame
      */
-    pageUp(selecting=false){
-        this.moveUpBy(
-            this.pageSize.y,
-            selecting
-        );
+    pageUp(selecting = false) {
+        this.moveUpBy(this.pageSize.y, selecting);
     }
 
     /**
@@ -284,11 +271,8 @@ class Selector {
      * or not to "select" during the move and
      * update the underlying selectionFrame
      */
-    pageDown(selecting=false){
-        this.moveDownBy(
-            this.pageSize.y,
-            selecting
-        );
+    pageDown(selecting = false) {
+        this.moveDownBy(this.pageSize.y, selecting);
     }
 
     /**
@@ -299,11 +283,8 @@ class Selector {
      * or not to "select" during the move and
      * update the underlying selectionFrame
      */
-    pageRight(selecting=false){
-        this.moveRightBy(
-            this.pageSize.x,
-            selecting
-        );
+    pageRight(selecting = false) {
+        this.moveRightBy(this.pageSize.x, selecting);
     }
 
     /**
@@ -314,11 +295,8 @@ class Selector {
      * or not to "select" during the move and
      * update the underlying selectionFrame
      */
-    pageLeft(selecting=false){
-        this.moveLeftBy(
-            this.pageSize.x,
-            selecting
-        );
+    pageLeft(selecting = false) {
+        this.moveLeftBy(this.pageSize.x, selecting);
     }
 
     /**
@@ -329,13 +307,10 @@ class Selector {
      * to "select" during the move and update the
      * selectionFrame accordingly
      */
-    moveToRightEnd(selecting=false){
+    moveToRightEnd(selecting = false) {
         // Move by any amount greather than the dataFrame
         // size
-        this.moveRightBy(
-            this.primaryFrame.dataFrame.right * 2,
-            selecting
-        );
+        this.moveRightBy(this.primaryFrame.dataFrame.right * 2, selecting);
     }
 
     /**
@@ -346,12 +321,9 @@ class Selector {
      * to "select" during the move and update the
      * selectionFrame accordingly
      */
-    moveToLeftEnd(selecting=false){
+    moveToLeftEnd(selecting = false) {
         // Move by any amout greather than dataFrame size
-        this.moveLeftBy(
-            this.primaryFrame.dataFrame.size.x * 2,
-            selecting
-        );
+        this.moveLeftBy(this.primaryFrame.dataFrame.size.x * 2, selecting);
     }
 
     /**
@@ -362,13 +334,10 @@ class Selector {
      * to "select" during the move and update the
      * selectionFrame accordingly
      */
-    moveToTopEnd(selecting=false){
+    moveToTopEnd(selecting = false) {
         // Move up by any amount greather than
         // the dataFrame's total height
-        this.moveUpBy(
-            this.primaryFrame.dataFrame.size.y * 2,
-            selecting
-        );
+        this.moveUpBy(this.primaryFrame.dataFrame.size.y * 2, selecting);
     }
 
     /**
@@ -379,13 +348,10 @@ class Selector {
      * to "select" during the move and update the
      * selectionFrame accordingly
      */
-    moveToBottomEnd(selecting=false){
+    moveToBottomEnd(selecting = false) {
         // Move down by any amount greather than
         // the dataFrame's total height
-        this.moveDownBy(
-            this.primaryFrame.dataFrame.size.y * 2,
-            selecting
-        );
+        this.moveDownBy(this.primaryFrame.dataFrame.size.y * 2, selecting);
     }
 
     /**
@@ -400,10 +366,10 @@ class Selector {
      *   corresponding data-relative Point is
      *   within the current selectionFrame
      */
-    triggerCallback(){
+    triggerCallback() {
         // Instead, trigger a callback on the consumer with updated
         // selection and/or cursor information
-        if(this.selectionChangedCallback){
+        if (this.selectionChangedCallback) {
             this.selectionChangedCallback();
         }
     }
@@ -418,7 +384,7 @@ class Selector {
      * instance that corresponds to a Point on the
      * underlying dataFrame. This Point is data-relative.
      */
-    selectFromAnchorTo(aRelativePoint){
+    selectFromAnchorTo(aRelativePoint) {
         this.selectionFrame = Frame.fromPointToPoint(
             this.anchor,
             aRelativePoint
@@ -436,14 +402,16 @@ class Selector {
      * element in the PrimaryFrame that we want
      * to use as the anchor.
      */
-    setAnchorToElement(anElement){
-        if(!this.primaryFrame.elements.includes(anElement)){
-            throw new Error(`Element ${anElement} not included in PrimaryFrame`);
+    setAnchorToElement(anElement) {
+        if (!this.primaryFrame.elements.includes(anElement)) {
+            throw new Error(
+                `Element ${anElement} not included in PrimaryFrame`
+            );
         }
         let relX = parseInt(anElement.dataset.relativeX);
         let relY = parseInt(anElement.dataset.relativeY);
-        this.anchor = new Point([relX,relY]);
-        if(this.anchor.equals(this.relativeCursor)){
+        this.anchor = new Point([relX, relY]);
+        if (this.anchor.equals(this.relativeCursor)) {
             this.selectionFrame.isEmpty = true;
         }
     }
@@ -459,18 +427,19 @@ class Selector {
      * element in the PrimaryFrame that we want
      * to use as the cursor
      */
-    setCursorToElement(anElement){
-        if(!this.primaryFrame.elements.includes(anElement)){
-            throw new Error(`Element ${anElement} not included in PrimaryFrame`);
+    setCursorToElement(anElement) {
+        if (!this.primaryFrame.elements.includes(anElement)) {
+            throw new Error(
+                `Element ${anElement} not included in PrimaryFrame`
+            );
         }
         let x = parseInt(anElement.dataset.x);
         let y = parseInt(anElement.dataset.y);
-        this.cursor = new Point([x,y]);
-        if(this.anchor.equals(this.relativeCursor)){
+        this.cursor = new Point([x, y]);
+        if (this.anchor.equals(this.relativeCursor)) {
             this.selectionFrame.isEmpty = true;
         }
     }
-
 
     /**
      * Responds with a new Point that
@@ -482,11 +451,11 @@ class Selector {
      * @returns {Point} - A data-relative Point
      * corresponding to the cursor location
      */
-    get relativeCursor(){
+    get relativeCursor() {
         let el = this.primaryFrame.elementAt(this.cursor);
         return new Point([
             parseInt(el.dataset.relativeX),
-            parseInt(el.dataset.relativeY)
+            parseInt(el.dataset.relativeY),
         ]);
     }
 
@@ -498,12 +467,10 @@ class Selector {
      * @returns {object} - The stored data value
      * at the current relative cursor point
      */
-    get dataAtCursor(){
-        let dataValue = this.primaryFrame.dataFrame.getAt(
-            this.relativeCursor
-        );
-        if(dataValue == undefined){
-            return 'undefined';
+    get dataAtCursor() {
+        let dataValue = this.primaryFrame.dataFrame.getAt(this.relativeCursor);
+        if (dataValue == undefined) {
+            return "undefined";
         }
         return dataValue;
     }
@@ -517,7 +484,7 @@ class Selector {
      * @returns {Point} - A Point whose x and
      * y values are the size of the current page
      */
-    get pageSize(){
+    get pageSize() {
         return this.primaryFrame.viewFrame.size;
     }
 
@@ -528,24 +495,21 @@ class Selector {
      * Unlike my `selectionFrame`, this frame won't be
      * data-relative.
      */
-    get absoluteSelectionFrame(){
+    get absoluteSelectionFrame() {
         let origin = new Point([
             this.selectionFrame.origin.x - this.primaryFrame.dataOffset.x,
-            this.selectionFrame.origin.y - this.primaryFrame.dataOffset.y
+            this.selectionFrame.origin.y - this.primaryFrame.dataOffset.y,
         ]);
         let corner = new Point([
             this.selectionFrame.corner.x - this.primaryFrame.dataOffset.x,
-            this.selectionFrame.corner.y - this.primaryFrame.dataOffset.y
+            this.selectionFrame.corner.y - this.primaryFrame.dataOffset.y,
         ]);
         let fullView = new Frame(origin, corner);
-        if(this.selectionFrame.isEmpty){
+        if (this.selectionFrame.isEmpty) {
             fullView.isEmpty = true;
         }
         return this.primaryFrame.intersection(fullView);
     }
-};
+}
 
-export {
-    Selector,
-    Selector as default
-};
+export { Selector, Selector as default };

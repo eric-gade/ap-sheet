@@ -1,18 +1,39 @@
 class RowReference extends Object {
-    constructor(index, sheet, label){
+    constructor(index, sheet, label) {
         this.index = index;
         this.sheet = sheet;
         this.label = label;
     }
-};
+}
 
 const letters = [
-    "A","B","C","D","E","F","G","H",
-    "I","J","K","L","M","N","O","P",
-    "Q","R","S","T","U","V","W","X",
-    "Y","Z"
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "X",
+    "Y",
+    "Z",
 ];
-
 
 const rowTabTemplateString = `
 <style>
@@ -59,14 +80,12 @@ const rowTabTemplateString = `
 `;
 
 class RowTab extends HTMLElement {
-    constructor(){
+    constructor() {
         super();
-        this.template = document.createElement('template');
+        this.template = document.createElement("template");
         this.template.innerHTML = rowTabTemplateString;
-        this.attachShadow({mode: 'open'});
-        this.shadowRoot.append(
-            this.template.content.cloneNode(true)
-        );
+        this.attachShadow({ mode: "open" });
+        this.shadowRoot.append(this.template.content.cloneNode(true));
 
         this.row = 0;
         this.relativeRow = 0;
@@ -85,71 +104,68 @@ class RowTab extends HTMLElement {
         this.onAdjusterClick = this.onAdjusterClick.bind(this);
     }
 
-    connectedCallback(){
-        if(this.isConnected){
+    connectedCallback() {
+        if (this.isConnected) {
             // Event listeners
-            let adjuster = this.shadowRoot.querySelector('.adjuster');
-            adjuster.addEventListener('mousedown', this.onAdjusterMouseDown);
+            let adjuster = this.shadowRoot.querySelector(".adjuster");
+            adjuster.addEventListener("mousedown", this.onAdjusterMouseDown);
         }
     }
 
-    disconnectedCallback(){
-        let adjuster = this.shadowRoot.querySelector('.adjuster');
-        adjuster.removeEventListener('mousedown', this.onAdjusterMouseDown);
+    disconnectedCallback() {
+        let adjuster = this.shadowRoot.querySelector(".adjuster");
+        adjuster.removeEventListener("mousedown", this.onAdjusterMouseDown);
     }
 
-    attributeChangedCallback(name, oldVal, newVal){
-        if(name == 'data-y'){
+    attributeChangedCallback(name, oldVal, newVal) {
+        if (name == "data-y") {
             this.row = parseInt(newVal);
-        } else if(name == 'data-relative-y'){
+        } else if (name == "data-relative-y") {
             this.relativeRow = parseInt(newVal);
             this.setLabel(this.relativeRow);
         }
     }
 
-    onAdjusterMouseDown(event){
-        document.addEventListener('mousemove', this.onAdjusterMouseMove);
-        document.addEventListener('mouseup', this.onAdjusterMouseUp);
-        this.addEventListener('click', this.onAdjusterClick);
+    onAdjusterMouseDown(event) {
+        document.addEventListener("mousemove", this.onAdjusterMouseMove);
+        document.addEventListener("mouseup", this.onAdjusterMouseUp);
+        this.addEventListener("click", this.onAdjusterClick);
         // Get the initial measurment for the width of the column
         this._cachedHeight = this.getBoundingClientRect().height;
         this._cachedMouseY = event.clientY;
     }
 
-    onAdjusterMouseUp(event){
-        document.removeEventListener('mousemove', this.onAdjusterMouseMove);
-        document.removeEventListener('mouseup', this.onAdjusterMouseUp);
+    onAdjusterMouseUp(event) {
+        document.removeEventListener("mousemove", this.onAdjusterMouseMove);
+        document.removeEventListener("mouseup", this.onAdjusterMouseUp);
         event.stopPropagation();
     }
 
-    onAdjusterMouseMove(event){
+    onAdjusterMouseMove(event) {
         let diff = event.clientY - this._cachedMouseY;
-        let newEvent = new CustomEvent('row-adjustment', {
+        let newEvent = new CustomEvent("row-adjustment", {
             detail: {
-                newHeight: (this._cachedHeight + diff)
-            }
+                newHeight: this._cachedHeight + diff,
+            },
         });
         this.dispatchEvent(newEvent);
     }
 
-    onAdjusterClick(event){
+    onAdjusterClick(event) {
         event.stopPropagation();
-        this.removeEventListener('click', this.onAdjusterClick);
+        this.removeEventListener("click", this.onAdjusterClick);
     }
 
-    setLabel(num){
-        this.shadowRoot.getElementById('label').innerText = (num + 1).toString();
+    setLabel(num) {
+        this.shadowRoot.getElementById("label").innerText = (
+            num + 1
+        ).toString();
     }
 
-    static get observedAttributes(){
-        return [
-            'data-y',
-            'data-relative-y',
-            'highlighted'
-        ];
+    static get observedAttributes() {
+        return ["data-y", "data-relative-y", "highlighted"];
     }
-};
-
+}
 
 const columnTabTemplateString = `
 <style>
@@ -192,14 +208,12 @@ const columnTabTemplateString = `
 <div id="right-adjuster" class="adjuster"></div>
 `;
 class ColumnTab extends HTMLElement {
-    constructor(){
+    constructor() {
         super();
-        this.template = document.createElement('template');
+        this.template = document.createElement("template");
         this.template.innerHTML = columnTabTemplateString;
-        this.attachShadow({mode: 'open'});
-        this.shadowRoot.append(
-            this.template.content.cloneNode(true)
-        );
+        this.attachShadow({ mode: "open" });
+        this.shadowRoot.append(this.template.content.cloneNode(true));
 
         this.column = 0;
         this.relativeColumn = 0;
@@ -218,86 +232,87 @@ class ColumnTab extends HTMLElement {
         this.onAdjusterClick = this.onAdjusterClick.bind(this);
     }
 
-    connectedCallback(){
-        if(this.isConnected){
+    connectedCallback() {
+        if (this.isConnected) {
             // Event listeners
-            let rightAdjuster = this.shadowRoot.getElementById('right-adjuster');
-            rightAdjuster.addEventListener('mousedown', this.onAdjusterMouseDown);
+            let rightAdjuster =
+                this.shadowRoot.getElementById("right-adjuster");
+            rightAdjuster.addEventListener(
+                "mousedown",
+                this.onAdjusterMouseDown
+            );
         }
     }
 
-    disconnectedCallback(){
-        let rightAdjuster = this.shadowRoot.getElementById('right-adjuster');
-        rightAdjuster.removeEventListener('mousedown', this.onAdjusterMouseDown);
+    disconnectedCallback() {
+        let rightAdjuster = this.shadowRoot.getElementById("right-adjuster");
+        rightAdjuster.removeEventListener(
+            "mousedown",
+            this.onAdjusterMouseDown
+        );
     }
 
-    attributeChangedCallback(name, oldVal, newVal){
-        if(name == 'data-x'){
+    attributeChangedCallback(name, oldVal, newVal) {
+        if (name == "data-x") {
             this.column = parseInt(newVal);
-        } else if(name == 'data-relative-x'){
+        } else if (name == "data-relative-x") {
             this.relativeColumn = parseInt(newVal);
             this.setLabel(this.relativeColumn + 1);
         }
     }
 
-    setLabel(num){
+    setLabel(num) {
         let index = num - 1;
         let remainder, diviz;
         let label = "";
-        if(index < letters.length){
+        if (index < letters.length) {
             label = letters[index];
         } else {
             diviz = Math.floor(index / letters.length);
             remainder = index % letters.length;
             let letter = letters[remainder];
             let times = diviz + 1;
-            for(let i = 0; i < times; i++){
+            for (let i = 0; i < times; i++) {
                 label += letter;
             }
         }
         this.setAttribute("data-label", label);
-        this.shadowRoot.getElementById('label').innerText = label;
+        this.shadowRoot.getElementById("label").innerText = label;
     }
 
-    onAdjusterMouseDown(event){
-        document.addEventListener('mousemove', this.onAdjusterMouseMove);
-        document.addEventListener('mouseup', this.onAdjusterMouseUp);
-        this.addEventListener('click', this.onAdjusterClick);
+    onAdjusterMouseDown(event) {
+        document.addEventListener("mousemove", this.onAdjusterMouseMove);
+        document.addEventListener("mouseup", this.onAdjusterMouseUp);
+        this.addEventListener("click", this.onAdjusterClick);
         // Get the initial measurment for the width of the column
         this._cachedWidth = this.getBoundingClientRect().width;
         this._cachedMouseX = event.clientX;
     }
 
-    onAdjusterMouseMove(event){
+    onAdjusterMouseMove(event) {
         let diff = event.clientX - this._cachedMouseX;
-        let newEvent = new CustomEvent('column-adjustment', {
+        let newEvent = new CustomEvent("column-adjustment", {
             detail: {
-                newWidth: (this._cachedWidth + diff)
-            }
+                newWidth: this._cachedWidth + diff,
+            },
         });
         this.dispatchEvent(newEvent);
     }
 
-    onAdjusterMouseUp(event){
-        document.removeEventListener('mousemove', this.onAdjusterMouseMove);
-        document.removeEventListener('mouseup', this.onAdjusterMouseUp);
+    onAdjusterMouseUp(event) {
+        document.removeEventListener("mousemove", this.onAdjusterMouseMove);
+        document.removeEventListener("mouseup", this.onAdjusterMouseUp);
         event.stopPropagation();
     }
 
-    onAdjusterClick(event){
+    onAdjusterClick(event) {
         event.stopPropagation();
-        this.removeEventListener('click', this.onAdjusterClick);
+        this.removeEventListener("click", this.onAdjusterClick);
     }
 
-    static get observedAttributes(){
-        return [
-            'data-x',
-            'data-relative-x'
-        ];
+    static get observedAttributes() {
+        return ["data-x", "data-relative-x"];
     }
-};
+}
 
-export {
-    RowTab,
-    ColumnTab
-};
+export { RowTab, ColumnTab };

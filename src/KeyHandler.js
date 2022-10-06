@@ -1,4 +1,4 @@
- /**
+/**
  * KeyHandler class
  * ----------------
  * I am a controller object that
@@ -9,10 +9,12 @@
  * all keyboard related events on the sheet
  */
 class KeyHandler extends Object {
-    constructor(sheet){
+    constructor(sheet) {
         super();
-        if(!sheet){
-            throw new Error('You must initialize a KeyHandler with a spreadsheet component instance!');
+        if (!sheet) {
+            throw new Error(
+                "You must initialize a KeyHandler with a spreadsheet component instance!"
+            );
         }
         this.sheet = sheet;
 
@@ -30,28 +32,28 @@ class KeyHandler extends Object {
         this.handleKeyDown = this.handleKeyDown.bind(this);
     }
 
-    connect(){
-        this.sheet.addEventListener('keydown', this.handleKeyDown);
+    connect() {
+        this.sheet.addEventListener("keydown", this.handleKeyDown);
         this.registerDefaults(); // Add default handlers
     }
 
-    disconnect(){
-        this.sheet.removeEventListener('keydown', this.handleKeyDown);
+    disconnect() {
+        this.sheet.removeEventListener("keydown", this.handleKeyDown);
     }
 
-    registerHandler(keyName, handlerFunction){
+    registerHandler(keyName, handlerFunction) {
         this.handlers[keyName] = handlerFunction;
     }
 
-    deregisterHandler(keyName){
+    deregisterHandler(keyName) {
         delete this.handlers[keyName];
     }
 
-    handleKeyDown(event){
+    handleKeyDown(event) {
         let handler = this.handlers[event.key];
-        if(handler){
+        if (handler) {
             handler(event);
-        } else if(event.key.length === 1 && !this.usesModifierKeys(event)){
+        } else if (event.key.length === 1 && !this.usesModifierKeys(event)) {
             // If no specific handler was found,
             // check to see if this is a key that
             // will enter data into the cell and,
@@ -60,67 +62,55 @@ class KeyHandler extends Object {
             let cellElement = this.sheet.primaryFrame.elementAt(
                 this.sheet.selector.cursor
             );
-            if(!cellElement.hasAttribute('editing')){
-                cellElement.setAttribute('editing', 'true');
+            if (!cellElement.hasAttribute("editing")) {
+                cellElement.setAttribute("editing", "true");
             }
         }
     }
 
-    registerDefaults(){
-        this.registerHandler('ArrowRight', (event) => {
-            if(event.ctrlKey){
+    registerDefaults() {
+        this.registerHandler("ArrowRight", (event) => {
+            if (event.ctrlKey) {
                 this.sheet.selector.moveToRightEnd(event.shiftKey);
             } else {
-                this.sheet.selector.moveRightBy(
-                    1,
-                    event.shiftKey
-                );
+                this.sheet.selector.moveRightBy(1, event.shiftKey);
             }
             event.preventDefault();
             event.stopPropagation();
             this.sheet.dispatchSelectionChanged();
         });
-        this.registerHandler('ArrowLeft', (event) => {
-            if(event.ctrlKey){
+        this.registerHandler("ArrowLeft", (event) => {
+            if (event.ctrlKey) {
                 this.sheet.selector.moveToLeftEnd(event.shiftKey);
             } else {
-                this.sheet.selector.moveLeftBy(
-                    1,
-                    event.shiftKey
-                );
+                this.sheet.selector.moveLeftBy(1, event.shiftKey);
             }
             event.preventDefault();
             event.stopPropagation();
             this.sheet.dispatchSelectionChanged();
         });
-        this.registerHandler('ArrowDown', (event) => {
-            if(event.ctrlKey){
+        this.registerHandler("ArrowDown", (event) => {
+            if (event.ctrlKey) {
                 this.sheet.selector.moveToBottomEnd(event.shiftKey);
             } else {
-                this.sheet.selector.moveDownBy(
-                    1,
-                    event.shiftKey
-                );
+                this.sheet.selector.moveDownBy(1, event.shiftKey);
             }
             event.preventDefault();
             event.stopPropagation();
             this.sheet.dispatchSelectionChanged();
         });
-        this.registerHandler('ArrowUp', (event) => {
-            if(event.ctrlKey){
+        this.registerHandler("ArrowUp", (event) => {
+            if (event.ctrlKey) {
                 this.sheet.selector.moveToTopEnd(event.shiftKey);
             } else {
-                this.sheet.selector.moveUpBy(
-                    1,
-                    event.shiftKey
-                );
+                this.sheet.selector.moveUpBy(1, event.shiftKey);
             }
             event.preventDefault();
             event.stopPropagation();
             this.sheet.dispatchSelectionChanged();
         });
-        this.registerHandler('PageUp', (event) => {
-            if(event.altKey){
+        this.registerHandler("PageUp", (event) => {
+            if (event.altKey) {
                 this.sheet.selector.pageLeft(event.shiftKey);
             } else {
                 this.sheet.selector.pageUp(event.shiftKey);
@@ -129,8 +119,8 @@ class KeyHandler extends Object {
             event.stopPropagation();
             this.sheet.dispatchSelectionChanged();
         });
-        this.registerHandler('PageDown', (event) => {
-            if(event.altKey){
+        this.registerHandler("PageDown", (event) => {
+            if (event.altKey) {
                 this.sheet.selector.pageRight(event.shiftKey);
             } else {
                 this.sheet.selector.pageDown(event.shiftKey);
@@ -139,25 +129,25 @@ class KeyHandler extends Object {
             event.stopPropagation();
             this.sheet.dispatchSelectionChanged();
         });
-        this.registerHandler('Enter', (event) => {
-            if(this.sheet.selector.selectionFrame.isEmpty){
+        this.registerHandler("Enter", (event) => {
+            if (this.sheet.selector.selectionFrame.isEmpty) {
                 let cellElement = this.sheet.primaryFrame.elementAt(
                     this.sheet.selector.cursor
                 );
-                if(!this.sheet.hasAttribute("read-only-view") && !cellElement.isEditing){
-                    cellElement.setAttribute('editing', true);
+                if (
+                    !this.sheet.hasAttribute("read-only-view") &&
+                    !cellElement.isEditing
+                ) {
+                    cellElement.setAttribute("editing", true);
                     event.stopPropagation();
                 }
             }
         });
     }
 
-    usesModifierKeys(event){
-        return (event.altKey || event.ctrlKey || event.metaKey);
+    usesModifierKeys(event) {
+        return event.altKey || event.ctrlKey || event.metaKey;
     }
-};
+}
 
-export {
-    KeyHandler,
-    KeyHandler as default
-};
+export { KeyHandler, KeyHandler as default };

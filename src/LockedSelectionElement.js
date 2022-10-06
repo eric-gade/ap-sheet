@@ -1,36 +1,29 @@
-import {SelectionElement} from "./SelectionElement.js";
+import { SelectionElement } from "./SelectionElement.js";
 
 class LockedRowsElement extends SelectionElement {
-    constructor(){
+    constructor() {
         super();
     }
 
-    updateFromSelector(aSelector){
+    updateFromSelector(aSelector) {
         this.updateFromRelativeFrame(
             aSelector.primaryFrame.relativeLockedRowsFrame
         );
-        this.updateFromViewFrame(
-            aSelector.primaryFrame.lockedRowsFrame
-        );
+        this.updateFromViewFrame(aSelector.primaryFrame.lockedRowsFrame);
     }
 }
 
 class LockedColumnsElement extends SelectionElement {
-    constructor(){
+    constructor() {
         super();
     }
 
-    updateFromSelector(aSelector){
+    updateFromSelector(aSelector) {
         this.updateFromRelativeFrame(
             aSelector.primaryFrame.relativeLockedColumnsFrame
         );
-        this.updateFromViewFrame(
-            aSelector.primaryFrame.lockedColumnsFrame
-        );
+        this.updateFromViewFrame(aSelector.primaryFrame.lockedColumnsFrame);
     }
 }
 
-export {
-    LockedRowsElement,
-    LockedColumnsElement
-};
+export { LockedRowsElement, LockedColumnsElement };

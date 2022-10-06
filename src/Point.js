@@ -6,7 +6,6 @@
  * plane.
  */
 
-
 /**
  * Returns true only if the incoming
  * Object is an Array that has two
@@ -18,21 +17,21 @@
  * the object is an array of size 2
  */
 const isCoordinate = (object) => {
-    if(!Array.isArray(object)){
+    if (!Array.isArray(object)) {
         return false;
     }
-    return (object.length == 2);
+    return object.length == 2;
 };
 
 class Point {
-    constructor(arrayOrPoint){
-        if(Array.isArray(arrayOrPoint)){
-            if(arrayOrPoint.length < 2){
+    constructor(arrayOrPoint) {
+        if (Array.isArray(arrayOrPoint)) {
+            if (arrayOrPoint.length < 2) {
                 throw "Must pass a Point or Array of length 2";
             }
             this.x = arrayOrPoint[0];
             this.y = arrayOrPoint[1];
-        } else if(arrayOrPoint.isPoint){
+        } else if (arrayOrPoint.isPoint) {
             this.x = arrayOrPoint.x;
             this.y = arrayOrPoint.y;
         }
@@ -53,8 +52,8 @@ class Point {
      * against which we compare this instance
      * @returns {boolean
      */
-    equals(otherPoint){
-        return (otherPoint.x == this.x && otherPoint.y == this.y);
+    equals(otherPoint) {
+        return otherPoint.x == this.x && otherPoint.y == this.y;
     }
 
     /**
@@ -64,7 +63,7 @@ class Point {
      * @param {Point} otherPoint - The point
      * representing the translation values
      */
-    translate(translationPoint){
+    translate(translationPoint) {
         this.x += translationPoint.x;
         this.y += translationPoint.y;
     }
@@ -74,13 +73,9 @@ class Point {
      * @returns {String} - The string representation
      * of myself
      */
-    toString(){
+    toString() {
         return `Point(${this.x}, ${this.y})`;
     }
-};
+}
 
-export {
-    Point as default,
-    Point,
-    isCoordinate
-};
+export { Point as default, Point, isCoordinate };

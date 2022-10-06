@@ -7,14 +7,11 @@
  * It has the capability of mapping rows
  * and columns as needed
  */
-import {Frame} from "./Frame.js";
-import {
-    isCoordinate,
-    Point
-} from "./Point.js";
+import { Frame } from "./Frame.js";
+import { isCoordinate, Point } from "./Point.js";
 
 class GridElementsFrame extends Frame {
-    constructor(origin, corner, options){
+    constructor(origin, corner, options) {
         super(origin, corner);
         this.elements = [];
         this.initialBuild();
@@ -23,15 +20,15 @@ class GridElementsFrame extends Frame {
         this.initialBuild = this.initialBuild.bind(this);
     }
 
-    initialBuild(){
+    initialBuild() {
         this.elements = [];
         this.forEachPointRow((row, rowIndex) => {
-            row.forEach(point => {
-                let element = document.createElement('sheet-cell');
-                element.setAttribute('data-y', point.y);
-                element.setAttribute('data-x', point.x);
-                element.setAttribute('data-relative-y', point.y);
-                element.setAttribute('data-relative-x', point.x);
+            row.forEach((point) => {
+                let element = document.createElement("sheet-cell");
+                element.setAttribute("data-y", point.y);
+                element.setAttribute("data-x", point.x);
+                element.setAttribute("data-relative-y", point.y);
+                element.setAttribute("data-relative-x", point.x);
                 element.point = point;
                 this.elements.push(element);
             });
@@ -46,20 +43,20 @@ class GridElementsFrame extends Frame {
      * Point that should be mapped to a DOMElement.
      * @returns {DOMElement}
      */
-    elementAt(location){
+    elementAt(location) {
         let x, y;
-        if(isCoordinate(location)){
+        if (isCoordinate(location)) {
             x = location[0];
             y = location[1];
-        } else if(location.isPoint){
+        } else if (location.isPoint) {
             x = location.x;
             y = location.y;
         } else {
             return null;
         }
-        for(let i = 0; i < this.elements.length; i++){
+        for (let i = 0; i < this.elements.length; i++) {
             let element = this.elements[i];
-            if(element.point.x == x && element.point.y == y){
+            if (element.point.x == x && element.point.y == y) {
                 return element;
             }
         }
@@ -77,13 +74,13 @@ class GridElementsFrame extends Frame {
      * corresponding point. Must be a td
      * element contained within my collection.
      */
-    pointAtElement(anElement){
-        if(!this.elements.includes(anElement)){
+    pointAtElement(anElement) {
+        if (!this.elements.includes(anElement)) {
             return null;
         }
         let x = parseInt(anElement.dataset.x);
         let y = parseInt(anElement.dataset.y);
-        return new Point([x,y]);
+        return new Point([x, y]);
     }
 
     /**
@@ -99,10 +96,10 @@ class GridElementsFrame extends Frame {
      * string, as these tend to mess up CSS styling
      * on sheet cells. Defaults to false.
      */
-    setTextContentAt(location, content, allowNewlines=false){
+    setTextContentAt(location, content, allowNewlines = false) {
         let el = this.elementAt(location);
-        if(el){
-            if(allowNewlines){
+        if (el) {
+            if (allowNewlines) {
                 el.innerText = content;
             } else {
                 let cleanContent = content.split("\n").join("");
@@ -113,12 +110,9 @@ class GridElementsFrame extends Frame {
 
     // For polymorphic compatibility
     // within PrimaryFrame
-    get rowElements(){
+    get rowElements() {
         return this.elements;
     }
 }
 
-export {
-    GridElementsFrame,
-    GridElementsFrame as default
-};
+export { GridElementsFrame, GridElementsFrame as default };

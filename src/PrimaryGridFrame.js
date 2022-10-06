@@ -13,17 +13,14 @@
  * It also holds references to an underlying DataFrame
  * and a Selector for interaction.
  */
-import Frame from './Frame.js';
-import DataFrame from './DataFrame.js';
-import GridElementsFrame from './GridElementsFrame.js';
-import {
-    isCoordinate,
-    Point
-} from './Point.js';
+import Frame from "./Frame.js";
+import DataFrame from "./DataFrame.js";
+import GridElementsFrame from "./GridElementsFrame.js";
+import { isCoordinate, Point } from "./Point.js";
 
 class PrimaryGridFrame extends GridElementsFrame {
-    constructor(dataFrame, corner, options){
-        super([0,0], corner, options);
+    constructor(dataFrame, corner, options) {
+        super([0, 0], corner, options);
         this.isPrimaryFrame = true;
 
         // The underlyng dataframe will
@@ -51,7 +48,7 @@ class PrimaryGridFrame extends GridElementsFrame {
         // The dataOffset is an origin Point that
         // tells us where we are in the underlying
         // DataFrame
-        this.dataOffset = new Point([0,0]);
+        this.dataOffset = new Point([0, 0]);
 
         // Optional callbacks
 
@@ -84,8 +81,8 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @param {Number} num - The number of rows we will
      * be locking (from the top).
      */
-    lockRows(num){
-        if(num <= 0){
+    lockRows(num) {
+        if (num <= 0) {
             this.numLockedRows = 0;
             this.lockedRowsFrame = Frame.newEmpty();
         } else {
@@ -93,7 +90,7 @@ class PrimaryGridFrame extends GridElementsFrame {
             this.lockedRowsFrame.origin = new Point(this.origin);
             this.lockedRowsFrame.corner = new Point([
                 this.corner.x,
-                this.origin.y + (num - 1)
+                this.origin.y + (num - 1),
             ]);
             this.numLockedRows = num;
         }
@@ -107,8 +104,8 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @param {Number} num - The number of columns
      * that will be locked (from the left)
      */
-    lockColumns(num){
-        if(num <= 0){
+    lockColumns(num) {
+        if (num <= 0) {
             this.numLockedColumns = 0;
             this.lockedColumnsFrame = Frame.newEmpty();
         } else {
@@ -116,7 +113,7 @@ class PrimaryGridFrame extends GridElementsFrame {
             this.lockedColumnsFrame.origin = new Point(this.origin);
             this.lockedColumnsFrame.corner = new Point([
                 this.origin.x + (num - 1),
-                this.corner.y
+                this.corner.y,
             ]);
             this.numLockedColumns = num;
         }
@@ -140,7 +137,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      *     CCVVVVVVVVVV
      *     CCVVVVVVVVVV
      */
-    adjustLayout(){
+    adjustLayout() {
         this.viewFrame.origin.y = this.numLockedRows;
         this.viewFrame.origin.x = this.numLockedColumns;
     }
@@ -152,16 +149,15 @@ class PrimaryGridFrame extends GridElementsFrame {
      * I also clear any classes that no longer
      * apply to each element
      */
-    labelElements(){
-        let classesToClear = ['in-locked-row', 'in-locked-column', 'view-cell'];
-        this.viewFrame.forEachPoint(aPoint => {
+    labelElements() {
+        let classesToClear = ["in-locked-row", "in-locked-column", "view-cell"];
+        this.viewFrame.forEachPoint((aPoint) => {
             let el = this.elementAt(aPoint);
             if (el !== null) {
                 el.classList.remove(...classesToClear);
-                el.classList.add('view-cell');
+                el.classList.add("view-cell");
             }
         });
-
     }
 
     /**
@@ -176,18 +172,18 @@ class PrimaryGridFrame extends GridElementsFrame {
      * and "relative" (ie DataFrame relative) coordinate
      * values
      */
-    updateCellContents(){
+    updateCellContents() {
         this.updateLockedRowElements();
         this.updateLockedColumnElements();
         this.updateViewElements();
 
         // Update the locked frames intersection,
         // if there is one
-        if(!this.lockedFramesIntersect.isEmpty){
-            this.lockedFramesIntersect.forEachPoint(aPoint => {
+        if (!this.lockedFramesIntersect.isEmpty) {
+            this.lockedFramesIntersect.forEachPoint((aPoint) => {
                 let value = this.dataFrame.getAt(aPoint);
-                if(value == undefined){
-                    this.setTextContentAt(aPoint, '...');
+                if (value == undefined) {
+                    this.setTextContentAt(aPoint, "...");
                 } else {
                     this.setTextContentAt(aPoint, value.toString());
                 }
@@ -203,22 +199,22 @@ class PrimaryGridFrame extends GridElementsFrame {
      * elements that appears within the locked
      * rows frame.
      */
-    updateLockedRowElements(){
-        if(this.numLockedRows){
-            this.relativeLockedRowsFrame.forEachPoint(aPoint => {
+    updateLockedRowElements() {
+        if (this.numLockedRows) {
+            this.relativeLockedRowsFrame.forEachPoint((aPoint) => {
                 let dataValue = this.dataFrame.getAt(aPoint);
                 let translation = new Point([
-                    (aPoint.x - this.dataOffset.x),
-                    aPoint.y
+                    aPoint.x - this.dataOffset.x,
+                    aPoint.y,
                 ]);
                 let element = this.elementAt(translation);
-                if(dataValue != undefined){
+                if (dataValue != undefined) {
                     this.setTextContentAt(translation, dataValue.toString());
                 } else {
-                    this.setTextContentAt(translation, '...');
+                    this.setTextContentAt(translation, "...");
                 }
-                element.setAttribute('data-relative-x', aPoint.x);
-                element.setAttribute('data-relative-y', aPoint.y);
+                element.setAttribute("data-relative-x", aPoint.x);
+                element.setAttribute("data-relative-y", aPoint.y);
             });
         }
     }
@@ -229,28 +225,29 @@ class PrimaryGridFrame extends GridElementsFrame {
      * elements that appears within the locked
      * columns frame.
      */
-    updateLockedColumnElements(){
-        if(this.numLockedColumns){
+    updateLockedColumnElements() {
+        if (this.numLockedColumns) {
             let relativeColumns = this.relativeLockedColumnsFrame;
             let offset = new Point([
                 0,
-                relativeColumns.origin.y - (this.lockedColumnsFrame.origin.y + this.numLockedRows)
+                relativeColumns.origin.y -
+                    (this.lockedColumnsFrame.origin.y + this.numLockedRows),
             ]);
-            relativeColumns.forEachPoint(aPoint => {
+            relativeColumns.forEachPoint((aPoint) => {
                 let dataValue = this.dataFrame.getAt(aPoint);
-                let translation = new Point([
-                    aPoint.x,
-                    aPoint.y - offset.y
-                ]);
+                let translation = new Point([aPoint.x, aPoint.y - offset.y]);
                 let element = this.elementAt(translation);
                 if (element !== null) {
-                    if(dataValue != undefined){
-                        this.setTextContentAt(translation, dataValue.toString());
+                    if (dataValue != undefined) {
+                        this.setTextContentAt(
+                            translation,
+                            dataValue.toString()
+                        );
                     } else {
-                        this.setTextContentAt(translation, '...');
+                        this.setTextContentAt(translation, "...");
                     }
-                    element.setAttribute('data-relative-x', aPoint.x);
-                    element.setAttribute('data-relative-y', aPoint.y);
+                    element.setAttribute("data-relative-x", aPoint.x);
+                    element.setAttribute("data-relative-y", aPoint.y);
                 }
             });
         }
@@ -261,27 +258,27 @@ class PrimaryGridFrame extends GridElementsFrame {
      * element data attributes for each of my td
      * elements that appears within my viewFrame.
      */
-    updateViewElements(){
+    updateViewElements() {
         let offset = new Point([
             this.relativeViewFrame.origin.x - this.viewFrame.origin.x,
-            this.relativeViewFrame.origin.y - this.viewFrame.origin.y
+            this.relativeViewFrame.origin.y - this.viewFrame.origin.y,
         ]);
-        this.relativeViewFrame.forEachPoint(aPoint => {
+        this.relativeViewFrame.forEachPoint((aPoint) => {
             let value = this.dataFrame.getAt(aPoint);
             let translation = new Point([
                 aPoint.x - offset.x,
-                aPoint.y - offset.y
+                aPoint.y - offset.y,
             ]);
             let element = this.elementAt(translation);
 
             if (element !== null) {
-                if(value != undefined){
+                if (value != undefined) {
                     this.setTextContentAt(translation, value.toString());
                 } else {
-                    this.setTextContentAt(translation, '...');
+                    this.setTextContentAt(translation, "...");
                 }
-                element.setAttribute('data-relative-x', aPoint.x);
-                element.setAttribute('data-relative-y', aPoint.y);
+                element.setAttribute("data-relative-x", aPoint.x);
+                element.setAttribute("data-relative-y", aPoint.y);
             }
         });
     }
@@ -299,8 +296,8 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @param {Point} - A new Point that is the data-relative
      * translation of the provided Point
      */
-    relativePointAt(aPoint){
-        if(!this.contains(aPoint)){
+    relativePointAt(aPoint) {
+        if (!this.contains(aPoint)) {
             throw `PrimaryFrame does not contain ${aPoint}`;
         }
         // Because we store all relative values
@@ -309,7 +306,7 @@ class PrimaryGridFrame extends GridElementsFrame {
         let el = this.elementAt(aPoint);
         return new Point([
             parseInt(el.dataset.relativeX),
-            parseInt(el.dataset.relativeY)
+            parseInt(el.dataset.relativeY),
         ]);
     }
 
@@ -328,11 +325,13 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @param {number} amount - The number of Points to
      * shift right by over the underlying dataFrame
      */
-    shiftRightBy(amount){
+    shiftRightBy(amount) {
         let nextX = this.dataOffset.x + amount;
         let nextRight = nextX + (this.viewFrame.size.x + this.numLockedColumns);
-        if(nextRight >= this.dataFrame.right){
-            nextX = this.dataFrame.right - (this.numLockedColumns + this.viewFrame.size.x);
+        if (nextRight >= this.dataFrame.right) {
+            nextX =
+                this.dataFrame.right -
+                (this.numLockedColumns + this.viewFrame.size.x);
         }
         this.dataOffset.x = nextX;
         this.updateCellContents();
@@ -352,9 +351,9 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @param {number} amount - The number of Points to
      * shift left by over the underlying dataFrame
      */
-    shiftLeftBy(amount){
+    shiftLeftBy(amount) {
         let nextX = this.dataOffset.x - amount;
-        if((nextX < this.viewFrame.left)){
+        if (nextX < this.viewFrame.left) {
             nextX = 0;
         }
         this.dataOffset.x = nextX;
@@ -375,11 +374,13 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @param {number} amount - The number of Points to
      * shift down by over the underlying dataFrame
      */
-    shiftDownBy(amount, debug=false){
+    shiftDownBy(amount, debug = false) {
         let nextY = this.dataOffset.y + amount;
         let nextBottom = nextY + (this.viewFrame.size.y + this.numLockedRows);
-        if(nextBottom >= this.dataFrame.bottom){
-            nextY = this.dataFrame.bottom - (this.numLockedRows + this.viewFrame.size.y);
+        if (nextBottom >= this.dataFrame.bottom) {
+            nextY =
+                this.dataFrame.bottom -
+                (this.numLockedRows + this.viewFrame.size.y);
         }
         this.dataOffset.y = nextY;
         this.updateCellContents();
@@ -399,9 +400,9 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @param {number} amount - The number of Points to
      * shift up by over the underlying dataFrame
      */
-    shiftUpBy(amount){
+    shiftUpBy(amount) {
         let nextY = this.dataOffset.y - amount;
-        if((nextY < this.viewFrame.top)){
+        if (nextY < this.viewFrame.top) {
             nextY = 0;
         }
         this.dataOffset.y = nextY;
@@ -413,7 +414,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * I trigger a `shiftRightBy` call with
      * an amount equivalent to my own total width
      */
-    pageRight(){
+    pageRight() {
         let amount = this.relativeViewFrame.size.x;
         this.shiftRightBy(amount);
     }
@@ -422,7 +423,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * I trigger a `shiftLeftBy` call with
      * an amount equivalent to my own total width
      */
-    pageLeft(){
+    pageLeft() {
         let amount = this.relativeViewFrame.size.x;
         this.shiftLeftBy(amount);
     }
@@ -431,7 +432,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * I trigger a `shiftUpBy` call with
      * an amount equivalent to my own total height
      */
-    pageUp(){
+    pageUp() {
         let amount = this.relativeViewFrame.size.y;
         this.shiftUpBy(amount);
     }
@@ -440,7 +441,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * I trigger a `shiftDownBy` call with
      * an amount equivalent to my own total height
      */
-    pageDown(){
+    pageDown() {
         let amount = this.relativeViewFrame.size.y;
         this.shiftDownBy(amount);
     }
@@ -451,8 +452,8 @@ class PrimaryGridFrame extends GridElementsFrame {
      * I am usually triggered after any type of
      * shift has taken place
      */
-    triggerAfterShift(){
-        if(this.afterChange){
+    triggerAfterShift() {
+        if (this.afterChange) {
             this.afterChange(this);
         }
     }
@@ -465,15 +466,17 @@ class PrimaryGridFrame extends GridElementsFrame {
      * correspond to data-relative Points for the
      * current locked rows.
      */
-    get relativeLockedRowsFrame(){
-        if(this.numLockedRows){
+    get relativeLockedRowsFrame() {
+        if (this.numLockedRows) {
             let relativeOrigin = [
-                (this.lockedRowsFrame.origin.x + this.dataOffset.x + this.numLockedColumns),
-                this.lockedRowsFrame.origin.y
+                this.lockedRowsFrame.origin.x +
+                    this.dataOffset.x +
+                    this.numLockedColumns,
+                this.lockedRowsFrame.origin.y,
             ];
             let relativeCorner = [
-                (this.lockedRowsFrame.corner.x + this.dataOffset.x),
-                this.lockedRowsFrame.corner.y
+                this.lockedRowsFrame.corner.x + this.dataOffset.x,
+                this.lockedRowsFrame.corner.y,
             ];
             return new Frame(relativeOrigin, relativeCorner);
         }
@@ -488,15 +491,15 @@ class PrimaryGridFrame extends GridElementsFrame {
      * correspond to data-relative Points for the
      * current locked columns.
      */
-    get relativeLockedColumnsFrame(){
-        if(this.numLockedColumns){
+    get relativeLockedColumnsFrame() {
+        if (this.numLockedColumns) {
             let relativeOrigin = [
                 this.lockedColumnsFrame.origin.x,
-                (this.dataOffset.y + this.numLockedRows)
+                this.dataOffset.y + this.numLockedRows,
             ];
             let relativeCorner = [
                 this.lockedColumnsFrame.corner.x,
-                (this.dataOffset.y + this.corner.y)
+                this.dataOffset.y + this.corner.y,
             ];
             return new Frame(relativeOrigin, relativeCorner);
         }
@@ -514,14 +517,14 @@ class PrimaryGridFrame extends GridElementsFrame {
      * correspond to data-relative Points for the
      * current relative view.
      */
-    get relativeViewFrame(){
+    get relativeViewFrame() {
         let origin = new Point([
-            (this.dataOffset.x + this.numLockedColumns),
-            (this.dataOffset.y + this.numLockedRows)
+            this.dataOffset.x + this.numLockedColumns,
+            this.dataOffset.y + this.numLockedRows,
         ]);
         let corner = new Point([
             Math.max(origin.x, this.corner.x + this.dataOffset.x),
-            Math.max(origin.y, this.corner.y + this.dataOffset.y)
+            Math.max(origin.y, this.corner.y + this.dataOffset.y),
         ]);
         return new Frame(origin, corner);
     }
@@ -537,8 +540,8 @@ class PrimaryGridFrame extends GridElementsFrame {
      * the intersection of locked rows/locked columns frame,
      * should both be present and non-empty
      */
-    get lockedFramesIntersect(){
-        if(this.numLockedRows && this.numLockedColumns){
+    get lockedFramesIntersect() {
+        if (this.numLockedRows && this.numLockedColumns) {
             return this.lockedColumnsFrame.intersection(this.lockedRowsFrame);
         }
         return Frame.newEmpty();
@@ -551,7 +554,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @returns {boolean} - Whether or not the viewFrame
      * is leftmost relative to the underlying dataFrame
      */
-    get isAtLeft(){
+    get isAtLeft() {
         return this.dataOffset.x == 0;
     }
 
@@ -562,7 +565,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @returns {boolean} - Whether or not the viewFrame
      * is rightmost relative to the underlying dataFrame
      */
-    get isAtRight(){
+    get isAtRight() {
         return this.relativeViewFrame.right == this.dataFrame.right;
     }
 
@@ -573,7 +576,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @returns {boolean} - Whether or not the viewFrame
      * is top-most relative to the underlying dataFrame
      */
-    get isAtTop(){
+    get isAtTop() {
         return this.dataOffset.y == 0;
     }
 
@@ -583,12 +586,9 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @returns {boolean} - Whether or not the viewFrame
      * is bottom-most relative to the underlying dataFrame
      */
-    get isAtBottom(){
+    get isAtBottom() {
         return this.relativeViewFrame.bottom == this.dataFrame.bottom;
     }
-};
+}
 
-export {
-    PrimaryGridFrame,
-    PrimaryGridFrame as default
-};
+export { PrimaryGridFrame, PrimaryGridFrame as default };

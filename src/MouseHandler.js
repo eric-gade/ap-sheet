@@ -10,10 +10,12 @@
  */
 
 class MouseHandler extends Object {
-    constructor(sheet){
+    constructor(sheet) {
         super();
-        if(!sheet){
-            throw new Error('You must initialize a MouseHandler with a spreadsheet component instance');
+        if (!sheet) {
+            throw new Error(
+                "You must initialize a MouseHandler with a spreadsheet component instance"
+            );
         }
         this.sheet = sheet;
         this.isSelecting = false;
@@ -31,22 +33,22 @@ class MouseHandler extends Object {
         this.disconnect = this.disconnect.bind(this);
     }
 
-    addAllListeners(){
-        this.sheet.addEventListener('mouseover', this.onCellEnter);
-        this.sheet.addEventListener('mousedown', this.onMouseDown);
-        this.sheet.addEventListener('mouseup', this.onMouseUp);
-        this.sheet.addEventListener('dblclick', this.onDoubleClick);
+    addAllListeners() {
+        this.sheet.addEventListener("mouseover", this.onCellEnter);
+        this.sheet.addEventListener("mousedown", this.onMouseDown);
+        this.sheet.addEventListener("mouseup", this.onMouseUp);
+        this.sheet.addEventListener("dblclick", this.onDoubleClick);
     }
 
-    removeAllListeners(){
-        this.sheet.removeEventListener('mouseover', this.onCellEnter);
-        this.sheet.removeEventListener('mousedown', this.onMouseDown);
-        this.sheet.removeEventListener('mouseup', this.onMouseUp);
-        this.sheet.removeEventListener('dblclick', this.onDoubleClick);
+    removeAllListeners() {
+        this.sheet.removeEventListener("mouseover", this.onCellEnter);
+        this.sheet.removeEventListener("mousedown", this.onMouseDown);
+        this.sheet.removeEventListener("mouseup", this.onMouseUp);
+        this.sheet.removeEventListener("dblclick", this.onDoubleClick);
     }
 
-    onMouseDown(event){
-        if(event.target.isCell){
+    onMouseDown(event) {
+        if (event.target.isCell) {
             this.isSelecting = true;
             this.sheet.selector.setCursorToElement(event.target);
             this.sheet.selector.setAnchorToElement(event.target);
@@ -54,43 +56,42 @@ class MouseHandler extends Object {
         }
     }
 
-    onMouseUp(event){
+    onMouseUp(event) {
         this.isSelecting = false;
     }
 
-    onCellEnter(event){
-        if(event.target.isCell && this.isSelecting){
+    onCellEnter(event) {
+        if (event.target.isCell && this.isSelecting) {
             this.sheet.selector.setCursorToElement(event.target);
-            this.sheet.selector.selectFromAnchorTo(this.sheet.selector.relativeCursor);
+            this.sheet.selector.selectFromAnchorTo(
+                this.sheet.selector.relativeCursor
+            );
             this.sheet.dispatchSelectionChanged();
         }
     }
 
-    onCellLeave(event){
-        if(event.target.isCell && this.isSelecting){
-            console.log('leaving');
+    onCellLeave(event) {
+        if (event.target.isCell && this.isSelecting) {
+            console.log("leaving");
         }
     }
 
-    onDoubleClick(event){
-        if(event.target.isCell){
+    onDoubleClick(event) {
+        if (event.target.isCell) {
             this.sheet.selector.setCursorToElement(event.target);
             this.sheet.selector.setAnchorToElement(event.target);
             this.sheet.dispatchSelectionChanged();
         }
     }
 
-    disconnect(){
+    disconnect() {
         this.sheet.mouseHandler = undefined;
         this.removeAllListeners();
     }
 
-    connect(){
+    connect() {
         this.addAllListeners();
     }
-};
+}
 
-export {
-    MouseHandler,
-    MouseHandler as default
-};
+export { MouseHandler, MouseHandler as default };

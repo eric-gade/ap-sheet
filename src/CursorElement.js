@@ -14,14 +14,12 @@ const templateString = `
 `;
 
 class CursorElement extends HTMLElement {
-    constructor(){
+    constructor() {
         super();
-        this.template = document.createElement('template');
+        this.template = document.createElement("template");
         this.template.innerHTML = templateString;
-        this.attachShadow({mode: 'open'});
-        this.shadowRoot.append(
-            this.template.content.cloneNode(true)
-        );
+        this.attachShadow({ mode: "open" });
+        this.shadowRoot.append(this.template.content.cloneNode(true));
 
         this.x = 0;
         this.y = 0;
@@ -32,38 +30,30 @@ class CursorElement extends HTMLElement {
         this.updatePosition = this.updatePosition.bind(this);
     }
 
-    attributeChangedCallback(name, oldVal, newVal){
-        if(name == 'x'){
+    attributeChangedCallback(name, oldVal, newVal) {
+        if (name == "x") {
             this.x = parseInt(newVal);
             this.updatePosition();
-        } else if(name === 'y'){
-            this.y= parseInt(newVal);
+        } else if (name === "y") {
+            this.y = parseInt(newVal);
             this.updatePosition();
-        } else if(name === 'relative-x'){
+        } else if (name === "relative-x") {
             this.relativeX = parseInt(newVal);
             this.updatePosition();
-        } else if(this.name === 'relative-y'){
+        } else if (this.name === "relative-y") {
             this.relativeY = parseInt(newVal);
             this.updatePosition();
         }
     }
 
-    updatePosition(){
-        this.style.setProperty('--col-start', this.x + 1);
-        this.style.setProperty('--row-start', this.y + 1);
+    updatePosition() {
+        this.style.setProperty("--col-start", this.x + 1);
+        this.style.setProperty("--row-start", this.y + 1);
     }
-    
-    static get observedAttributes(){
-        return [
-            'x',
-            'y',
-            'relative-x',
-            'relative-y'
-        ];
-    }
-};
 
-export {
-    CursorElement,
-    CursorElement as default
-};
+    static get observedAttributes() {
+        return ["x", "y", "relative-x", "relative-y"];
+    }
+}
+
+export { CursorElement, CursorElement as default };

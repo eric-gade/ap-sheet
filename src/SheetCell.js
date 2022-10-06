@@ -55,14 +55,12 @@ const templateString = `
 `;
 
 class SheetCell extends HTMLElement {
-    constructor(){
+    constructor() {
         super();
-        this.template = document.createElement('template');
+        this.template = document.createElement("template");
         this.template.innerHTML = templateString;
-        this.attachShadow({mode: 'open'});
-        this.shadowRoot.append(
-            this.template.content.cloneNode(true)
-        );
+        this.attachShadow({ mode: "open" });
+        this.shadowRoot.append(this.template.content.cloneNode(true));
 
         this.isCell = true;
         this.isEditing = false;
@@ -83,29 +81,28 @@ class SheetCell extends HTMLElement {
         this.handleInputBlur = this.handleInputBlur.bind(this);
     }
 
-    connectedCallback(){
-        if(this.isConnected){
-
+    connectedCallback() {
+        if (this.isConnected) {
             // Event listeners
-            this.addEventListener('dblclick', this.handleDoubleClick);
+            this.addEventListener("dblclick", this.handleDoubleClick);
         }
     }
 
-    disconnectedCallback(){
-        this.removeEventListener('dblclick', this.handleDoubleClick);
+    disconnectedCallback() {
+        this.removeEventListener("dblclick", this.handleDoubleClick);
     }
 
-    attributeChangedCallback(name, oldVal, newVal){
-        if(name == 'data-x'){
+    attributeChangedCallback(name, oldVal, newVal) {
+        if (name == "data-x") {
             this.updateColumn(newVal);
-        } else if(name == 'data-relative-x'){
+        } else if (name == "data-relative-x") {
             this.updateColumn(newVal, true);
-        } else if(name == 'data-y'){
+        } else if (name == "data-y") {
             this.updateRow(newVal);
-        } else if(name == 'data-relative-y'){
+        } else if (name == "data-relative-y") {
             this.updateRow(newVal, true);
-        } else if(name == 'editing'){
-            if(newVal === "true"){
+        } else if (name == "editing") {
+            if (newVal === "true") {
                 this.startEditing();
             } else {
                 this.stopEditing();
@@ -113,9 +110,9 @@ class SheetCell extends HTMLElement {
         }
     }
 
-    updateRow(strVal, isRelative=false){
+    updateRow(strVal, isRelative = false) {
         let num = parseInt(strVal);
-        if(num < 0){
+        if (num < 0) {
             return;
         }
         if (isRelative) {
@@ -123,110 +120,118 @@ class SheetCell extends HTMLElement {
         } else {
             this.row = num;
             let suffix = num == 0 ? `` : ` ${num + 1}`;
-            this.style.setProperty("--row-start", `var(--row-start-name)${suffix}`);
+            this.style.setProperty(
+                "--row-start",
+                `var(--row-start-name)${suffix}`
+            );
         }
     }
 
-    updateColumn(strVal, isRelative=false){
+    updateColumn(strVal, isRelative = false) {
         let num = parseInt(strVal);
-        if(num < 0){
+        if (num < 0) {
             return;
         }
-        if(isRelative){
+        if (isRelative) {
             this.relativeColumn = num;
         } else {
             this.column = num;
             let suffix = num == 0 ? `` : ` ${num + 1}`;
-            
-            this.style.setProperty("--col-start", `var(--col-start-name)${suffix}`);
+
+            this.style.setProperty(
+                "--col-start",
+                `var(--col-start-name)${suffix}`
+            );
         }
     }
 
-    startEditing(){
+    startEditing() {
         this.isEditing = true;
-        let input = this.shadowRoot.querySelector('input');
-        input.classList.add('show');
+        let input = this.shadowRoot.querySelector("input");
+        input.classList.add("show");
         input.value = this.textContent;
-        input.addEventListener('keydown', this.handleKeyDown);
-        input.addEventListener('blur', this.handleInputBlur);
+        input.addEventListener("keydown", this.handleKeyDown);
+        input.addEventListener("blur", this.handleInputBlur);
         input.focus();
     }
 
-    stopEditing(){
+    stopEditing() {
         this.isEditing = false;
-        let input = this.shadowRoot.querySelector('input');
-        input.removeEventListener('keydown', this.handleKeyDown);
-        input.classList.remove('show');
+        let input = this.shadowRoot.querySelector("input");
+        input.removeEventListener("keydown", this.handleKeyDown);
+        input.classList.remove("show");
         this.triggerCellEdited();
-        input.removeEventListener('blur', this.handleInputBlur);
+        input.removeEventListener("blur", this.handleInputBlur);
         input.blur();
         this.focusParentSheet();
     }
 
-    triggerCellEdited(){
-        let input = this.shadowRoot.querySelector('input');
-        if(this.textContent === input.value){
+    triggerCellEdited() {
+        let input = this.shadowRoot.querySelector("input");
+        if (this.textContent === input.value) {
             return;
         }
         this.textContent = input.value;
-        let newEvent = new CustomEvent('cell-edited', {
+        let newEvent = new CustomEvent("cell-edited", {
             detail: {
                 relativeCoordinate: [
                     parseInt(this.dataset.relativeX),
-                    parseInt(this.dataset.relativeY)
+                    parseInt(this.dataset.relativeY),
                 ],
                 element: this,
-                content: this.textContent
+                content: this.textContent,
             },
-            bubbles: true
+            bubbles: true,
         });
         this.dispatchEvent(newEvent);
     }
 
-    handleInputBlur(event){
-        if(this.isEditing){
-            this.removeAttribute('editing');
+    handleInputBlur(event) {
+        if (this.isEditing) {
+            this.removeAttribute("editing");
         }
     }
 
-    handleKeyDown(event){
-        if(event.key == 'Enter' && !event.shiftKey){
+    handleKeyDown(event) {
+        if (event.key == "Enter" && !event.shiftKey) {
             event.preventDefault();
             event.stopPropagation();
-            this.removeAttribute('editing');
-        } else if(event.key == "Escape"){
+            this.removeAttribute("editing");
+        } else if (event.key == "Escape") {
             let cachedContent = this.textContent;
-            this.removeAttribute('editing');
+            this.removeAttribute("editing");
             this.textContent = cachedContent;
-        } else if(event.key.startsWith("Arrow")){
+        } else if (event.key.startsWith("Arrow")) {
             event.stopPropagation();
         }
     }
 
-    handleDoubleClick(event){
-        if(!this.parentElement.hasAttribute("read-only-view") && !this.isEditing){
-            this.setAttribute('editing', true);
+    handleDoubleClick(event) {
+        if (
+            !this.parentElement.hasAttribute("read-only-view") &&
+            !this.isEditing
+        ) {
+            this.setAttribute("editing", true);
         }
     }
 
-    focusParentSheet(){
+    focusParentSheet() {
         // Attempt to find an ancestor that
         // is a sheet element. Focus it if found.
-        if(this.parentElement && this.parentElement.isSheet){
+        if (this.parentElement && this.parentElement.isSheet) {
             this.parentElement.focus();
         }
     }
 
-    static get observedAttributes(){
+    static get observedAttributes() {
         return [
-            'data-x',
-            'data-y',
-            'data-relative-x',
-            'data-relative-y',
-            'editing'
+            "data-x",
+            "data-y",
+            "data-relative-x",
+            "data-relative-y",
+            "editing",
         ];
     }
-};
+}
 
-window.customElements.define('sheet-cell', SheetCell);
-
+window.customElements.define("sheet-cell", SheetCell);

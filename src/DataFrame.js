@@ -4,14 +4,11 @@
  * Represents a kind of Frame that can store
  * values at each of its Points.
  */
-import Frame from './Frame.js';
-import {
-    Point,
-    isCoordinate
-} from './Point.js';
+import Frame from "./Frame.js";
+import { Point, isCoordinate } from "./Point.js";
 
 class DataFrame extends Frame {
-    constructor(...args){
+    constructor(...args) {
         super(...args);
 
         // We store Point data as keys
@@ -43,13 +40,13 @@ class DataFrame extends Frame {
      * @param {Object} value - The object
      * to store.
      */
-    putAt(location, value, notify=true){
+    putAt(location, value, notify = true) {
         let x, y, key;
-        if(location.isPoint){
+        if (location.isPoint) {
             x = location.x;
             y = location.y;
             key = `${x},${y}`;
-        } else if(isCoordinate(location)){
+        } else if (isCoordinate(location)) {
             x = location[0];
             y = location[1];
             key = location.toString();
@@ -59,12 +56,12 @@ class DataFrame extends Frame {
 
         // We do not actually store undefined
         // as a value
-        if(value === undefined){
+        if (value === undefined) {
             delete this.store[key];
         } else {
             this.store[key] = value;
         }
-        if(notify && this.callback){
+        if (notify && this.callback) {
             this.callback(location);
         }
     }
@@ -82,15 +79,15 @@ class DataFrame extends Frame {
      * value. Errors if the location is out of
      * scope of the frame.
      */
-    getAt(location){
+    getAt(location) {
         let key;
-        if(isCoordinate(location)){
-            if(!this.contains(location)){
+        if (isCoordinate(location)) {
+            if (!this.contains(location)) {
                 throw `${location} outside of DataFrame`;
             }
             key = location.toString();
-        } else if(location.isPoint){
-            if(!this.contains(location)){
+        } else if (location.isPoint) {
+            if (!this.contains(location)) {
                 throw `${location} outside of DataFrame`;
             }
             key = `${location.x},${location.y}`;
@@ -114,35 +111,28 @@ class DataFrame extends Frame {
      * from which to start loading the data into
      * this DataFrame.
      */
-    loadFromArray(data, origin=[0,0]){
-        if(!this.contains(origin)){
+    loadFromArray(data, origin = [0, 0]) {
+        if (!this.contains(origin)) {
             throw `${origin} not contained in this DataFrame`;
         }
         origin = new Point(origin);
         let rowMax = data.length - 1;
         let colMax = data[0].length - 1; // Assume all are equal
-        let corner = new Point([
-            colMax + origin.x,
-            rowMax + origin.y
-        ]);
+        let corner = new Point([colMax + origin.x, rowMax + origin.y]);
         let comparisonFrame = new Frame(origin, corner);
-        if(!this.contains(comparisonFrame)){
+        if (!this.contains(comparisonFrame)) {
             throw `Incoming data runs outside bounds of current DataFrame (using origin ${origin})`;
         }
         data.forEach((row, y) => {
             row.forEach((value, x) => {
                 let adjustedCoord = [
                     x + comparisonFrame.origin.x,
-                    y + comparisonFrame.origin.y
+                    y + comparisonFrame.origin.y,
                 ];
-                this.putAt(
-                    adjustedCoord,
-                    value,
-                    false
-                );
+                this.putAt(adjustedCoord, value, false);
             });
         });
-        if(this.callback){
+        if (this.callback) {
             this.callback(comparisonFrame);
         }
     }
@@ -156,13 +146,13 @@ class DataFrame extends Frame {
      * @returns {Array[Array]} A y-to-x (row to column)
      * array of array of stored values
      */
-    getDataArrayForFrame(aFrame){
-        if(!this.contains(aFrame)){
+    getDataArrayForFrame(aFrame) {
+        if (!this.contains(aFrame)) {
             throw `Frame is not contained within DataFrame!`;
         }
         let result = [];
-        aFrame.forEachCoordinateRow(row => {
-            let mappedRow = row.map(val => {
+        aFrame.forEachCoordinateRow((row) => {
+            let mappedRow = row.map((val) => {
                 return this.getAt(val);
             });
             result.push(mappedRow);
@@ -174,11 +164,11 @@ class DataFrame extends Frame {
      * I return a DataFrame which contains the points (and data)
      * of this frame starting at the specified (new) origin and corner.
      */
-    getDataSubFrame(origin, corner){
-        const subframe =  new DataFrame(origin, corner);
+    getDataSubFrame(origin, corner) {
+        const subframe = new DataFrame(origin, corner);
         subframe.forEachPoint((p) => {
             subframe.putAt(p, this.getAt(p), false); // do not notify
-        })
+        });
         return subframe;
     }
 
@@ -188,15 +178,11 @@ class DataFrame extends Frame {
      * If `strict` is true, we use `minFrame` under the
      * hood. Otherwise use the expected `this`.
      */
-    toArray(strict=false){
-        if(strict){
-            return this.getDataArrayForFrame(
-                this.minFrame
-            );
+    toArray(strict = false) {
+        if (strict) {
+            return this.getDataArrayForFrame(this.minFrame);
         } else {
-            return this.getDataArrayForFrame(
-                this
-            );
+            return this.getDataArrayForFrame(this);
         }
     }
 
@@ -204,12 +190,10 @@ class DataFrame extends Frame {
      * Clear out the cached dictionary of
      * points to values.
      */
-    clear(){
+    clear() {
         this.store = {};
-        if(this.callback){
-            this.callback(
-                new Frame(this.origin, this.corner)
-            );
+        if (this.callback) {
+            this.callback(new Frame(this.origin, this.corner));
         }
     }
 
@@ -219,7 +203,7 @@ class DataFrame extends Frame {
      * @param {function} func - A function
      * @param {boolean} notify - If true will try to call this.callback
      */
-    apply(func, notify=false){
+    apply(func, notify = false) {
         this.forEachPoint((p) => {
             this.putAt(p, func(this.getAt(p)), notify);
         });
@@ -232,8 +216,8 @@ class DataFrame extends Frame {
      * @param {DataFrame} df - The dataframe to be added
      * @param {boolean} notify - If true will try to call this.callback
      */
-    add(df){
-        if(!this.size.equals(df.size)){
+    add(df) {
+        if (!this.size.equals(df.size)) {
             throw "DataFrames must be equal size to add";
         }
         // TODO: dumping DS's to arrays like this might cause performance issues
@@ -244,11 +228,10 @@ class DataFrame extends Frame {
         this_array.forEach((row, ridx) => {
             this_array[ridx].forEach((value, cidx) => {
                 this_array[ridx][cidx] = value + df_array[ridx][cidx];
-            })
-        })
+            });
+        });
         this.loadFromArray(this_array, this.origin);
     }
-
 
     /**
      * I take a new frame and copy it into this DataFrame
@@ -256,14 +239,14 @@ class DataFrame extends Frame {
      * "fit" ie if the intersection of frame with this DataFrame
      * does not contain the frame then I throw an error.
      **/
-    copyFrom(frame, origin=[0, 0]){
-        if(!(frame instanceof DataFrame)){
+    copyFrom(frame, origin = [0, 0]) {
+        if (!(frame instanceof DataFrame)) {
             throw "You must pass in a data frame to copy from";
         }
-        if(!this.intersection(frame).contains(frame)){
+        if (!this.intersection(frame).contains(frame)) {
             throw "DataFrame too small to copy from frame at origin";
         }
-        this.loadFromArray(frame.toArray(), origin=origin);
+        this.loadFromArray(frame.toArray(), (origin = origin));
     }
 
     /**
@@ -275,8 +258,8 @@ class DataFrame extends Frame {
      * keys is equivalent to the area of the DataFrame,
      * then something has been stored at each point value.
      */
-    get isFull(){
-        return(this.area == Object.keys(this.store).length);
+    get isFull() {
+        return this.area == Object.keys(this.store).length;
     }
 
     /**
@@ -284,22 +267,16 @@ class DataFrame extends Frame {
      * smallest required Frame to represent the store
      * contents that have actual (defined) values.
      */
-    get minFrame(){
-        let keyCoords = Object.keys(this.store).map(keyString => {
-            return keyString.split(",").map(numStr => {
+    get minFrame() {
+        let keyCoords = Object.keys(this.store).map((keyString) => {
+            return keyString.split(",").map((numStr) => {
                 return parseInt(numStr);
             });
         });
-        let xValues = keyCoords.map(coord => coord[0]);
-        let yValues = keyCoords.map(coord => coord[1]);
-        let origin = [
-            Math.min(...xValues),
-            Math.min(...yValues)
-        ];
-        let corner = [
-            Math.max(...xValues),
-            Math.max(...yValues)
-        ];
+        let xValues = keyCoords.map((coord) => coord[0]);
+        let yValues = keyCoords.map((coord) => coord[1]);
+        let origin = [Math.min(...xValues), Math.min(...yValues)];
+        let corner = [Math.max(...xValues), Math.max(...yValues)];
         return new Frame(origin, corner);
     }
 
@@ -309,7 +286,7 @@ class DataFrame extends Frame {
      * with the minimal frame encompassing all
      * defined values from the origin.
      */
-    get minFrameFromOrigin(){
+    get minFrameFromOrigin() {
         let minFrame = this.minFrame;
         return new Frame(
             [this.origin.x, this.origin.y],
@@ -329,23 +306,20 @@ class DataFrame extends Frame {
      * event that the given Frame is not contained
      * within this one.
      */
-    hasCompleteDataForFrame(aFrame){
-        if(!this.contains(aFrame)){
-            throw 'Passed Frame is not contained within DataFrame!';
+    hasCompleteDataForFrame(aFrame) {
+        if (!this.contains(aFrame)) {
+            throw "Passed Frame is not contained within DataFrame!";
         }
         let points = aFrame.points;
-        for(let i = 0; i < points.length; i++){
+        for (let i = 0; i < points.length; i++) {
             let thisPoint = points[i];
-            if(this.getAt(thisPoint) == undefined){
+            if (this.getAt(thisPoint) == undefined) {
                 return false;
             }
         }
 
         return true;
     }
-};
+}
 
-export {
-    DataFrame,
-    DataFrame as default
-};
+export { DataFrame, DataFrame as default };

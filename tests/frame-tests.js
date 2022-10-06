@@ -1,14 +1,14 @@
 /**
  * APSheet Frame Tests
  */
-import {Frame} from "../src/Frame.js";
-import {Point} from "../src/Point.js";
+import { Frame } from "../src/Frame.js";
+import { Point } from "../src/Point.js";
 import chai from "chai";
 const assert = chai.assert;
 
-describe('Frame Tests', () => {
-    describe('#intersection', () => {
-        it('Returns an empty Frame (A and B do not overlap)', () => {
+describe("Frame Tests", () => {
+    describe("#intersection", () => {
+        it("Returns an empty Frame (A and B do not overlap)", () => {
             /* Input:
              *
              * AAAAAA
@@ -20,14 +20,14 @@ describe('Frame Tests', () => {
              *       BBBBBB
              *       BBBBBB
              */
-            let frameA = new Frame([0,0], [5, 5]);
+            let frameA = new Frame([0, 0], [5, 5]);
             let frameB = new Frame([6, 6], [11, 11]);
             let result = frameA.intersection(frameB);
             assert.isTrue(result.isEmpty);
         });
 
-        it('Returns a new Frame of same size when both are equal', () => {
-            let frameA = new Frame([0,0], [5, 5]);
+        it("Returns a new Frame of same size when both are equal", () => {
+            let frameA = new Frame([0, 0], [5, 5]);
             let frameB = new Frame([0, 0], [5, 5]);
             let result = frameA.intersection(frameB);
             assert.isTrue(result.equals(frameA));
@@ -42,7 +42,7 @@ describe('Frame Tests', () => {
             assert.isFalse(result == frameB);
         });
 
-        it('Returns a new correct Frame when B is wholly inside of A', () => {
+        it("Returns a new correct Frame when B is wholly inside of A", () => {
             /*
              * Input:
              * AAAAA
@@ -51,8 +51,8 @@ describe('Frame Tests', () => {
              * ABBBA
              * AAAAA
              */
-            let frameA = new Frame([0,0], [4,4]);
-            let frameB = new Frame([1,1], [3, 3]);
+            let frameA = new Frame([0, 0], [4, 4]);
+            let frameB = new Frame([1, 1], [3, 3]);
             let result = frameA.intersection(frameB);
             let reverseResult = frameB.intersection(frameA);
 
@@ -72,7 +72,7 @@ describe('Frame Tests', () => {
             assert.isFalse(reverseResult == frameB);
         });
 
-        it('Returns correct Frame when B overlaps at top right of A', () => {
+        it("Returns correct Frame when B overlaps at top right of A", () => {
             /*
              * Input:
              *    BBBBBB
@@ -97,7 +97,7 @@ describe('Frame Tests', () => {
             assert.isTrue(result.equals(expectedResult));
         });
 
-        it('Returns correct Frame when B overlaps top left of A', () => {
+        it("Returns correct Frame when B overlaps top left of A", () => {
             /*
              * Input:
              * BBBBB
@@ -107,11 +107,11 @@ describe('Frame Tests', () => {
              *   AAAAA
              *   AAAAA
              */
-            let frameA = new Frame([2,2], [6,6]);
-            let frameB = new Frame([0,0], [4, 3]);
+            let frameA = new Frame([2, 2], [6, 6]);
+            let frameB = new Frame([0, 0], [4, 3]);
             let result = frameA.intersection(frameB);
             let reverseResult = frameB.intersection(frameA);
-            let expectedResult = new Frame([2,2], [4, 3]);
+            let expectedResult = new Frame([2, 2], [4, 3]);
 
             // Assert both results equal
             assert.isTrue(result.equals(reverseResult));
@@ -121,7 +121,7 @@ describe('Frame Tests', () => {
             assert.isTrue(result.equals(expectedResult));
         });
 
-        it('Returns correct Frame when B overlaps at top of A but not corners', () => {
+        it("Returns correct Frame when B overlaps at top of A but not corners", () => {
             /*
              * Input:
              *  BBBB
@@ -130,9 +130,9 @@ describe('Frame Tests', () => {
              * AAAAAA
              * AAAAAA
              */
-            let frameA = new Frame([0,1], [5,4]);
-            let frameB = new Frame([1,0], [4,2]);
-            let expected = new Frame([1,1],[4,2]);
+            let frameA = new Frame([0, 1], [5, 4]);
+            let frameB = new Frame([1, 0], [4, 2]);
+            let expected = new Frame([1, 1], [4, 2]);
             let result = frameA.intersection(frameB);
             let reverseResult = frameB.intersection(frameA);
 
@@ -144,7 +144,7 @@ describe('Frame Tests', () => {
             assert.isTrue(result.equals(expected));
         });
 
-        it('Returns correct Frame when B overlaps at left of A but not corners', () => {
+        it("Returns correct Frame when B overlaps at left of A but not corners", () => {
             /*
              * Input:
              *   AAAAAA
@@ -152,9 +152,9 @@ describe('Frame Tests', () => {
              * BBBAAAAA
              *   AAAAAA
              */
-            let frameA = new Frame([2,0], [7,3]);
-            let frameB = new Frame([0,1], [2,2]);
-            let expected = new Frame([2,1], [2,2]);
+            let frameA = new Frame([2, 0], [7, 3]);
+            let frameB = new Frame([0, 1], [2, 2]);
+            let expected = new Frame([2, 1], [2, 2]);
             let result = frameA.intersection(frameB);
             let reverseResult = frameB.intersection(frameA);
 
@@ -166,7 +166,7 @@ describe('Frame Tests', () => {
             assert.isTrue(result.equals(expected));
         });
 
-        it('Returns correct Frame when B overlaps at bottom of A but not corners', () => {
+        it("Returns correct Frame when B overlaps at bottom of A but not corners", () => {
             /*
              * Input:
              * AAAAAA
@@ -175,9 +175,9 @@ describe('Frame Tests', () => {
              * AABBAA
              *   BB
              */
-            let frameA = new Frame([0,0], [5,3]);
-            let frameB = new Frame([2,2], [3,4]);
-            let expected = new Frame([2,2], [3,3]);
+            let frameA = new Frame([0, 0], [5, 3]);
+            let frameB = new Frame([2, 2], [3, 4]);
+            let expected = new Frame([2, 2], [3, 3]);
             let result = frameA.intersection(frameB);
             let reverseResult = frameB.intersection(frameA);
 
@@ -188,7 +188,7 @@ describe('Frame Tests', () => {
             assert.isTrue(result.equals(expected));
         });
 
-        it('Returns correct Frame when B overlaps at right of A but not corners', () => {
+        it("Returns correct Frame when B overlaps at right of A but not corners", () => {
             /*
              * Input:
              * AAAAAA
@@ -196,9 +196,9 @@ describe('Frame Tests', () => {
              * AAAABBBB
              * AAAAAA
              */
-            let frameA = new Frame([0,0], [5,3]);
-            let frameB = new Frame([4,1], [7,2]);
-            let expected = new Frame([4,1], [5,2]);
+            let frameA = new Frame([0, 0], [5, 3]);
+            let frameB = new Frame([4, 1], [7, 2]);
+            let expected = new Frame([4, 1], [5, 2]);
             let result = frameA.intersection(frameB);
             let reverseResult = frameB.intersection(frameA);
 
@@ -210,8 +210,8 @@ describe('Frame Tests', () => {
             assert.isTrue(result.equals(expected));
         });
 
-        it('Returns an empty frame when one of the frames is empty', () => {
-            let frameA = new Frame([0,0], [5,3]);
+        it("Returns an empty frame when one of the frames is empty", () => {
+            let frameA = new Frame([0, 0], [5, 3]);
             let frameB = Frame.newEmpty();
             let result = frameA.intersection(frameB);
             let reverseResult = frameB.intersection(frameA);
@@ -230,7 +230,7 @@ describe('Frame Tests', () => {
             assert.isFalse(result == frameB);
         });
 
-        it('Returns and empty frame when both of the frames are empty', () => {
+        it("Returns and empty frame when both of the frames are empty", () => {
             let frameA = Frame.newEmpty();
             let frameB = Frame.newEmpty();
             let result = frameA.intersection(frameB);
