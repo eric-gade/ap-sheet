@@ -15,8 +15,6 @@
  *   sub-frame (viewFrme or a locked
  *   frame).
  */
-import jsdomglobal from "jsdom-global";
-jsdomglobal();
 import { PrimaryGridFrame as PrimaryFrame } from "../src/PrimaryGridFrame.js";
 import { DataFrame } from "../src/DataFrame.js";
 import { Point } from "../src/Point.js";
@@ -357,4 +355,8 @@ describe("Larger PrimaryFrame with 3 locked rows test dataOffset(0,1)", () => {
         assert.pointsEqual(relativeView.origin, expectedOrigin);
         assert.pointsEqual(relativeView.corner, expectedCorner);
     });
+});
+
+after(() => {
+    resetDOM();
 });

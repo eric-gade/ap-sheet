@@ -1,5 +1,3 @@
-//import jsdomglobal from "jsdom-global";
-//jsdomglobal();
 import sinon from "sinon";
 import chai from "chai";
 import { expect } from "chai";
@@ -39,4 +37,8 @@ describe("GridSheet Element Tests", () => {
             assert.isTrue(handler.calledOnce);
         });
     });
+});
+
+after(() => {
+    resetDOM();
 });

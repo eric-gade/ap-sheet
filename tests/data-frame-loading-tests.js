@@ -5,8 +5,6 @@
  * and projecting (to arrays) of data from a
  * DataFrame
  */
-import jsdomglobal from "jsdom-global";
-jsdomglobal();
 import { Frame } from "../src/Frame.js";
 import { DataFrame } from "../src/DataFrame.js";
 import { Point } from "../src/Point.js";
@@ -210,4 +208,8 @@ describe("DataFrame data tests", () => {
             assert.equal(newFrame.corner.y, 30);
         });
     });
+});
+
+after(() => {
+    resetDOM();
 });

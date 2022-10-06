@@ -4,8 +4,6 @@
  * Tests concerning the movement of the PrimaryFrame over
  * its given DataFrame
  */
-import jsdomglobal from "jsdom-global";
-jsdomglobal();
 import { PrimaryGridFrame as PrimaryFrame } from "../src/PrimaryGridFrame.js";
 import { DataFrame } from "../src/DataFrame.js";
 import { Point } from "../src/Point.js";
@@ -2145,4 +2143,8 @@ describe("Misc Shift Tests", () => {
             );
         });
     });
+});
+
+after(() => {
+    resetDOM();
 });
