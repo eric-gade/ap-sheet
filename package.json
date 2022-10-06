@@ -6,6 +6,7 @@
         "jsdom": "^19.0.0",
         "jsdom-global": "^3.0.2",
         "mocha": "^10.0.0",
+        "prettier": "^2.7.1",
         "resize-observer-polyfill": "^1.5.1",
         "sinon": "^14.0.1",
         "webpack": "^5.66.0",
