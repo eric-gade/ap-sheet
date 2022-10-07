@@ -59,7 +59,7 @@ const rowTabTemplateString = `
         cursor: pointer;
     }
 
-    host * {
+    :host * {
         pointer-events: none;
 
     }
