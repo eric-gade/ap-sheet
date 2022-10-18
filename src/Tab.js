@@ -58,6 +58,11 @@ const rowTabTemplateString = `
     :host(:hover){
         cursor: pointer;
     }
+
+    :host * {
+        pointer-events: none;
+
+    }
     .adjuster {
         display: block;
         position: absolute;
