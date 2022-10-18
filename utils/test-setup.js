@@ -12,6 +12,7 @@ const resetDOM = () => {
     globalThis.customElements = dom.window.customElements;
     globalThis.CustomEvent = dom.window.CustomEvent;
     globalThis.ResizeObserver = ResizeObserver;
+    globalThis.KeyboardEvent = dom.window.KeyboardEvent;
 };
 
 globalThis.resetDOM = resetDOM;

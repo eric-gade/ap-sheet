@@ -202,6 +202,23 @@ class DataFrame extends Frame {
     }
 
     /**
+     * Clear out the intersection of the passed in
+     * Frame instance and any data within this Frame
+     */
+    clearFrame(aFrame) {
+        const intersectionFrame = this.intersection(aFrame);
+        if (!intersectionFrame.isEmpty) {
+            intersectionFrame.forEachPoint((point) => {
+                const key = `${point.x},${point.y}`;
+                delete this.store[key];
+            });
+            if (this.callback) {
+                this.callback(intersectionFrame);
+            }
+        }
+    }
+
+    /**
      * Replace values in the DataFrame.store with the return of the
      * func applied to each value.
      * @param {function} func - A function
