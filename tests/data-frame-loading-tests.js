@@ -207,6 +207,40 @@ describe("DataFrame data tests", () => {
             assert.equal(newFrame.corner.x, 30);
             assert.equal(newFrame.corner.y, 30);
         });
+        it("expands to greater dimension when 'appending' rows", () => {
+            let sourceFrame = new DataFrame([0, 0], [30, 30]);
+            let newFrame = new DataFrame([0, 0], [20, 20]);
+            const callback = sinon.spy();
+            newFrame.callback = callback;
+            const origin = [0, 21];
+            newFrame.loadFromArray(sourceFrame.toArray(), origin);
+            assert.isTrue(callback.calledOnce);
+            assert.isTrue(callback.calledWithMatch(sinon.match.any, true));
+            assert.equal(newFrame.corner.x, 30);
+            assert.equal(newFrame.corner.y, 51);
+        });
+        it("expands to greater dimension when 'appending' columns", () => {
+            let sourceFrame = new DataFrame([0, 0], [30, 30]);
+            let newFrame = new DataFrame([0, 0], [20, 20]);
+            const callback = sinon.spy();
+            newFrame.callback = callback;
+            const origin = [21, 0];
+            newFrame.loadFromArray(sourceFrame.toArray(), origin);
+            assert.isTrue(callback.calledOnce);
+            assert.isTrue(callback.calledWithMatch(sinon.match.any, true));
+            assert.equal(newFrame.corner.x, 51);
+            assert.equal(newFrame.corner.y, 30);
+        });
+        it("errors when expanding with gaps", () => {
+            let sourceFrame = new DataFrame([0, 0], [30, 30]);
+            let newFrame = new DataFrame([0, 0], [20, 20]);
+            const callback = sinon.spy();
+            newFrame.callback = callback;
+            const origin = [22, 0];
+            expect(() => {
+                newFrame.loadFromArray(sourceFrame.toArray(), origin);
+            }).to.throw();
+        });
     });
 });
 
