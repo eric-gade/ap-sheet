@@ -22,15 +22,15 @@ describe("GridSheet Element Tests", () => {
         it("sheet element dataFrame has callback attached", () => {
             assert.exists(gridElement.dataFrame.callback);
         });
-        it("updates the dataFrame to a larger size, as needed", () => {
-            const newData = new DataFrame(
+        it("updates the dataFrame to a larger size, as needed", async () => {
+            const newData = await new DataFrame(
                 [0, 0],
                 [
                     gridElement.dataFrame.corner.x + 10,
                     gridElement.dataFrame.corner.y + 15,
                 ]
             ).toArray();
-            gridElement.dataFrame.loadFromArray(newData);
+            await gridElement.dataFrame.loadFromArray(newData);
             assert.equal(gridElement.dataFrame.corner.x, 1010);
             assert.equal(gridElement.dataFrame.corner.y, 1015);
         });

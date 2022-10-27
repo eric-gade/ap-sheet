@@ -93,12 +93,16 @@ describe("PrimaryFrame Layout with no locked rows or columns and dataOffset (2,2
         assert.pointsEqual(relativeView.corner, expectedCorner);
     });
 
-    it("Has correct data values at relative view corners", () => {
+    it("Has correct data values at relative view corners", async () => {
         let relativeView = primaryFrame.relativeViewFrame;
         let expectedDataOrigin = new Point([2, 2]);
         let expectedDataCorner = new Point([8, 5]);
-        let actualDataOrigin = exampleDataFrame.getAt(relativeView.origin);
-        let actualDataCorner = exampleDataFrame.getAt(relativeView.corner);
+        let actualDataOrigin = await exampleDataFrame.getAt(
+            relativeView.origin
+        );
+        let actualDataCorner = await exampleDataFrame.getAt(
+            relativeView.corner
+        );
 
         assert.pointsEqual(actualDataOrigin, expectedDataOrigin);
         assert.pointsEqual(actualDataCorner, expectedDataCorner);
@@ -172,23 +176,31 @@ describe("PrimaryFrame Layout with 2 locked rows, no columns and dataOffset(2,1)
         assert.pointsEqual(relativeRows.corner, expectedCorner);
     });
 
-    it("Has correct data values in corners of relative locked rows frame", () => {
+    it("Has correct data values in corners of relative locked rows frame", async () => {
         let expectedOriginData = new Point([2, 0]);
         let expectedCornerData = new Point([8, 1]);
         let relativeRows = primaryFrame.relativeLockedRowsFrame;
-        let actualOriginData = exampleDataFrame.getAt(relativeRows.origin);
-        let actualCornerData = exampleDataFrame.getAt(relativeRows.corner);
+        let actualOriginData = await exampleDataFrame.getAt(
+            relativeRows.origin
+        );
+        let actualCornerData = await exampleDataFrame.getAt(
+            relativeRows.corner
+        );
 
         assert.pointsEqual(actualOriginData, expectedOriginData);
         assert.pointsEqual(actualCornerData, expectedCornerData);
     });
 
-    it("Has correct data values in corners of the relative view frame", () => {
+    it("Has correct data values in corners of the relative view frame", async () => {
         let relativeView = primaryFrame.relativeViewFrame;
         let expectedOriginData = new Point([2, 3]);
         let expectedCornerData = new Point([8, 4]);
-        let actualOriginData = exampleDataFrame.getAt(relativeView.origin);
-        let actualCornerData = exampleDataFrame.getAt(relativeView.corner);
+        let actualOriginData = await exampleDataFrame.getAt(
+            relativeView.origin
+        );
+        let actualCornerData = await exampleDataFrame.getAt(
+            relativeView.corner
+        );
 
         assert.pointsEqual(actualOriginData, expectedOriginData);
         assert.pointsEqual(actualCornerData, expectedCornerData);
@@ -266,12 +278,16 @@ describe("PrimaryFrame Layout with 2 locked rows, 2 locked columns, and dataOffs
         assert.pointsEqual(relativeView.corner, expectedCorner);
     });
 
-    it("Has correct data values at corners for relative view frame", () => {
+    it("Has correct data values at corners for relative view frame", async () => {
         let relativeView = primaryFrame.relativeViewFrame;
         let expectedOriginData = new Point([3, 4]);
         let expectedCornerData = new Point([7, 5]);
-        let actualOriginData = exampleDataFrame.getAt(relativeView.origin);
-        let actualCornerData = exampleDataFrame.getAt(relativeView.corner);
+        let actualOriginData = await exampleDataFrame.getAt(
+            relativeView.origin
+        );
+        let actualCornerData = await exampleDataFrame.getAt(
+            relativeView.corner
+        );
 
         assert.pointsEqual(actualOriginData, expectedOriginData);
         assert.pointsEqual(actualCornerData, expectedCornerData);
@@ -289,15 +305,19 @@ describe("PrimaryFrame Layout with 2 locked rows, 2 locked columns, and dataOffs
         assert.pointsEqual(relativeRows.corner, expectedCorner);
     });
 
-    it("Has correct data values at corners for relative locked rows frame", () => {
+    it("Has correct data values at corners for relative locked rows frame", async () => {
         let relativeRows = primaryFrame.relativeLockedRowsFrame;
         let expectedOriginData = new Point([3, 0]);
         let expectedCornerData = new Point([
             primaryFrame.corner.x + primaryFrame.dataOffset.x,
             1,
         ]);
-        let actualOriginData = exampleDataFrame.getAt(relativeRows.origin);
-        let actualCornerData = exampleDataFrame.getAt(relativeRows.corner);
+        let actualOriginData = await exampleDataFrame.getAt(
+            relativeRows.origin
+        );
+        let actualCornerData = await exampleDataFrame.getAt(
+            relativeRows.corner
+        );
 
         assert.pointsEqual(actualOriginData, expectedOriginData);
         assert.pointsEqual(actualCornerData, expectedCornerData);
@@ -312,12 +332,16 @@ describe("PrimaryFrame Layout with 2 locked rows, 2 locked columns, and dataOffs
         assert.pointsEqual(relativeColumns.corner, expectedCorner);
     });
 
-    it("Has correct data values at corners for relative locked columns frame", () => {
+    it("Has correct data values at corners for relative locked columns frame", async () => {
         let relativeColumns = primaryFrame.relativeLockedColumnsFrame;
         let expectedOriginData = new Point([0, 4]);
         let expectedCornerData = new Point([1, 5]);
-        let actualOriginData = exampleDataFrame.getAt(relativeColumns.origin);
-        let actualCornerData = exampleDataFrame.getAt(relativeColumns.corner);
+        let actualOriginData = await exampleDataFrame.getAt(
+            relativeColumns.origin
+        );
+        let actualCornerData = await exampleDataFrame.getAt(
+            relativeColumns.corner
+        );
 
         assert.pointsEqual(actualOriginData, expectedOriginData);
         assert.pointsEqual(actualCornerData, expectedCornerData);
