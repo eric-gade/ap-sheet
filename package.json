@@ -2,6 +2,7 @@
     "type": "module",
     "devDependencies": {
         "chai": "^4.3.4",
+        "chai-as-promised": "^7.1.1",
         "esm": "^3.2.25",
         "jsdom": "^19.0.0",
         "jsdom-global": "^3.0.2",

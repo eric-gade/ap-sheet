@@ -27,8 +27,8 @@ assert.pointsEqual = function (firstPoint, secondPoint, msg) {
 // In this frame, we ensure that the stored value
 // for each point is simply the Point itself
 let exampleDataFrame = new DataFrame([0, 0], [113, 113]);
-exampleDataFrame.forEachPoint((aPoint) => {
-    exampleDataFrame.putAt(aPoint, aPoint);
+exampleDataFrame.forEachPoint(async (aPoint) => {
+    await exampleDataFrame.putAt(aPoint, aPoint);
 });
 
 describe("Movement Setup", () => {
@@ -495,14 +495,14 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(relativeRows.corner, expectedCorner);
         });
 
-        it("Has correct data from dataFrame at relative view corners", () => {
+        it("Has correct data from dataFrame at relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([1, 2]);
             let expectedCornerData = new Point([7, 3]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -510,14 +510,14 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has correct data from dataFrame at relative row corners", () => {
+        it("Has correct data from dataFrame at relative row corners", async () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOriginData = new Point([1, 0]);
             let expectedCornerData = new Point([7, 1]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeRows.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeRows.corner
             );
 
@@ -581,7 +581,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(relativeRows.corner, expectedCorner);
         });
 
-        it("Has the correct data from dataFrame at relative view corners", () => {
+        it("Has the correct data from dataFrame at relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([
                 primaryFrame.dataFrame.right - relativeView.size.x,
@@ -591,15 +591,15 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
                 primaryFrame.dataFrame.right,
                 3,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
         });
 
-        it("Has the correct data from dataFrame at relative locked rows corners", () => {
+        it("Has the correct data from dataFrame at relative locked rows corners", async () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOriginData = new Point([
                 primaryFrame.dataFrame.right - relativeRows.size.x,
@@ -609,10 +609,10 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
                 primaryFrame.dataFrame.right,
                 1,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeRows.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeRows.corner
             );
 
@@ -682,7 +682,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(relativeRows.corner, expectedCorner);
         });
 
-        it("Has correct data from dataFrame at relative view corners", () => {
+        it("Has correct data from dataFrame at relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([
                 primaryFrame.dataFrame.right - relativeView.size.x - 1,
@@ -692,10 +692,10 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
                 primaryFrame.dataFrame.right - 1,
                 3,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -703,7 +703,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has correct data from dataFrame at relative rows frame corners", () => {
+        it("Has correct data from dataFrame at relative rows frame corners", async () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOriginData = new Point([
                 primaryFrame.dataFrame.right - relativeRows.size.x - 1,
@@ -713,10 +713,10 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
                 primaryFrame.dataFrame.right - 1,
                 1,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeRows.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeRows.corner
             );
 
@@ -776,14 +776,14 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(relativeRows.corner, expectedCorner);
         });
 
-        it("Has the correct data from dataFrame at relative view corners", () => {
+        it("Has the correct data from dataFrame at relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([0, 2]);
             let expectedCornerData = primaryFrame.corner;
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -791,14 +791,14 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has the correct data from dataFrame at relative rows frame corners", () => {
+        it("Has the correct data from dataFrame at relative rows frame corners", async () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOriginData = primaryFrame.origin;
             let expectedCornerData = new Point([primaryFrame.corner.x, 1]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeRows.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeRows.corner
             );
 
@@ -856,14 +856,14 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(relativeRows.corner, expectedCorner);
         });
 
-        it("Has the correct data from dataFrame at relative view corners", () => {
+        it("Has the correct data from dataFrame at relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([0, 3]);
             let expectedCornerData = new Point([6, 4]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -871,14 +871,14 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has the correct data from dataFrame at relative locked rows corners", () => {
+        it("Has the correct data from dataFrame at relative locked rows corners", async () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOriginData = new Point([0, 0]);
             let expectedCornerData = new Point([6, 1]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeRows.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeRows.corner
             );
 
@@ -952,7 +952,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(relativeRows.corner, expectedCorner);
         });
 
-        it("Has the correct data from dataFrame at relative view corners", () => {
+        it("Has the correct data from dataFrame at relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([
                 0,
@@ -962,10 +962,10 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
                 primaryFrame.viewFrame.size.x,
                 primaryFrame.dataFrame.bottom,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -973,14 +973,14 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has the correct data from dataFrame at relative locked rows corners", () => {
+        it("Has the correct data from dataFrame at relative locked rows corners", async () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOriginData = new Point([0, 0]);
             let expectedCornerData = new Point([primaryFrame.size.x, 1]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeRows.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeRows.corner
             );
 
@@ -1044,7 +1044,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(relativeRows.corner, expectedCorner);
         });
 
-        it("Has the correct data from dataFrame at relative view corners", () => {
+        it("Has the correct data from dataFrame at relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([
                 0,
@@ -1054,10 +1054,10 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
                 primaryFrame.size.x,
                 primaryFrame.dataFrame.bottom - 1,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -1065,14 +1065,14 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has the correct data from dataFrame at relative locked rows corners", () => {
+        it("Has the correct data from dataFrame at relative locked rows corners", async () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOriginData = new Point([0, 0]);
             let expectedCornerData = new Point([primaryFrame.size.x, 1]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeRows.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeRows.corner
             );
 
@@ -1137,14 +1137,14 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(relativeRows.corner, expectedCorner);
         });
 
-        it("Has the correct data from dataFrame for relative view corners", () => {
+        it("Has the correct data from dataFrame for relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([0, 2]);
             let expectedCornerData = primaryFrame.corner; // (6,3)
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -1152,14 +1152,14 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has the correct data from dataFrame for the relative locked rows corners", () => {
+        it("Has the correct data from dataFrame for the relative locked rows corners", async () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOriginData = new Point([0, 0]);
             let expectedCornerData = new Point([primaryFrame.size.x, 1]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeRows.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeRows.corner
             );
 
@@ -1231,14 +1231,14 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(relativeColumns.corner, expectedCorner);
         });
 
-        it("Has the correct data from dataFrame at relative view corners", () => {
+        it("Has the correct data from dataFrame at relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([4, 2]);
             let expectedCornerData = new Point([8, 5]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -1246,14 +1246,14 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has the correct data from dataFrame at relative columns corners", () => {
+        it("Has the correct data from dataFrame at relative columns corners", async () => {
             let relativeColumns = primaryFrame.relativeLockedColumnsFrame;
             let expectedOriginData = new Point([0, 2]);
             let expectedCornerData = new Point([1, 5]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.corner
             );
 
@@ -1318,7 +1318,7 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(relativeColumns.corner, expectedCorner);
         });
 
-        it("Has correct data from dataFrame for relative view corners", () => {
+        it("Has correct data from dataFrame for relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([
                 primaryFrame.dataFrame.right - 4,
@@ -1328,10 +1328,10 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
                 primaryFrame.dataFrame.right,
                 5,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -1339,14 +1339,14 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has correct data from dataFrame for relative columns corners", () => {
+        it("Has correct data from dataFrame for relative columns corners", async () => {
             let relativeColumns = primaryFrame.relativeLockedColumnsFrame;
             let expectedOriginData = new Point([0, 2]);
             let expectedCornerData = new Point([1, 5]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.corner
             );
 
@@ -1409,7 +1409,7 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(relativeColumns.corner, expectedCorner);
         });
 
-        it("Has correct data from dataFrame at relative view corners", () => {
+        it("Has correct data from dataFrame at relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([
                 primaryFrame.dataFrame.right - 4,
@@ -1419,10 +1419,10 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
                 primaryFrame.dataFrame.right,
                 6,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -1430,14 +1430,14 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has correct data from dataFrame at relative locked columns corners", () => {
+        it("Has correct data from dataFrame at relative locked columns corners", async () => {
             let relativeColumns = primaryFrame.relativeLockedColumnsFrame;
             let expectedOriginData = new Point([0, 3]);
             let expectedCornerData = new Point([1, 6]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.corner
             );
 
@@ -1504,17 +1504,17 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(relativeColumns.corner, expectedCorner);
         });
 
-        it("Has correct data from dataFrame at relative view corners", () => {
+        it("Has correct data from dataFrame at relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([
                 primaryFrame.dataFrame.right - 4,
                 primaryFrame.dataFrame.bottom - 3,
             ]);
             let expectedCornerData = primaryFrame.dataFrame.corner;
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -1522,7 +1522,7 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has correct data from dataFrame at relative locked columns corners", () => {
+        it("Has correct data from dataFrame at relative locked columns corners", async () => {
             let relativeColumns = primaryFrame.relativeLockedColumnsFrame;
             let expectedOriginData = new Point([
                 0,
@@ -1532,10 +1532,10 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
                 1,
                 primaryFrame.dataFrame.bottom,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.corner
             );
 
@@ -1604,7 +1604,7 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(relativeColumns.corner, expectedCorner);
         });
 
-        it("Has correct data from dataFrame at relative view corners", () => {
+        it("Has correct data from dataFrame at relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([
                 primaryFrame.dataFrame.right - 5,
@@ -1614,10 +1614,10 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
                 primaryFrame.dataFrame.right - 1,
                 primaryFrame.dataFrame.bottom,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -1625,7 +1625,7 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has correct data from dataFrame for relative locked columns corners", () => {
+        it("Has correct data from dataFrame for relative locked columns corners", async () => {
             let relativeColumns = primaryFrame.relativeLockedColumnsFrame;
             let expectedOriginData = new Point([
                 0,
@@ -1635,10 +1635,10 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
                 1,
                 primaryFrame.dataFrame.bottom,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.corner
             );
         });
@@ -1703,7 +1703,7 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(relativeColumns.corner, expectedCorner);
         });
 
-        it("Has correct data from dataFrame at relative view corners", () => {
+        it("Has correct data from dataFrame at relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([
                 2,
@@ -1713,10 +1713,10 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
                 6,
                 primaryFrame.dataFrame.bottom,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -1724,7 +1724,7 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has correct data from dataFrame at relative locked columns corners", () => {
+        it("Has correct data from dataFrame at relative locked columns corners", async () => {
             let relativeColumns = primaryFrame.relativeLockedColumnsFrame;
             let expectedOriginData = new Point([
                 0,
@@ -1734,10 +1734,10 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
                 1,
                 primaryFrame.dataFrame.bottom,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.corner
             );
 
@@ -1809,7 +1809,7 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(relativeColumns.corner, expectedCorner);
         });
 
-        it("Has correct data from dataFrame for relative view corners", () => {
+        it("Has correct data from dataFrame for relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([
                 2,
@@ -1819,10 +1819,10 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
                 6,
                 primaryFrame.dataFrame.bottom - 1,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -1830,7 +1830,7 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has correct data from dataFrame for relative locked columns corners", () => {
+        it("Has correct data from dataFrame for relative locked columns corners", async () => {
             let relativeColumns = primaryFrame.relativeLockedColumnsFrame;
             let expectedOriginData = new Point([
                 0,
@@ -1840,10 +1840,10 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
                 1,
                 primaryFrame.dataFrame.bottom - 1,
             ]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.corner
             );
 
@@ -1905,14 +1905,14 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(relativeColumns.corner, expectedCorner);
         });
 
-        it("Has the correct data from dataFrame at relative view corners", () => {
+        it("Has the correct data from dataFrame at relative view corners", async () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([2, 0]);
             let expectedCornerData = new Point([6, 3]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeView.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeView.corner
             );
 
@@ -1920,14 +1920,14 @@ describe("PrimaryFrame Shifting with 2 locked columns and no locked rows dataOff
             assert.pointsEqual(actualCornerData, expectedCornerData);
         });
 
-        it("Has the correct data from dataFrame at relative locked columns corners", () => {
+        it("Has the correct data from dataFrame at relative locked columns corners", async () => {
             let relativeColumns = primaryFrame.relativeLockedColumnsFrame;
             let expectedOriginData = new Point([0, 0]);
             let expectedCornerData = new Point([1, 3]);
-            let actualOriginData = primaryFrame.dataFrame.getAt(
+            let actualOriginData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.origin
             );
-            let actualCornerData = primaryFrame.dataFrame.getAt(
+            let actualCornerData = await primaryFrame.dataFrame.getAt(
                 relativeColumns.corner
             );
 

@@ -40,7 +40,7 @@ class DataFrame extends Frame {
      * @param {Object} value - The object
      * to store.
      */
-    putAt(location, value, notify = true) {
+    async putAt(location, value, notify = true) {
         let x, y, key;
         if (location.isPoint) {
             x = location.x;
@@ -79,7 +79,7 @@ class DataFrame extends Frame {
      * value. Errors if the location is out of
      * scope of the frame.
      */
-    getAt(location) {
+    async getAt(location) {
         let key;
         if (isCoordinate(location)) {
             if (!this.contains(location)) {
@@ -111,7 +111,7 @@ class DataFrame extends Frame {
      * from which to start loading the data into
      * this DataFrame.
      */
-    loadFromArray(data, origin = [0, 0]) {
+    async loadFromArray(data, origin = [0, 0]) {
         if (!this.contains(origin)) {
             throw `${origin} not contained in this DataFrame`;
         }
@@ -127,13 +127,13 @@ class DataFrame extends Frame {
             this.corner = unionFrame.corner;
             wasResized = true;
         }
-        data.forEach((row, y) => {
-            row.forEach((value, x) => {
+        await data.forEach(async (row, y) => {
+            await row.forEach(async (value, x) => {
                 let adjustedCoord = [
                     x + comparisonFrame.origin.x,
                     y + comparisonFrame.origin.y,
                 ];
-                this.putAt(adjustedCoord, value, false);
+                await this.putAt(adjustedCoord, value, false);
             });
         });
         if (this.callback) {
@@ -150,29 +150,37 @@ class DataFrame extends Frame {
      * @returns {Array[Array]} A y-to-x (row to column)
      * array of array of stored values
      */
-    getDataArrayForFrame(aFrame) {
+    async getDataArrayForFrame(aFrame) {
         if (!this.contains(aFrame)) {
             throw `Frame is not contained within DataFrame!`;
         }
-        let result = [];
-        aFrame.forEachCoordinateRow((row) => {
-            let mappedRow = row.map((val) => {
-                return this.getAt(val);
-            });
-            result.push(mappedRow);
-        });
-        return result;
+
+        let rows = [];
+        for (let y = aFrame.origin.y; y <= aFrame.corner.y; y++) {
+            let row = [];
+            for (let x = aFrame.origin.x; x <= aFrame.corner.x; x++) {
+                row.push(await this.getAt([x, y]));
+            }
+            rows.push(row);
+        }
+        return rows;
     }
 
     /**
      * I return a DataFrame which contains the points (and data)
      * of this frame starting at the specified (new) origin and corner.
      */
-    getDataSubFrame(origin, corner) {
+    async getDataSubFrame(origin, corner) {
         const subframe = new DataFrame(origin, corner);
-        subframe.forEachPoint((p) => {
-            subframe.putAt(p, this.getAt(p), false); // do not notify
-        });
+        await Promise.all(
+            subframe.points.map(async (point) => {
+                return await subframe.putAt(
+                    point,
+                    await this.getAt(point),
+                    false
+                );
+            })
+        );
         return subframe;
     }
 
@@ -182,11 +190,11 @@ class DataFrame extends Frame {
      * If `strict` is true, we use `minFrame` under the
      * hood. Otherwise use the expected `this`.
      */
-    toArray(strict = false) {
+    async toArray(strict = false) {
         if (strict) {
-            return this.getDataArrayForFrame(this.minFrame);
+            return await this.getDataArrayForFrame(this.minFrame);
         } else {
-            return this.getDataArrayForFrame(this);
+            return await this.getDataArrayForFrame(this);
         }
     }
 
@@ -194,7 +202,7 @@ class DataFrame extends Frame {
      * Clear out the cached dictionary of
      * points to values.
      */
-    clear() {
+    async clear() {
         this.store = {};
         if (this.callback) {
             this.callback(new Frame(this.origin, this.corner));
@@ -205,7 +213,7 @@ class DataFrame extends Frame {
      * Clear out the intersection of the passed in
      * Frame instance and any data within this Frame
      */
-    clearFrame(aFrame) {
+    async clearFrame(aFrame) {
         const intersectionFrame = this.intersection(aFrame);
         if (!intersectionFrame.isEmpty) {
             intersectionFrame.forEachPoint((point) => {
@@ -224,9 +232,9 @@ class DataFrame extends Frame {
      * @param {function} func - A function
      * @param {boolean} notify - If true will try to call this.callback
      */
-    apply(func, notify = false) {
-        this.forEachPoint((p) => {
-            this.putAt(p, func(this.getAt(p)), notify);
+    async apply(func, notify = false) {
+        this.forEachPoint(async (p) => {
+            await this.putAt(p, func(await this.getAt(p)), notify);
         });
     }
 
@@ -237,15 +245,15 @@ class DataFrame extends Frame {
      * @param {DataFrame} df - The dataframe to be added
      * @param {boolean} notify - If true will try to call this.callback
      */
-    add(df) {
+    async add(df) {
         if (!this.size.equals(df.size)) {
             throw "DataFrames must be equal size to add";
         }
         // TODO: dumping DS's to arrays like this might cause performance issues
         // we should consider something that will simulatenously iterate over points
         // in both frames respecting the order
-        const this_array = this.toArray();
-        const df_array = df.toArray();
+        const this_array = await this.toArray();
+        const df_array = await df.toArray();
         this_array.forEach((row, ridx) => {
             this_array[ridx].forEach((value, cidx) => {
                 this_array[ridx][cidx] = value + df_array[ridx][cidx];
@@ -260,14 +268,15 @@ class DataFrame extends Frame {
      * "fit" ie if the intersection of frame with this DataFrame
      * does not contain the frame then I throw an error.
      **/
-    copyFrom(frame, origin = [0, 0]) {
+    async copyFrom(frame, origin = [0, 0]) {
         if (!(frame instanceof DataFrame)) {
             throw "You must pass in a data frame to copy from";
         }
         if (!this.intersection(frame).contains(frame)) {
             throw "DataFrame too small to copy from frame at origin";
         }
-        this.loadFromArray(frame.toArray(), (origin = origin));
+        const frameData = await frame.toArray();
+        await this.loadFromArray(frameData, (origin = origin));
     }
 
     /**
@@ -327,14 +336,14 @@ class DataFrame extends Frame {
      * event that the given Frame is not contained
      * within this one.
      */
-    hasCompleteDataForFrame(aFrame) {
+    async hasCompleteDataForFrame(aFrame) {
         if (!this.contains(aFrame)) {
             throw "Passed Frame is not contained within DataFrame!";
         }
         let points = aFrame.points;
         for (let i = 0; i < points.length; i++) {
             let thisPoint = points[i];
-            if (this.getAt(thisPoint) == undefined) {
+            if ((await this.getAt(thisPoint)) == undefined) {
                 return false;
             }
         }
