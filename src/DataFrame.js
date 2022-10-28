@@ -110,13 +110,23 @@ class DataFrame extends Frame {
      * @param {Point|Array} origin - The relative
      * from which to start loading the data into
      * this DataFrame.
+     * @param {Bool} notify - If true, and if a callback is set,
+     * will call this.callback after **all** data is loaded
      */
-    loadFromArray(data, origin = [0, 0]) {
+    loadFromArray(data, origin = [0, 0], notify = true) {
+        // work with Points for sanity
+        origin = new Point(origin);
         if (!this.contains(origin)) {
-            throw `${origin} not contained in this DataFrame`;
+            // need to check if this simply an extension of the DF, ie
+            // we are adding rows or columns
+            // Note: appending must continue the row/columns, ie no jumps
+            const appendRows = origin.x == 0 && (origin.y - 1) == this.size.y;
+            const appendColumns = origin.y == 0 && (origin.x - 1) == this.size.x;
+            if(!appendRows && !appendColumns){
+                throw `${origin} not contained in this DataFrame and is not an append of rows or columns`;
+            }
         }
         let wasResized = false;
-        origin = new Point(origin);
         let rowMax = data.length - 1;
         let colMax = data[0].length - 1; // Assume all are equal
         let corner = new Point([colMax + origin.x, rowMax + origin.y]);
@@ -136,7 +146,7 @@ class DataFrame extends Frame {
                 this.putAt(adjustedCoord, value, false);
             });
         });
-        if (this.callback) {
+        if (notify && this.callback) {
             this.callback(comparisonFrame, wasResized);
         }
     }
