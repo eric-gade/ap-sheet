@@ -159,9 +159,9 @@ class GridSheet extends HTMLElement {
                 return `${point.x}, ${point.y}`;
             });
         });
-        this.dataFrame.loadFromArray(initialData);
-        this.dataFrame.callback = this.onDataChanged.bind(this);
         this.primaryFrame = new PrimaryFrame(this.dataFrame, [0, 0]);
+        this.dataFrame.callback = this.onDataChanged.bind(this);
+        this.dataFrame.loadFromArray(initialData);
         this.selector = new Selector(this.primaryFrame);
         this.selector.selectionChangedCallback =
             this.dispatchSelectionChanged.bind(this);
@@ -544,7 +544,7 @@ class GridSheet extends HTMLElement {
         }
     }
 
-    dispatchSelectionChanged() {
+    async dispatchSelectionChanged() {
         let selectionEvent = new CustomEvent("selection-changed", {
             detail: {
                 relativeCursor: this.selector.relativeCursor,
@@ -553,7 +553,7 @@ class GridSheet extends HTMLElement {
                     this.selector.cursor.y
                 ),
                 frame: this.selector.selectionFrame,
-                data: this.selector.dataAtCursor,
+                data: await this.selector.dataAtCursor(),
             },
         });
         this.dispatchEvent(selectionEvent);
@@ -616,14 +616,16 @@ class GridSheet extends HTMLElement {
         this.renderGridTemplate();
     }
 
-    handleSelectionChanged(event) {
+    async handleSelectionChanged(event) {
         let infoArea = this.shadowRoot.getElementById("info-area");
         let editArea = this.shadowRoot.getElementById("edit-area");
         if (this.selector.selectionFrame.isEmpty) {
             // In this case, the cursor is the lone selection.
             // update the info area to demonstrate that.
             infoArea.querySelector("span:first-child").innerText = "Cursor";
-            editArea.value = this.dataFrame.getAt(this.selector.relativeCursor);
+            editArea.value = await this.dataFrame.getAt(
+                this.selector.relativeCursor
+            );
         } else {
             // Otherwise, we have selected multiple cells.
             // Display information about the bounds of the

@@ -467,8 +467,10 @@ class Selector {
      * @returns {object} - The stored data value
      * at the current relative cursor point
      */
-    get dataAtCursor() {
-        let dataValue = this.primaryFrame.dataFrame.getAt(this.relativeCursor);
+    async dataAtCursor() {
+        let dataValue = await this.primaryFrame.dataFrame.getAt(
+            this.relativeCursor
+        );
         if (dataValue == undefined) {
             return "undefined";
         }

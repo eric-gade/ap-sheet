@@ -27,6 +27,10 @@ class DataFrame extends Frame {
         this.copyFrom = this.copyFrom.bind(this);
         this.getDataArrayForFrame = this.getDataArrayForFrame.bind(this);
         this.getDataSubFrame = this.getDataSubFrame.bind(this);
+
+        // Bound private methods
+        this._privatePutAt = this._privatePutAt.bind(this);
+        this._privateGetAt = this._privateGetAt.bind(this);
     }
 
     /**
@@ -41,26 +45,7 @@ class DataFrame extends Frame {
      * to store.
      */
     async putAt(location, value, notify = true) {
-        let x, y, key;
-        if (location.isPoint) {
-            x = location.x;
-            y = location.y;
-            key = `${x},${y}`;
-        } else if (isCoordinate(location)) {
-            x = location[0];
-            y = location[1];
-            key = location.toString();
-        } else {
-            throw "Invalid Point or Coordinate";
-        }
-
-        // We do not actually store undefined
-        // as a value
-        if (value === undefined) {
-            delete this.store[key];
-        } else {
-            this.store[key] = value;
-        }
+        this._privatePutAt(location, value);
         if (notify && this.callback) {
             this.callback(location);
         }
@@ -80,21 +65,7 @@ class DataFrame extends Frame {
      * scope of the frame.
      */
     async getAt(location) {
-        let key;
-        if (isCoordinate(location)) {
-            if (!this.contains(location)) {
-                throw `${location} outside of DataFrame`;
-            }
-            key = location.toString();
-        } else if (location.isPoint) {
-            if (!this.contains(location)) {
-                throw `${location} outside of DataFrame`;
-            }
-            key = `${location.x},${location.y}`;
-        } else {
-            throw "Invalid Point or Coordinate";
-        }
-        return this.store[key];
+        return this._privateGetAt(location);
     }
 
     /**
@@ -111,7 +82,7 @@ class DataFrame extends Frame {
      * from which to start loading the data into
      * this DataFrame.
      */
-    async loadFromArray(data, origin = [0, 0]) {
+    async loadFromArray(data, origin = [0, 0], notify = true) {
         if (!this.contains(origin)) {
             throw `${origin} not contained in this DataFrame`;
         }
@@ -127,13 +98,13 @@ class DataFrame extends Frame {
             this.corner = unionFrame.corner;
             wasResized = true;
         }
-        await data.forEach(async (row, y) => {
-            await row.forEach(async (value, x) => {
+        data.forEach((row, y) => {
+            row.forEach((value, x) => {
                 let adjustedCoord = [
                     x + comparisonFrame.origin.x,
                     y + comparisonFrame.origin.y,
                 ];
-                await this.putAt(adjustedCoord, value, false);
+                this._privatePutAt(adjustedCoord, value);
             });
         });
         if (this.callback) {
@@ -349,6 +320,55 @@ class DataFrame extends Frame {
         }
 
         return true;
+    }
+
+    /**
+     * Private synchronous method used for
+     * storing values.
+     */
+    _privatePutAt(location, value) {
+        let x, y, key;
+        if (location.isPoint) {
+            x = location.x;
+            y = location.y;
+            key = `${x},${y}`;
+        } else if (isCoordinate(location)) {
+            x = location[0];
+            y = location[1];
+            key = location.toString();
+        } else {
+            throw "Invalid Point or Coordinate";
+        }
+
+        // We do not actually store undefined
+        // as a value
+        if (value === undefined) {
+            delete this.store[key];
+        } else {
+            this.store[key] = value;
+        }
+    }
+
+    /**
+     * Private synchronouse method used for
+     * getting values
+     */
+    _privateGetAt(location) {
+        let key;
+        if (isCoordinate(location)) {
+            if (!this.contains(location)) {
+                throw `${location} outside of DataFrame`;
+            }
+            key = location.toString();
+        } else if (location.isPoint) {
+            if (!this.contains(location)) {
+                throw `${location} outside of DataFrame`;
+            }
+            key = `${location.x},${location.y}`;
+        } else {
+            throw "Invalid Point or Coordinate";
+        }
+        return this.store[key];
     }
 }
 

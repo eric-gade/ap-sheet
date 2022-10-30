@@ -125,11 +125,24 @@ describe("Basic Selector instantiation tests (shifted PrimaryFrame).", () => {
      * D=DataFrame
      * V= Relative view frame
      */
+    let primaryFrame;
+    let selector;
+    before(async () => {
+        // We initialize a demo DataFrame 113x133 total.
+        // In this frame, we ensure that the stored value
+        // for each point is simply the instance of the Point.
+        exampleDataFrame = new DataFrame([0, 0], [100, 100]);
+        await Promise.all(
+            exampleDataFrame.mapEachPoint(async (aPoint) => {
+                await exampleDataFrame.putAt(aPoint, aPoint);
+            })
+        );
 
-    let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 15]);
-    primaryFrame.shiftRightBy(1);
-    primaryFrame.shiftDownBy(2);
-    let selector = new Selector(primaryFrame);
+        primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 15]);
+        await primaryFrame.shiftRightBy(1);
+        await primaryFrame.shiftDownBy(2);
+        selector = new Selector(primaryFrame);
+    });
     it("Has a correct cursor", () => {
         let expected = new Point([0, 0]);
 

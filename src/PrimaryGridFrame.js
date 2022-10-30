@@ -172,22 +172,24 @@ class PrimaryGridFrame extends GridElementsFrame {
      * and "relative" (ie DataFrame relative) coordinate
      * values
      */
-    updateCellContents() {
-        this.updateLockedRowElements();
-        this.updateLockedColumnElements();
-        this.updateViewElements();
+    async updateCellContents() {
+        await this.updateLockedRowElements();
+        await this.updateLockedColumnElements();
+        await this.updateViewElements();
 
         // Update the locked frames intersection,
         // if there is one
         if (!this.lockedFramesIntersect.isEmpty) {
-            this.lockedFramesIntersect.forEachPoint((aPoint) => {
-                let value = this.dataFrame.getAt(aPoint);
-                if (value == undefined) {
-                    this.setTextContentAt(aPoint, "...");
-                } else {
-                    this.setTextContentAt(aPoint, value.toString());
-                }
-            });
+            await Promise.all(
+                this.lockedFramesIntersect.points.map(async (aPoint) => {
+                    let value = await this.dataFrame.getAt(aPoint);
+                    if (value == undefined) {
+                        this.setTextContentAt(aPoint, "...");
+                    } else {
+                        this.setTextContentAt(aPoint, value.toString());
+                    }
+                })
+            );
         }
 
         this.labelElements();
@@ -199,45 +201,16 @@ class PrimaryGridFrame extends GridElementsFrame {
      * elements that appears within the locked
      * rows frame.
      */
-    updateLockedRowElements() {
+    async updateLockedRowElements() {
         if (this.numLockedRows) {
-            this.relativeLockedRowsFrame.forEachPoint((aPoint) => {
-                let dataValue = this.dataFrame.getAt(aPoint);
-                let translation = new Point([
-                    aPoint.x - this.dataOffset.x,
-                    aPoint.y,
-                ]);
-                let element = this.elementAt(translation);
-                if (dataValue != undefined) {
-                    this.setTextContentAt(translation, dataValue.toString());
-                } else {
-                    this.setTextContentAt(translation, "...");
-                }
-                element.setAttribute("data-relative-x", aPoint.x);
-                element.setAttribute("data-relative-y", aPoint.y);
-            });
-        }
-    }
-
-    /**
-     * I update the data-relative values and
-     * element data attributes for each of my td
-     * elements that appears within the locked
-     * columns frame.
-     */
-    updateLockedColumnElements() {
-        if (this.numLockedColumns) {
-            let relativeColumns = this.relativeLockedColumnsFrame;
-            let offset = new Point([
-                0,
-                relativeColumns.origin.y -
-                    (this.lockedColumnsFrame.origin.y + this.numLockedRows),
-            ]);
-            relativeColumns.forEachPoint((aPoint) => {
-                let dataValue = this.dataFrame.getAt(aPoint);
-                let translation = new Point([aPoint.x, aPoint.y - offset.y]);
-                let element = this.elementAt(translation);
-                if (element !== null) {
+            await Promise.all(
+                this.relativeLockedRowsFrame.points.map(async (aPoint) => {
+                    let dataValue = await this.dataFrame.getAt(aPoint);
+                    let translation = new Point([
+                        aPoint.x - this.dataOffset.x,
+                        aPoint.y,
+                    ]);
+                    let element = this.elementAt(translation);
                     if (dataValue != undefined) {
                         this.setTextContentAt(
                             translation,
@@ -248,8 +221,47 @@ class PrimaryGridFrame extends GridElementsFrame {
                     }
                     element.setAttribute("data-relative-x", aPoint.x);
                     element.setAttribute("data-relative-y", aPoint.y);
-                }
-            });
+                })
+            );
+        }
+    }
+
+    /**
+     * I update the data-relative values and
+     * element data attributes for each of my td
+     * elements that appears within the locked
+     * columns frame.
+     */
+    async updateLockedColumnElements() {
+        if (this.numLockedColumns) {
+            let relativeColumns = this.relativeLockedColumnsFrame;
+            let offset = new Point([
+                0,
+                relativeColumns.origin.y -
+                    (this.lockedColumnsFrame.origin.y + this.numLockedRows),
+            ]);
+            await Promise.all(
+                relativeColumns.points.map(async (aPoint) => {
+                    let dataValue = await this.dataFrame.getAt(aPoint);
+                    let translation = new Point([
+                        aPoint.x,
+                        aPoint.y - offset.y,
+                    ]);
+                    let element = this.elementAt(translation);
+                    if (element !== null) {
+                        if (dataValue != undefined) {
+                            this.setTextContentAt(
+                                translation,
+                                dataValue.toString()
+                            );
+                        } else {
+                            this.setTextContentAt(translation, "...");
+                        }
+                        element.setAttribute("data-relative-x", aPoint.x);
+                        element.setAttribute("data-relative-y", aPoint.y);
+                    }
+                })
+            );
         }
     }
 
@@ -258,29 +270,31 @@ class PrimaryGridFrame extends GridElementsFrame {
      * element data attributes for each of my td
      * elements that appears within my viewFrame.
      */
-    updateViewElements() {
+    async updateViewElements() {
         let offset = new Point([
             this.relativeViewFrame.origin.x - this.viewFrame.origin.x,
             this.relativeViewFrame.origin.y - this.viewFrame.origin.y,
         ]);
-        this.relativeViewFrame.forEachPoint((aPoint) => {
-            let value = this.dataFrame.getAt(aPoint);
-            let translation = new Point([
-                aPoint.x - offset.x,
-                aPoint.y - offset.y,
-            ]);
-            let element = this.elementAt(translation);
+        await Promise.all(
+            this.relativeViewFrame.points.map(async (aPoint) => {
+                let value = await this.dataFrame.getAt(aPoint);
+                let translation = new Point([
+                    aPoint.x - offset.x,
+                    aPoint.y - offset.y,
+                ]);
+                let element = this.elementAt(translation);
 
-            if (element !== null) {
-                if (value != undefined) {
-                    this.setTextContentAt(translation, value.toString());
-                } else {
-                    this.setTextContentAt(translation, "...");
+                if (element !== null) {
+                    if (value != undefined) {
+                        this.setTextContentAt(translation, value.toString());
+                    } else {
+                        this.setTextContentAt(translation, "...");
+                    }
+                    element.setAttribute("data-relative-x", aPoint.x);
+                    element.setAttribute("data-relative-y", aPoint.y);
                 }
-                element.setAttribute("data-relative-x", aPoint.x);
-                element.setAttribute("data-relative-y", aPoint.y);
-            }
-        });
+            })
+        );
     }
 
     /**
@@ -325,7 +339,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @param {number} amount - The number of Points to
      * shift right by over the underlying dataFrame
      */
-    shiftRightBy(amount) {
+    async shiftRightBy(amount) {
         let nextX = this.dataOffset.x + amount;
         let nextRight = nextX + (this.viewFrame.size.x + this.numLockedColumns);
         if (nextRight >= this.dataFrame.right) {
@@ -334,7 +348,7 @@ class PrimaryGridFrame extends GridElementsFrame {
                 (this.numLockedColumns + this.viewFrame.size.x);
         }
         this.dataOffset.x = nextX;
-        this.updateCellContents();
+        await this.updateCellContents();
         this.triggerAfterShift();
     }
 
@@ -351,13 +365,13 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @param {number} amount - The number of Points to
      * shift left by over the underlying dataFrame
      */
-    shiftLeftBy(amount) {
+    async shiftLeftBy(amount) {
         let nextX = this.dataOffset.x - amount;
         if (nextX < this.viewFrame.left) {
             nextX = 0;
         }
         this.dataOffset.x = nextX;
-        this.updateCellContents();
+        await this.updateCellContents();
         this.triggerAfterShift();
     }
 
@@ -374,7 +388,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @param {number} amount - The number of Points to
      * shift down by over the underlying dataFrame
      */
-    shiftDownBy(amount, debug = false) {
+    async shiftDownBy(amount, debug = false) {
         let nextY = this.dataOffset.y + amount;
         let nextBottom = nextY + (this.viewFrame.size.y + this.numLockedRows);
         if (nextBottom >= this.dataFrame.bottom) {
@@ -383,7 +397,7 @@ class PrimaryGridFrame extends GridElementsFrame {
                 (this.numLockedRows + this.viewFrame.size.y);
         }
         this.dataOffset.y = nextY;
-        this.updateCellContents();
+        await this.updateCellContents();
         this.triggerAfterShift();
     }
 
@@ -400,13 +414,13 @@ class PrimaryGridFrame extends GridElementsFrame {
      * @param {number} amount - The number of Points to
      * shift up by over the underlying dataFrame
      */
-    shiftUpBy(amount) {
+    async shiftUpBy(amount) {
         let nextY = this.dataOffset.y - amount;
         if (nextY < this.viewFrame.top) {
             nextY = 0;
         }
         this.dataOffset.y = nextY;
-        this.updateCellContents();
+        await this.updateCellContents();
         this.triggerAfterShift();
     }
 
@@ -414,36 +428,36 @@ class PrimaryGridFrame extends GridElementsFrame {
      * I trigger a `shiftRightBy` call with
      * an amount equivalent to my own total width
      */
-    pageRight() {
+    async pageRight() {
         let amount = this.relativeViewFrame.size.x;
-        this.shiftRightBy(amount);
+        await this.shiftRightBy(amount);
     }
 
     /**
      * I trigger a `shiftLeftBy` call with
      * an amount equivalent to my own total width
      */
-    pageLeft() {
+    async pageLeft() {
         let amount = this.relativeViewFrame.size.x;
-        this.shiftLeftBy(amount);
+        await this.shiftLeftBy(amount);
     }
 
     /**
      * I trigger a `shiftUpBy` call with
      * an amount equivalent to my own total height
      */
-    pageUp() {
+    async pageUp() {
         let amount = this.relativeViewFrame.size.y;
-        this.shiftUpBy(amount);
+        await this.shiftUpBy(amount);
     }
 
     /**
      * I trigger a `shiftDownBy` call with
      * an amount equivalent to my own total height
      */
-    pageDown() {
+    async pageDown() {
         let amount = this.relativeViewFrame.size.y;
-        this.shiftDownBy(amount);
+        await this.shiftDownBy(amount);
     }
 
     /**
