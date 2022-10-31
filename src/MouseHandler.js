@@ -27,6 +27,7 @@ class MouseHandler extends Object {
         this.onCellLeave = this.onCellLeave.bind(this);
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onMouseUp = this.onMouseUp.bind(this);
+        this.onMouseWheel = this.onMouseWheel.bind(this);
         // this.onClick = this.onClick.bind(this);
         this.onDoubleClick = this.onDoubleClick.bind(this);
         this.connect = this.connect.bind(this);
@@ -38,6 +39,7 @@ class MouseHandler extends Object {
         this.sheet.addEventListener("mousedown", this.onMouseDown);
         this.sheet.addEventListener("mouseup", this.onMouseUp);
         this.sheet.addEventListener("dblclick", this.onDoubleClick);
+        this.sheet.addEventListener("wheel", this.onMouseWheel);
     }
 
     removeAllListeners() {
@@ -45,6 +47,7 @@ class MouseHandler extends Object {
         this.sheet.removeEventListener("mousedown", this.onMouseDown);
         this.sheet.removeEventListener("mouseup", this.onMouseUp);
         this.sheet.removeEventListener("dblclick", this.onDoubleClick);
+        this.sheet.removeEventListener("wheel", this.onMouseWheel);
     }
 
     onMouseDown(event) {
@@ -80,6 +83,31 @@ class MouseHandler extends Object {
         if (event.target.isCell) {
             this.sheet.selector.setCursorToElement(event.target);
             this.sheet.selector.setAnchorToElement(event.target);
+            this.sheet.dispatchSelectionChanged();
+        }
+    }
+
+    onMouseWheel(event){
+        event.stopPropagation();
+        // NOTE: we use wheelDelta here b/c we don't differentiate between
+        // Y and X movements. Morevover, the shift key seems to flip Y and X
+        if (event.wheelDelta < 0) {
+            if (event.ctrlKey) {
+                this.sheet.selector.moveToBottomEnd(event.shiftKey);
+            } else {
+                this.sheet.selector.moveDownBy(1, event.shiftKey);
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            this.sheet.dispatchSelectionChanged();
+        } else if (event.wheelDelta > 0) {
+            if (event.ctrlKey) {
+                this.sheet.selector.moveToTopEnd(event.shiftKey);
+            } else {
+                this.sheet.selector.moveUpBy(1, event.shiftKey);
+            }
+            event.preventDefault();
+            event.stopPropagation();
             this.sheet.dispatchSelectionChanged();
         }
     }
