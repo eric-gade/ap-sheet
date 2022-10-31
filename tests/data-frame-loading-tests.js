@@ -27,6 +27,21 @@ assert.pointsEqual = function (firstPoint, secondPoint, msg) {
 };
 
 describe("DataFrame data tests", () => {
+    describe.skip("Basic loadFromArray tests", () => {
+        describe("2x3 Source Array", () => {
+            let sourceArray = [
+                [1, 2, 3],
+                [4, 5, 6],
+            ];
+            let dataFrame = new DataFrame([0, 0], [99, 99]);
+            before(async () => {
+                await dataFrame.loadFromArray(sourceArray);
+            });
+            it("Has the correct size", () => {
+                assert.isFalse(true);
+            });
+        });
+    });
     describe("Projecting total source frame to dest frame", () => {
         let sourceFrame = new DataFrame([0, 0], [1000, 1000]);
         sourceFrame.forEachPoint((aPoint) => {
@@ -38,8 +53,8 @@ describe("DataFrame data tests", () => {
         it("Can output array data of correct size", () => {
             let arrayData = sourceFrame.getDataArrayForFrame(desiredSubframe);
 
-            assert.equal(arrayData.length, desiredSubframe.size.y + 1);
-            assert.equal(arrayData[0].length, desiredSubframe.size.x + 1);
+            assert.equal(arrayData.length, desiredSubframe.size.y);
+            assert.equal(arrayData[0].length, desiredSubframe.size.x);
         });
 
         it("Can load the arrayed data correctly into the dest data frame", () => {

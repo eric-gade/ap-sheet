@@ -93,7 +93,7 @@ describe("PrimaryFrame Shifting with no locked cols or rows", () => {
          */
         let primaryFrame = new PrimaryFrame(exampleDataFrame, [6, 3]);
         let expectedA = new Point([
-            exampleDataFrame.corner.x - primaryFrame.viewFrame.size.x,
+            exampleDataFrame.corner.x - (primaryFrame.viewFrame.size.x - 1),
             0,
         ]);
         let expectedB = exampleDataFrame.topRight;
@@ -281,11 +281,11 @@ describe("PrimaryFrame Shifting with no locked cols or rows", () => {
 
         let expectedA = new Point([
             1,
-            exampleDataFrame.bottom - primaryFrame.viewFrame.size.y,
+            exampleDataFrame.bottom - (primaryFrame.viewFrame.size.y - 1),
         ]);
         let expectedB = new Point([
             7,
-            exampleDataFrame.bottom - primaryFrame.viewFrame.size.y,
+            exampleDataFrame.bottom - (primaryFrame.viewFrame.size.y - 1),
         ]);
         let expectedC = new Point([1, exampleDataFrame.bottom]);
         let expectedE = new Point([7, exampleDataFrame.bottom]);
@@ -429,7 +429,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
         let expectedViewOrigin = new Point([0, 2]);
         let expectedRowsCorner = new Point([6, 1]);
         let expectedViewCorner = new Point([6, 3]);
-        let expectedViewFrameSize = new Point([6, 1]);
+        let expectedViewFrameSize = new Point([7, 2]);
 
         assert.pointsEqual(relLockedRows.origin, expectedRowsOrigin);
         assert.pointsEqual(relLockedRows.corner, expectedRowsCorner);
@@ -560,7 +560,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
         it("Has the correct origin and corner for the relative view frame", () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOrigin = new Point([
-                primaryFrame.dataFrame.right - relativeView.size.x,
+                primaryFrame.dataFrame.right - (relativeView.size.x - 1),
                 2,
             ]);
             let expectedCorner = new Point([primaryFrame.dataFrame.right, 3]);
@@ -572,7 +572,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
         it("Has the correct origin and corner for the relative locked rows frame", () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOrigin = new Point([
-                primaryFrame.dataFrame.right - relativeRows.size.x,
+                primaryFrame.dataFrame.right - (relativeRows.size.x - 1),
                 0,
             ]);
             let expectedCorner = new Point([primaryFrame.dataFrame.right, 1]);
@@ -602,7 +602,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
         it("Has the correct data from dataFrame at relative locked rows corners", () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOriginData = new Point([
-                primaryFrame.dataFrame.right - relativeRows.size.x,
+                primaryFrame.dataFrame.right - (relativeRows.size.x - 1),
                 0,
             ]);
             let expectedCornerData = new Point([
@@ -655,7 +655,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
         it("Has correct origin and corner for relative view frame", () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOrigin = new Point([
-                primaryFrame.dataFrame.right - relativeView.size.x - 1,
+                primaryFrame.dataFrame.right - relativeView.size.x,
                 2,
             ]);
             let expectedCorner = new Point([
@@ -670,7 +670,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
         it("Has correct origin and corner for relative locked rows frame", () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOrigin = new Point([
-                primaryFrame.dataFrame.right - relativeRows.size.x - 1,
+                primaryFrame.dataFrame.right - relativeRows.size.x,
                 0,
             ]);
             let expectedCorner = new Point([
@@ -685,7 +685,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
         it("Has correct data from dataFrame at relative view corners", () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([
-                primaryFrame.dataFrame.right - relativeView.size.x - 1,
+                primaryFrame.dataFrame.right - relativeView.size.x,
                 2,
             ]);
             let expectedCornerData = new Point([
@@ -706,7 +706,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
         it("Has correct data from dataFrame at relative rows frame corners", () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOriginData = new Point([
-                primaryFrame.dataFrame.right - relativeRows.size.x - 1,
+                primaryFrame.dataFrame.right - relativeRows.size.x,
                 0,
             ]);
             let expectedCornerData = new Point([
@@ -922,7 +922,8 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
 
         it("Has the correct dataOffset", () => {
             let totalRows =
-                primaryFrame.numLockedRows + primaryFrame.viewFrame.size.y;
+                primaryFrame.numLockedRows +
+                (primaryFrame.viewFrame.size.y - 1);
             let yOffset = primaryFrame.dataFrame.bottom - totalRows;
             let expectedOffset = new Point([0, yOffset]);
             assert.pointsEqual(primaryFrame.dataOffset, expectedOffset);
@@ -932,10 +933,11 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOrigin = new Point([
                 0,
-                primaryFrame.dataFrame.bottom - primaryFrame.viewFrame.size.y,
+                primaryFrame.dataFrame.bottom -
+                    (primaryFrame.viewFrame.size.y - 1),
             ]);
             let expectedCorner = new Point([
-                primaryFrame.viewFrame.size.x,
+                primaryFrame.viewFrame.size.x - 1,
                 primaryFrame.dataFrame.bottom,
             ]);
 
@@ -946,7 +948,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
         it("Has the correct origin and corner for the relative locked rows", () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOrigin = new Point([0, 0]);
-            let expectedCorner = new Point([primaryFrame.size.x, 1]);
+            let expectedCorner = new Point([primaryFrame.size.x - 1, 1]);
 
             assert.pointsEqual(relativeRows.origin, expectedOrigin);
             assert.pointsEqual(relativeRows.corner, expectedCorner);
@@ -956,10 +958,11 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
             let relativeView = primaryFrame.relativeViewFrame;
             let expectedOriginData = new Point([
                 0,
-                primaryFrame.dataFrame.bottom - primaryFrame.viewFrame.size.y,
+                primaryFrame.dataFrame.bottom -
+                    (primaryFrame.viewFrame.size.y - 1),
             ]);
             let expectedCornerData = new Point([
-                primaryFrame.viewFrame.size.x,
+                primaryFrame.viewFrame.size.x - 1,
                 primaryFrame.dataFrame.bottom,
             ]);
             let actualOriginData = primaryFrame.dataFrame.getAt(
@@ -976,7 +979,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
         it("Has the correct data from dataFrame at relative locked rows corners", () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOriginData = new Point([0, 0]);
-            let expectedCornerData = new Point([primaryFrame.size.x, 1]);
+            let expectedCornerData = new Point([primaryFrame.size.x - 1, 1]);
             let actualOriginData = primaryFrame.dataFrame.getAt(
                 relativeRows.origin
             );
@@ -1027,7 +1030,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
                 primaryFrame.dataFrame.bottom - 2,
             ]);
             let expectedCorner = new Point([
-                primaryFrame.size.x,
+                primaryFrame.size.x - 1,
                 primaryFrame.dataFrame.bottom - 1,
             ]);
 
@@ -1038,7 +1041,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
         it("Has the correct origin and corner for the relative locked rows", () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOrigin = new Point([0, 0]);
-            let expectedCorner = new Point([primaryFrame.size.x, 1]);
+            let expectedCorner = new Point([primaryFrame.size.x - 1, 1]);
 
             assert.pointsEqual(relativeRows.origin, expectedOrigin);
             assert.pointsEqual(relativeRows.corner, expectedCorner);
@@ -1051,7 +1054,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
                 primaryFrame.dataFrame.bottom - 2,
             ]);
             let expectedCornerData = new Point([
-                primaryFrame.size.x,
+                primaryFrame.size.x - 1,
                 primaryFrame.dataFrame.bottom - 1,
             ]);
             let actualOriginData = primaryFrame.dataFrame.getAt(
@@ -1068,7 +1071,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
         it("Has the correct data from dataFrame at relative locked rows corners", () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOriginData = new Point([0, 0]);
-            let expectedCornerData = new Point([primaryFrame.size.x, 1]);
+            let expectedCornerData = new Point([primaryFrame.size.x - 1, 1]);
             let actualOriginData = primaryFrame.dataFrame.getAt(
                 relativeRows.origin
             );
@@ -1131,7 +1134,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
         it("Has the correct origin and corner for the relative locked rows", () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOrigin = new Point([0, 0]);
-            let expectedCorner = new Point([primaryFrame.size.x, 1]);
+            let expectedCorner = new Point([primaryFrame.size.x - 1, 1]);
 
             assert.pointsEqual(relativeRows.origin, expectedOrigin);
             assert.pointsEqual(relativeRows.corner, expectedCorner);
@@ -1155,7 +1158,7 @@ describe("PrimaryFrame Shifting with 2 locked rows", () => {
         it("Has the correct data from dataFrame for the relative locked rows corners", () => {
             let relativeRows = primaryFrame.relativeLockedRowsFrame;
             let expectedOriginData = new Point([0, 0]);
-            let expectedCornerData = new Point([primaryFrame.size.x, 1]);
+            let expectedCornerData = new Point([primaryFrame.size.x - 1, 1]);
             let actualOriginData = primaryFrame.dataFrame.getAt(
                 relativeRows.origin
             );
