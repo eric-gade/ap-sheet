@@ -99,9 +99,9 @@ class SelectionElement extends HTMLElement {
         //let frame = this.viewFrame.intersection(this.relativeFrame);
         let frame = this.viewFrame;
         this.style.setProperty("--col-start", frame.origin.x + 1);
-        this.style.setProperty("--col-end", frame.size.x + 1);
+        this.style.setProperty("--col-end", frame.size.x);
         this.style.setProperty("--row-start", frame.origin.y + 1);
-        this.style.setProperty("--row-end", frame.size.y + 1);
+        this.style.setProperty("--row-end", frame.size.y);
     }
 
     updateFromViewFrame(aFrame) {
