@@ -195,21 +195,30 @@ class DataFrame extends Frame {
             this.corner = unionFrame.corner;
             wasResized = true;
         }
-        await Promise.all(
-            data.map((row, y) => {
-                return row.map(async (value, x) => {
-                    let adjustedCoord = [
-                        x + comparisonFrame.origin.x,
-                        y + comparisonFrame.origin.y,
-                    ];
-                    this.putAt(adjustedCoord, value, false, false);
-                    return await this.asyncPutAt(adjustedCoord, value, false);
-                });
-            })
-        );
+
+        // Iterate over each row and value, calling putAt
+        // without the async or notify callbacks.
+        for (let y = 0; y < data.length; y++) {
+            let row = data[y];
+            for (let x = 0; x < row.length; x++) {
+                let value = row[x];
+                let adjustedCoord = [
+                    x + comparisonFrame.origin.x,
+                    y + comparisonFrame.origin.y,
+                ];
+                this.putAt(adjustedCoord, value, false, false);
+            }
+        }
+
+        // TODO:
+        // Asynchronously pass the updated data matrix
+        // to whatever async backend is needed
+
         if (notify) {
             this.notify(comparisonFrame, wasResized);
         }
+
+        return true;
     }
 
     /**
@@ -227,16 +236,19 @@ class DataFrame extends Frame {
         }
         let result = await Promise.all(
             aFrame.mapEachCoordinateRow(async (row) => {
-                return await row.map(async (coordinates) => {
-                    let cachedVal = this.getAt(coordinates, false, false);
-                    if (cachedVal === undefined) {
-                        cachedVal = await this.asyncGetAt(
-                            coordinates,
-                            false,
-                            false
-                        );
-                    }
-                });
+                return await Promise.all(
+                    row.map(async (coordinates) => {
+                        let cachedVal = this.getAt(coordinates, false, false);
+                        if (cachedVal === undefined) {
+                            cachedVal = await this.asyncGetAt(
+                                coordinates,
+                                false,
+                                false
+                            );
+                        }
+                        return cachedVal;
+                    })
+                );
             })
         );
         return result;
@@ -248,7 +260,10 @@ class DataFrame extends Frame {
      */
     async getDataSubFrame(origin, corner) {
         const subframe = new DataFrame(origin, corner);
-        return await this.getDataArrayForFrame(subframe);
+        await subframe.loadFromArray(
+            await this.getDataArrayForFrame(subframe),
+            origin
+        );
         return subframe;
     }
 
@@ -336,14 +351,14 @@ class DataFrame extends Frame {
      * "fit" ie if the intersection of frame with this DataFrame
      * does not contain the frame then I throw an error.
      **/
-    copyFrom(frame, origin = [0, 0]) {
+    async copyFrom(frame, origin = [0, 0]) {
         if (!(frame instanceof DataFrame)) {
             throw "You must pass in a data frame to copy from";
         }
         if (!this.intersection(frame).contains(frame)) {
             throw "DataFrame too small to copy from frame at origin";
         }
-        this.loadFromArray(frame.toArray(), (origin = origin));
+        await this.loadFromArray(await frame.toArray(), (origin = origin));
     }
 
     /**

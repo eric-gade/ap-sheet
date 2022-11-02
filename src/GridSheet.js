@@ -153,7 +153,7 @@ class GridSheet extends HTMLElement {
         this.customRows = {};
 
         // Set up the internal frames
-        this.dataFrame = new DataFrame([0, 0], [1000, 1000]);
+        this.dataFrame = new DataFrame([0, 0], [26 * 2, 100]);
         let initialData = this.dataFrame.mapEachPointRow((row) => {
             return row.map((point) => {
                 return `${point.x}, ${point.y}`;
