@@ -107,8 +107,8 @@ describe("DataFrame Generic Tests", () => {
         sourceFrame.putAt([4, 1], "TEST");
         sourceFrame.putAt([2, 3], "TEST");
         let dataArray = sourceFrame.toArray();
-        let expectedRowLength = sourceFrame.size.y + 1;
-        let expectedColumnLength = sourceFrame.size.x + 1;
+        let expectedRowLength = sourceFrame.size.y;
+        let expectedColumnLength = sourceFrame.size.x;
         assert.equal(dataArray[0].length, expectedRowLength);
         assert.equal(dataArray.length, expectedColumnLength);
     });

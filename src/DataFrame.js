@@ -120,9 +120,9 @@ class DataFrame extends Frame {
             // need to check if this simply an extension of the DF, ie
             // we are adding rows or columns
             // Note: appending must continue the row/columns, ie no jumps
-            const appendRows = origin.x == 0 && (origin.y - 1) == this.size.y;
-            const appendColumns = origin.y == 0 && (origin.x - 1) == this.size.x;
-            if(!appendRows && !appendColumns){
+            const appendRows = origin.x == 0 && origin.y == this.size.y;
+            const appendColumns = origin.y == 0 && origin.x == this.size.x;
+            if (!appendRows && !appendColumns) {
                 throw `${origin} not contained in this DataFrame and is not an append of rows or columns`;
             }
         }

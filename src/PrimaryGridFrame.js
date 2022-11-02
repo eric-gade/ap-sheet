@@ -327,11 +327,12 @@ class PrimaryGridFrame extends GridElementsFrame {
      */
     shiftRightBy(amount) {
         let nextX = this.dataOffset.x + amount;
-        let nextRight = nextX + (this.viewFrame.size.x + this.numLockedColumns);
+        let nextRight =
+            nextX + (this.viewFrame.size.x - 1 + this.numLockedColumns);
         if (nextRight >= this.dataFrame.right) {
             nextX =
                 this.dataFrame.right -
-                (this.numLockedColumns + this.viewFrame.size.x);
+                (this.numLockedColumns + (this.viewFrame.size.x - 1));
         }
         this.dataOffset.x = nextX;
         this.updateCellContents();
@@ -376,11 +377,12 @@ class PrimaryGridFrame extends GridElementsFrame {
      */
     shiftDownBy(amount, debug = false) {
         let nextY = this.dataOffset.y + amount;
-        let nextBottom = nextY + (this.viewFrame.size.y + this.numLockedRows);
+        let nextBottom =
+            nextY + (this.viewFrame.size.y - 1 + this.numLockedRows);
         if (nextBottom >= this.dataFrame.bottom) {
             nextY =
                 this.dataFrame.bottom -
-                (this.numLockedRows + this.viewFrame.size.y);
+                (this.numLockedRows + (this.viewFrame.size.y - 1));
         }
         this.dataOffset.y = nextY;
         this.updateCellContents();
@@ -415,7 +417,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * an amount equivalent to my own total width
      */
     pageRight() {
-        let amount = this.relativeViewFrame.size.x;
+        let amount = this.relativeViewFrame.size.x - 1;
         this.shiftRightBy(amount);
     }
 
@@ -424,7 +426,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * an amount equivalent to my own total width
      */
     pageLeft() {
-        let amount = this.relativeViewFrame.size.x;
+        let amount = this.relativeViewFrame.size.x - 1;
         this.shiftLeftBy(amount);
     }
 
@@ -433,7 +435,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * an amount equivalent to my own total height
      */
     pageUp() {
-        let amount = this.relativeViewFrame.size.y;
+        let amount = this.relativeViewFrame.size.y - 1;
         this.shiftUpBy(amount);
     }
 
@@ -442,7 +444,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * an amount equivalent to my own total height
      */
     pageDown() {
-        let amount = this.relativeViewFrame.size.y;
+        let amount = this.relativeViewFrame.size.y - 1;
         this.shiftDownBy(amount);
     }
 
