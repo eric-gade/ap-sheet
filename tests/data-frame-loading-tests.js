@@ -50,16 +50,20 @@ describe("DataFrame data tests", () => {
         let destFrame = new DataFrame([0, 0], [2000, 2000]);
         let desiredSubframe = new Frame([50, 30], [100, 100]);
 
-        it("Can output array data of correct size", () => {
-            let arrayData = sourceFrame.getDataArrayForFrame(desiredSubframe);
+        it("Can output array data of correct size", async () => {
+            let arrayData = await sourceFrame.getDataArrayForFrame(
+                desiredSubframe
+            );
 
             assert.equal(arrayData.length, desiredSubframe.size.y);
             assert.equal(arrayData[0].length, desiredSubframe.size.x);
         });
 
-        it("Can load the arrayed data correctly into the dest data frame", () => {
-            let arrayData = sourceFrame.getDataArrayForFrame(desiredSubframe);
-            destFrame.loadFromArray(arrayData, desiredSubframe.origin);
+        it("Can load the arrayed data correctly into the dest data frame", async () => {
+            let arrayData = await sourceFrame.getDataArrayForFrame(
+                desiredSubframe
+            );
+            await destFrame.loadFromArray(arrayData, desiredSubframe.origin);
 
             assert.pointsEqual(
                 sourceFrame.getAt(desiredSubframe.origin),
@@ -73,52 +77,54 @@ describe("DataFrame data tests", () => {
         });
     });
     describe("copy one frame into another", () => {
-        let sourceFrame = new DataFrame([10, 10], [12, 12]);
-        sourceFrame.putAt([10, 10], "TEST_1010");
-        sourceFrame.putAt([10, 11], "TEST_1010");
-        sourceFrame.putAt([11, 10], "TEST_1110");
-        sourceFrame.putAt([11, 11], "TEST_1111");
-        it("target frame has the correct value", () => {
+        let sourceFrame;
+        before(() => {
+            sourceFrame = new DataFrame([10, 10], [12, 12]);
+            sourceFrame.putAt([10, 10], "TEST_1010");
+            sourceFrame.putAt([10, 11], "TEST_1010");
+            sourceFrame.putAt([11, 10], "TEST_1110");
+            sourceFrame.putAt([11, 11], "TEST_1111");
+        });
+        it("target frame has the correct value", async () => {
             const targetFrame = new DataFrame([0, 0], [100, 100]);
             const expectedFrame = new DataFrame([0, 0], [100, 100]);
             expectedFrame.putAt([5, 5], "TEST_1010");
             expectedFrame.putAt([5, 6], "TEST_1010");
             expectedFrame.putAt([6, 5], "TEST_1110");
             expectedFrame.putAt([6, 6], "TEST_1111");
-            targetFrame.copyFrom(sourceFrame, [5, 5]);
+            await targetFrame.copyFrom(sourceFrame, [5, 5]);
             assert.deepEqual(expectedFrame.store, targetFrame.store);
         });
-        it("target frame has the correct value with default copy from origin", () => {
+        it("target frame has the correct value with default copy from origin", async () => {
             const targetFrame = new DataFrame([0, 0], [100, 100]);
             const expectedFrame = new DataFrame([0, 0], [100, 100]);
             expectedFrame.putAt([0, 0], "TEST_1010");
             expectedFrame.putAt([0, 1], "TEST_1010");
             expectedFrame.putAt([1, 0], "TEST_1110");
             expectedFrame.putAt([1, 1], "TEST_1111");
-            targetFrame.copyFrom(sourceFrame);
+            await targetFrame.copyFrom(sourceFrame);
             assert.deepEqual(expectedFrame.store, targetFrame.store);
         });
-        it("target will throw error if too small to accept copy", () => {
+        it("target will throw error if too small to accept copy", async () => {
             const targetFrame = new DataFrame([0, 0], [10, 10]);
-            expect(() => {
-                targetFrame.copyFrom(sourceFrame, [5, 5]);
-            }).to.throw();
+            expect(await targetFrame.copyFrom(sourceFrame, [5, 5])).to.throw();
         });
-        it("source must be a data frame", () => {
+        it("source must be a data frame", async () => {
             const targetFrame = new DataFrame([0, 0], [10, 10]);
-            expect(() => {
-                targetFrame.copyFrom([1, 2, 3]);
-            }).to.throw();
+            expect(await targetFrame.copyFrom([1, 2, 3])).to.throw();
         });
     });
     describe("Sub-DataFrame", () => {
-        const frame = new DataFrame([0, 0], [1000, 1000]);
-        frame.putAt([10, 10], "TEST_1010");
-        frame.putAt([10, 11], "TEST_1010");
-        frame.putAt([11, 10], "TEST_1110");
-        frame.putAt([11, 11], "TEST_1111");
-        it("Sub-DataFrame has the correct frame and store", () => {
-            const subframe = frame.getDataSubFrame([10, 10], [20, 20]);
+        let frame;
+        before(() => {
+            frame = new DataFrame([0, 0], [1000, 1000]);
+            frame.putAt([10, 10], "TEST_1010");
+            frame.putAt([10, 11], "TEST_1010");
+            frame.putAt([11, 10], "TEST_1110");
+            frame.putAt([11, 11], "TEST_1111");
+        });
+        it("Sub-DataFrame has the correct frame and store", async () => {
+            const subframe = await frame.getDataSubFrame([10, 10], [20, 20]);
             const expected = new DataFrame([10, 10], [20, 20]);
             expected.putAt([10, 10], "TEST_1010");
             expected.putAt([10, 11], "TEST_1010");
@@ -127,13 +133,13 @@ describe("DataFrame data tests", () => {
             assert.isTrue(expected.equals(subframe));
             assert.deepEqual(expected.store, subframe.store);
         });
-        it("Both origin and corner must be in frame to get Sub-DataFrame", () => {
-            expect(() => {
-                frame.getDataSubFrame([10, 10], [2000, 20]);
-            }).to.throw();
-            expect(() => {
-                frame.getDataSubFrame([2000, 10], [2000, 20]);
-            }).to.throw();
+        it("Both origin and corner must be in frame to get Sub-DataFrame", async () => {
+            expect(
+                await frame.getDataSubFrame([10, 10], [2000, 20])
+            ).to.throw();
+            expect(
+                await frame.getDataSubFrame([2000, 10], [2000, 20])
+            ).to.throw();
         });
     });
     describe("Operators", () => {
