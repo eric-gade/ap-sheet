@@ -308,6 +308,10 @@ class GridSheet extends HTMLElement {
         if (this.numRows <= 0) {
             this.numRows = 1;
         }
+        const size = this.dataFrame.size;
+        if (this.numRows > size.x) {
+            this.dataFrame.corner += (this.numRows - size.x);
+        }
         this.render();
     }
 
@@ -322,6 +326,10 @@ class GridSheet extends HTMLElement {
     updateNumColumns() {
         if (this.numColumns <= 0) {
             this.numColumns = 1;
+        }
+        const size = this.dataFrame.size;
+        if (this.numColumns > size.y) {
+            this.dataFrame.corner += (this.numColumns - size.y);
         }
         this.render();
     }
