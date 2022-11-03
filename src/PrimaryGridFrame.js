@@ -264,7 +264,16 @@ class PrimaryGridFrame extends GridElementsFrame {
             this.relativeViewFrame.origin.y - this.viewFrame.origin.y,
         ]);
         this.relativeViewFrame.forEachPoint((aPoint) => {
-            let value = this.dataFrame.getAt(aPoint);
+            let value;
+            try {
+                value = this.dataFrame.getAt(aPoint);
+            } catch (err) {
+                if (err.name == "CoordinateError"){
+                    value = undefined;
+                } else {
+                    throw err;
+                }
+            }
             let translation = new Point([
                 aPoint.x - offset.x,
                 aPoint.y - offset.y,

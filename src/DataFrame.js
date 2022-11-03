@@ -7,6 +7,16 @@
 import Frame from "./Frame.js";
 import { Point, isCoordinate } from "./Point.js";
 
+
+class CoordinateError extends Error {
+    constructor(message, options) {
+        super(message, options);
+
+        this.name = "CoordinateError";
+    }
+}
+
+
 class DataFrame extends Frame {
     constructor(...args) {
         super(...args);
@@ -83,12 +93,12 @@ class DataFrame extends Frame {
         let key;
         if (isCoordinate(location)) {
             if (!this.contains(location)) {
-                throw `${location} outside of DataFrame`;
+                throw new CoordinateError(`${location} outside of DataFrame`);
             }
             key = location.toString();
         } else if (location.isPoint) {
             if (!this.contains(location)) {
-                throw `${location} outside of DataFrame`;
+                throw new CoordinateError(`${location} outside of DataFrame`);
             }
             key = `${location.x},${location.y}`;
         } else {
