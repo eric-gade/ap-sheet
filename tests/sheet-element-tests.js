@@ -19,20 +19,25 @@ describe("GridSheet Element Tests", () => {
             gridElement.removeEventListener("data-frame-resized", handler);
             gridElement.remove();
         });
-        it("sheet element dataFrame has callback attached", () => {
-            assert.exists(gridElement.dataFrame.callback);
+        it("DataFrame has the sheet as a subscriber", () => {
+            expect(gridElement.dataFrame.subscribers).to.include(gridElement);
         });
-        it("updates the dataFrame to a larger size, as needed", () => {
-            const newData = new DataFrame(
+        it("updates the dataFrame to a larger size, as needed", async () => {
+            const newFrame = new DataFrame(
                 [0, 0],
                 [
                     gridElement.dataFrame.corner.x + 10,
                     gridElement.dataFrame.corner.y + 15,
                 ]
-            ).toArray();
-            gridElement.dataFrame.loadFromArray(newData);
-            assert.equal(gridElement.dataFrame.corner.x, 1010);
-            assert.equal(gridElement.dataFrame.corner.y, 1015);
+            );
+            const newData = await newFrame.toArray();
+            await gridElement.dataFrame.loadFromArray(newData);
+            // await new Promise((resolve) => {
+            //     setTimeout(resolve, 1000);
+            // });
+            assert.isTrue(handler.calledOnce);
+            assert.equal(gridElement.dataFrame.corner.x, 62);
+            assert.equal(gridElement.dataFrame.corner.y, 115);
         });
         it("calls the handler when loaded data expands the dataFrame", () => {
             assert.isTrue(handler.calledOnce);
