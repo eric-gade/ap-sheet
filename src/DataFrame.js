@@ -52,7 +52,7 @@ class DataFrame extends Frame {
     notify(...args) {
         this.subscribers.forEach((subscriber) => {
             if (subscriber.onDataChanged) {
-                this.subscriber.onDataChanged(...args);
+                subscriber.onDataChanged(...args);
             }
         });
     }
@@ -79,7 +79,7 @@ class DataFrame extends Frame {
             y = location[1];
             key = location.toString();
         } else {
-            throw "Invalid Point or Coordinate";
+            throw new Error("Invalid Point or Coordinate");
         }
 
         // We do not actually store undefined
@@ -125,16 +125,16 @@ class DataFrame extends Frame {
         let key;
         if (isCoordinate(location)) {
             if (!this.contains(location)) {
-                throw `${location} outside of DataFrame`;
+                throw new Error(`${location} outside of DataFrame`);
             }
             key = location.toString();
         } else if (location.isPoint) {
             if (!this.contains(location)) {
-                throw `${location} outside of DataFrame`;
+                throw new Error(`${location} outside of DataFrame`);
             }
             key = `${location.x},${location.y}`;
         } else {
-            throw "Invalid Point or Coordinate";
+            throw new Error("Invalid Point or Coordinate");
         }
         if (this.store[key] === undefined && checkAsync) {
             this.asyncGetAt(location);
@@ -181,7 +181,9 @@ class DataFrame extends Frame {
             const appendRows = origin.x == 0 && origin.y == this.size.y;
             const appendColumns = origin.y == 0 && origin.x == this.size.x;
             if (!appendRows && !appendColumns) {
-                throw `${origin} not contained in this DataFrame and is not an append of rows or columns`;
+                throw new Error(
+                    `${origin} not contained in this DataFrame and is not an append of rows or columns`
+                );
             }
         }
         let wasResized = false;
@@ -232,7 +234,7 @@ class DataFrame extends Frame {
      */
     async getDataArrayForFrame(aFrame) {
         if (!this.contains(aFrame)) {
-            throw `Frame is not contained within DataFrame!`;
+            throw new Error(`Frame is not contained within DataFrame!`);
         }
         let result = await Promise.all(
             aFrame.mapEachCoordinateRow(async (row) => {
@@ -328,21 +330,21 @@ class DataFrame extends Frame {
      * @param {DataFrame} df - The dataframe to be added
      * @param {boolean} notify - If true will try to call notify
      */
-    add(df) {
+    async add(df) {
         if (!this.size.equals(df.size)) {
-            throw "DataFrames must be equal size to add";
+            throw new Error("DataFrames must be equal size to add");
         }
         // TODO: dumping DS's to arrays like this might cause performance issues
         // we should consider something that will simulatenously iterate over points
         // in both frames respecting the order
-        const this_array = this.toArray();
-        const df_array = df.toArray();
+        const this_array = await this.toArray();
+        const df_array = await df.toArray();
         this_array.forEach((row, ridx) => {
             this_array[ridx].forEach((value, cidx) => {
                 this_array[ridx][cidx] = value + df_array[ridx][cidx];
             });
         });
-        this.loadFromArray(this_array, this.origin);
+        await this.loadFromArray(this_array, this.origin);
     }
 
     /**
@@ -353,10 +355,10 @@ class DataFrame extends Frame {
      **/
     async copyFrom(frame, origin = [0, 0]) {
         if (!(frame instanceof DataFrame)) {
-            throw "You must pass in a data frame to copy from";
+            throw new Error("You must pass in a data frame to copy from");
         }
         if (!this.intersection(frame).contains(frame)) {
-            throw "DataFrame too small to copy from frame at origin";
+            throw new Error("DataFrame too small to copy from frame at origin");
         }
         await this.loadFromArray(await frame.toArray(), (origin = origin));
     }
@@ -420,7 +422,7 @@ class DataFrame extends Frame {
      */
     hasCompleteDataForFrame(aFrame) {
         if (!this.contains(aFrame)) {
-            throw "Passed Frame is not contained within DataFrame!";
+            throw new Error("Passed Frame is not contained within DataFrame!");
         }
         let points = aFrame.points;
         for (let i = 0; i < points.length; i++) {

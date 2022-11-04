@@ -10,8 +10,10 @@ import { DataFrame } from "../src/DataFrame.js";
 import { Point } from "../src/Point.js";
 import sinon from "sinon";
 import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
 import { expect } from "chai";
 const assert = chai.assert;
+chai.use(chaiAsPromised);
 
 // Add a special test case for comparing Points
 assert.pointsEqual = function (firstPoint, secondPoint, msg) {
@@ -107,11 +109,12 @@ describe("DataFrame data tests", () => {
         });
         it("target will throw error if too small to accept copy", async () => {
             const targetFrame = new DataFrame([0, 0], [10, 10]);
-            expect(await targetFrame.copyFrom(sourceFrame, [5, 5])).to.throw();
+            await expect(targetFrame.copyFrom(sourceFrame, [5, 5])).to.be
+                .rejected;
         });
         it("source must be a data frame", async () => {
             const targetFrame = new DataFrame([0, 0], [10, 10]);
-            expect(await targetFrame.copyFrom([1, 2, 3])).to.throw();
+            await expect(targetFrame.copyFrom([1, 2, 3])).to.be.rejected;
         });
     });
     describe("Sub-DataFrame", () => {
@@ -134,12 +137,10 @@ describe("DataFrame data tests", () => {
             assert.deepEqual(expected.store, subframe.store);
         });
         it("Both origin and corner must be in frame to get Sub-DataFrame", async () => {
-            expect(
-                await frame.getDataSubFrame([10, 10], [2000, 20])
-            ).to.throw();
-            expect(
-                await frame.getDataSubFrame([2000, 10], [2000, 20])
-            ).to.throw();
+            await expect(frame.getDataSubFrame([10, 10], [2000, 20])).to.be
+                .rejected;
+            await expect(frame.getDataSubFrame([2000, 10], [2000, 20])).to.be
+                .rejected;
         });
     });
     describe("Operators", () => {
@@ -171,7 +172,7 @@ describe("DataFrame data tests", () => {
             assert.isTrue(expected.equals(frame));
             assert.deepEqual(expected.store, frame.store);
         });
-        it("Add two data frames", () => {
+        it("Add two data frames", async () => {
             const frame = new DataFrame([0, 0], [100, 100]);
             frame.forEachPoint((p) => {
                 frame.putAt(p, p.x + p.y, false);
@@ -184,19 +185,17 @@ describe("DataFrame data tests", () => {
             expected.forEachPoint((p) => {
                 expected.putAt(p, p.x + p.y + "_item", false);
             });
-            frame.add(another);
+            await frame.add(another);
             assert.isTrue(expected.equals(frame));
             assert.deepEqual(expected.store, frame.store);
         });
-        it("Must be dimensionally aligned to add", () => {
+        it("Must be dimensionally aligned to add", async () => {
             const frame = new DataFrame([0, 0], [100, 100]);
             frame.forEachPoint((p) => {
                 frame.putAt(p, p.x + p.y, false);
             });
             const another = new DataFrame([10, 10], [100, 100]);
-            expect(() => {
-                frame.add(another);
-            }).to.throw();
+            await expect(frame.add(another)).to.be.rejected;
         });
     });
     describe("toArray / loadFromArray idempotency", () => {
@@ -204,63 +203,68 @@ describe("DataFrame data tests", () => {
         beforeEach(() => {
             sourceFrame.clear();
         });
-        it("Has identical store when using defined values (example1)", () => {
+        it("Has identical store when using defined values (example1)", async () => {
             sourceFrame.putAt([4, 1], "TEST");
             sourceFrame.putAt([2, 3], "TEST");
-            let dataArray = sourceFrame.toArray();
+            let dataArray = await sourceFrame.toArray();
             let newFrame = new DataFrame(
                 sourceFrame.origin,
                 sourceFrame.corner
             );
-            newFrame.loadFromArray(dataArray);
+            await newFrame.loadFromArray(dataArray);
             assert.deepEqual(newFrame.store, sourceFrame.store);
         });
     });
     describe("loadFromArray callback and resizing", () => {
-        it("expands to greater dimension when loading data that goes beyond existing corner", () => {
+        it("expands to greater dimension when loading data that goes beyond existing corner", async () => {
+            const subscriber = {
+                onDataChanged: sinon.spy(),
+            };
             let sourceFrame = new DataFrame([0, 0], [30, 30]);
             let newFrame = new DataFrame([0, 0], [20, 20]);
-            const callback = sinon.spy();
-            newFrame.callback = callback;
-            newFrame.loadFromArray(sourceFrame.toArray());
-            assert.isTrue(callback.calledOnce);
-            assert.isTrue(callback.calledWithMatch(sinon.match.any, true));
+            newFrame.subscribers.add(subscriber);
+            await newFrame.loadFromArray(await sourceFrame.toArray());
+            assert.isTrue(subscriber.onDataChanged.calledOnce);
+            assert.isTrue(
+                subscriber.onDataChanged.calledWithMatch(sinon.match.any, true)
+            );
             assert.equal(newFrame.corner.x, 30);
             assert.equal(newFrame.corner.y, 30);
         });
-        it("expands to greater dimension when 'appending' rows", () => {
+        it("expands to greater dimension when 'appending' rows", async () => {
             let sourceFrame = new DataFrame([0, 0], [30, 30]);
             let newFrame = new DataFrame([0, 0], [20, 20]);
-            const callback = sinon.spy();
-            newFrame.callback = callback;
+            const subscriber = { onDataChanged: sinon.spy() };
+            newFrame.subscribers.add(subscriber);
             const origin = [0, 21];
-            newFrame.loadFromArray(sourceFrame.toArray(), origin);
-            assert.isTrue(callback.calledOnce);
-            assert.isTrue(callback.calledWithMatch(sinon.match.any, true));
+            await newFrame.loadFromArray(await sourceFrame.toArray(), origin);
+            assert.isTrue(subscriber.onDataChanged.calledOnce);
+            assert.isTrue(
+                subscriber.onDataChanged.calledWithMatch(sinon.match.any, true)
+            );
             assert.equal(newFrame.corner.x, 30);
             assert.equal(newFrame.corner.y, 51);
         });
-        it("expands to greater dimension when 'appending' columns", () => {
+        it("expands to greater dimension when 'appending' columns", async () => {
             let sourceFrame = new DataFrame([0, 0], [30, 30]);
             let newFrame = new DataFrame([0, 0], [20, 20]);
-            const callback = sinon.spy();
-            newFrame.callback = callback;
+            const subscriber = { onDataChanged: sinon.spy() };
+            newFrame.subscribers.add(subscriber);
             const origin = [21, 0];
-            newFrame.loadFromArray(sourceFrame.toArray(), origin);
-            assert.isTrue(callback.calledOnce);
-            assert.isTrue(callback.calledWithMatch(sinon.match.any, true));
+            await newFrame.loadFromArray(await sourceFrame.toArray(), origin);
+            assert.isTrue(subscriber.onDataChanged.calledOnce);
+            assert.isTrue(
+                subscriber.onDataChanged.calledWithMatch(sinon.match.any, true)
+            );
             assert.equal(newFrame.corner.x, 51);
             assert.equal(newFrame.corner.y, 30);
         });
-        it("errors when expanding with gaps", () => {
+        it("errors when expanding with gaps", async () => {
             let sourceFrame = new DataFrame([0, 0], [30, 30]);
             let newFrame = new DataFrame([0, 0], [20, 20]);
-            const callback = sinon.spy();
-            newFrame.callback = callback;
             const origin = [22, 0];
-            expect(() => {
-                newFrame.loadFromArray(sourceFrame.toArray(), origin);
-            }).to.throw();
+            await expect(newFrame.loadFromArray(sourceFrame.toArray(), origin))
+                .to.be.rejected;
         });
     });
 });
