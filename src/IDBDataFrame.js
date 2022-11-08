@@ -1,5 +1,5 @@
 import { DataFrame } from "./DataFrame.js";
-import { openDB } from "https://cdn.jsdelivr.net/npm/idb@7/+esm";
+import { openDB } from "../utils/idb.js";
 
 class IDBDataFrame extends DataFrame {
     constructor(origin, corner, dbName) {
