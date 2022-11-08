@@ -31,6 +31,10 @@ class DataFrame extends Frame {
         this.copyFrom = this.copyFrom.bind(this);
         this.getDataArrayForFrame = this.getDataArrayForFrame.bind(this);
         this.getDataSubFrame = this.getDataSubFrame.bind(this);
+        this.clear = this.clear.bind(this);
+        this.clearFrame = this.clearFrame.bind(this);
+        this.clearAllPersisted = this.clearAllPersisted.bind(this);
+        this.clearPersistedFrame = this.clearPersistedFrame.bind(this);
     }
 
     /**
@@ -202,6 +206,7 @@ class DataFrame extends Frame {
         // without the async or notify callbacks.
         for (let y = 0; y < data.length; y++) {
             let row = data[y];
+            let newRow = [];
             for (let x = 0; x < row.length; x++) {
                 let value = row[x];
                 let adjustedCoord = [
@@ -209,7 +214,9 @@ class DataFrame extends Frame {
                     y + comparisonFrame.origin.y,
                 ];
                 this.putAt(adjustedCoord, value, false, false);
+                newRow.push(value);
             }
+            this.asyncPutRowsAt(origin.y, newRow, notify);
         }
 
         // TODO:
@@ -221,6 +228,14 @@ class DataFrame extends Frame {
         }
 
         return true;
+    }
+
+    /**
+     * Asynchronously put the given rows of values
+     * starting at the provided rowIndex
+     */
+    async asyncPutRowsAt(rowIndex, rows, notify = true) {
+        // No-op
     }
 
     /**
@@ -292,23 +307,46 @@ class DataFrame extends Frame {
         if (notify) {
             this.notify(new Frame(this.origin, this.corner));
         }
+        if (clearPersisted) {
+            this.clearAllPersisted(notify);
+        }
+    }
+
+    /**
+     * Asynchronously clear all persisted cells
+     * from any backing datastore
+     */
+    async clearAllPersisted(notify = true) {
+        this.clearPersistedFrame(this, notify);
     }
 
     /**
      * Clear out the intersection of the passed in
      * Frame instance and any data within this Frame
      */
-    clearFrame(aFrame, notify = true) {
+    clearFrame(aFrame, notify = true, clearPersisted = true) {
         const intersectionFrame = this.intersection(aFrame);
         if (!intersectionFrame.isEmpty) {
             intersectionFrame.forEachPoint((point) => {
                 const key = `${point.x},${point.y}`;
                 delete this.store[key];
             });
+            if (clearPersisted) {
+                this.clearPersistedFrame(aFrame, notify);
+            }
             if (notify) {
                 this.notify(intersectionFrame);
             }
         }
+    }
+
+    /**
+     * Clear the persisted stored values for
+     * the given frame.
+     */
+    async clearPersistedFrame(aFrame, notify = true) {
+        // No-op for now.
+        // subclasses should implement
     }
 
     /**
