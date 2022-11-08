@@ -16,17 +16,45 @@ class DataFrame extends Frame {
         // Point
         this.store = {};
 
-        // A callback that is triggered
-        // when data is updated in the DataFrame
-        this.callback = null;
+        // A set of subscriber objects that
+        // will be notified whenever data changes
+        this.subscribers = new Set();
 
         // Bind instance methods
+        this.subscribe = this.subscribe.bind(this);
+        this.notify = this.notify.bind(this);
         this.loadFromArray = this.loadFromArray.bind(this);
         this.putAt = this.putAt.bind(this);
+        this.asyncPutAt = this.asyncPutAt.bind(this);
         this.getAt = this.getAt.bind(this);
+        this.asyncGetAt = this.asyncGetAt.bind(this);
         this.copyFrom = this.copyFrom.bind(this);
         this.getDataArrayForFrame = this.getDataArrayForFrame.bind(this);
         this.getDataSubFrame = this.getDataSubFrame.bind(this);
+    }
+
+    /**
+     * Add a subscriber object to this DataFrame's
+     * Set of known subscribers. Whenever data is
+     * changed, the subscriber will attempt to call
+     * the `onDataChanged` callback on the given
+     * object.
+     */
+    subscribe(anObject) {
+        this.subscribers.add(anObject);
+    }
+
+    /**
+     * Attempt to notify all known subscriber
+     * objects that the data in this DataFrame
+     * has changed
+     */
+    notify(...args) {
+        this.subscribers.forEach((subscriber) => {
+            if (subscriber.onDataChanged) {
+                this.subscriber.onDataChanged(...args);
+            }
+        });
     }
 
     /**
@@ -40,7 +68,7 @@ class DataFrame extends Frame {
      * @param {Object} value - The object
      * to store.
      */
-    putAt(location, value, notify = true) {
+    putAt(location, value, notify = true, checkAsync = true) {
         let x, y, key;
         if (location.isPoint) {
             x = location.x;
@@ -61,9 +89,23 @@ class DataFrame extends Frame {
         } else {
             this.store[key] = value;
         }
-        if (notify && this.callback) {
-            this.callback(location);
+        if (checkAsync) {
+            this.asyncPutAt(location, value);
         }
+        if (notify) {
+            this.notify(location);
+        }
+    }
+
+    /**
+     * Asynchronously attempts to store a
+     * value to some persistent or remote storage.
+     * Is a no-op in this basic implementation.
+     * Subclasses should override this methods and
+     * redefine as needed.
+     */
+    async asyncPutAt(location, value, notify = true) {
+        // No-op
     }
 
     /**
@@ -79,7 +121,7 @@ class DataFrame extends Frame {
      * value. Errors if the location is out of
      * scope of the frame.
      */
-    getAt(location) {
+    getAt(location, checkAsync = true) {
         let key;
         if (isCoordinate(location)) {
             if (!this.contains(location)) {
@@ -94,7 +136,23 @@ class DataFrame extends Frame {
         } else {
             throw "Invalid Point or Coordinate";
         }
+        if (this.store[key] === undefined && checkAsync) {
+            this.asyncGetAt(location);
+        }
         return this.store[key];
+    }
+
+    /**
+     * Asynchronously attempts to retrieve a
+     * value from some persistent or remote storage.
+     * Is a no-op in this basic implementation.
+     * Caches misses in the normal `getAt` will
+     * call this asynchronous method in the background.
+     * Subclasses should override this method and redefine
+     * as needed
+     */
+    async asyncGetAt(location, notify = true) {
+        // No-op
     }
 
     /**
@@ -110,10 +168,10 @@ class DataFrame extends Frame {
      * @param {Point|Array} origin - The relative
      * from which to start loading the data into
      * this DataFrame.
-     * @param {Bool} notify - If true, and if a callback is set,
-     * will call this.callback after **all** data is loaded
+     * @param {Bool} notify - If true, will notify all subscribers
+     * after **all** the data is loaded
      */
-    loadFromArray(data, origin = [0, 0], notify = true) {
+    async loadFromArray(data, origin = [0, 0], notify = true) {
         // work with Points for sanity
         origin = new Point(origin);
         if (!this.contains(origin)) {
@@ -137,17 +195,20 @@ class DataFrame extends Frame {
             this.corner = unionFrame.corner;
             wasResized = true;
         }
-        data.forEach((row, y) => {
-            row.forEach((value, x) => {
-                let adjustedCoord = [
-                    x + comparisonFrame.origin.x,
-                    y + comparisonFrame.origin.y,
-                ];
-                this.putAt(adjustedCoord, value, false);
-            });
-        });
-        if (notify && this.callback) {
-            this.callback(comparisonFrame, wasResized);
+        await Promise.all(
+            data.map((row, y) => {
+                return row.map(async (value, x) => {
+                    let adjustedCoord = [
+                        x + comparisonFrame.origin.x,
+                        y + comparisonFrame.origin.y,
+                    ];
+                    this.putAt(adjustedCoord, value, false, false);
+                    return await this.asyncPutAt(adjustedCoord, value, false);
+                });
+            })
+        );
+        if (notify) {
+            this.notify(comparisonFrame, wasResized);
         }
     }
 
@@ -160,17 +221,24 @@ class DataFrame extends Frame {
      * @returns {Array[Array]} A y-to-x (row to column)
      * array of array of stored values
      */
-    getDataArrayForFrame(aFrame) {
+    async getDataArrayForFrame(aFrame) {
         if (!this.contains(aFrame)) {
             throw `Frame is not contained within DataFrame!`;
         }
-        let result = [];
-        aFrame.forEachCoordinateRow((row) => {
-            let mappedRow = row.map((val) => {
-                return this.getAt(val);
-            });
-            result.push(mappedRow);
-        });
+        let result = await Promise.all(
+            aFrame.mapEachCoordinateRow(async (row) => {
+                return await row.map(async (coordinates) => {
+                    let cachedVal = this.getAt(coordinates, false, false);
+                    if (cachedVal === undefined) {
+                        cachedVal = await this.asyncGetAt(
+                            coordinates,
+                            false,
+                            false
+                        );
+                    }
+                });
+            })
+        );
         return result;
     }
 
@@ -178,11 +246,9 @@ class DataFrame extends Frame {
      * I return a DataFrame which contains the points (and data)
      * of this frame starting at the specified (new) origin and corner.
      */
-    getDataSubFrame(origin, corner) {
+    async getDataSubFrame(origin, corner) {
         const subframe = new DataFrame(origin, corner);
-        subframe.forEachPoint((p) => {
-            subframe.putAt(p, this.getAt(p), false); // do not notify
-        });
+        return await this.getDataArrayForFrame(subframe);
         return subframe;
     }
 
@@ -192,11 +258,11 @@ class DataFrame extends Frame {
      * If `strict` is true, we use `minFrame` under the
      * hood. Otherwise use the expected `this`.
      */
-    toArray(strict = false) {
+    async toArray(strict = false) {
         if (strict) {
-            return this.getDataArrayForFrame(this.minFrame);
+            return await this.getDataArrayForFrame(this.minFrame);
         } else {
-            return this.getDataArrayForFrame(this);
+            return await this.getDataArrayForFrame(this);
         }
     }
 
@@ -204,10 +270,10 @@ class DataFrame extends Frame {
      * Clear out the cached dictionary of
      * points to values.
      */
-    clear() {
+    clear(clearPersisted = false, notify = true) {
         this.store = {};
-        if (this.callback) {
-            this.callback(new Frame(this.origin, this.corner));
+        if (notify) {
+            this.notify(new Frame(this.origin, this.corner));
         }
     }
 
@@ -215,15 +281,15 @@ class DataFrame extends Frame {
      * Clear out the intersection of the passed in
      * Frame instance and any data within this Frame
      */
-    clearFrame(aFrame) {
+    clearFrame(aFrame, notify = true) {
         const intersectionFrame = this.intersection(aFrame);
         if (!intersectionFrame.isEmpty) {
             intersectionFrame.forEachPoint((point) => {
                 const key = `${point.x},${point.y}`;
                 delete this.store[key];
             });
-            if (this.callback) {
-                this.callback(intersectionFrame);
+            if (notify) {
+                this.notify(intersectionFrame);
             }
         }
     }
@@ -232,7 +298,7 @@ class DataFrame extends Frame {
      * Replace values in the DataFrame.store with the return of the
      * func applied to each value.
      * @param {function} func - A function
-     * @param {boolean} notify - If true will try to call this.callback
+     * @param {boolean} notify - If true will try to call notify
      */
     apply(func, notify = false) {
         this.forEachPoint((p) => {
@@ -245,7 +311,7 @@ class DataFrame extends Frame {
      * the df DataFrame (in place)
      * NOTE: this and df must be equal as frames, ie their coordinates must match up
      * @param {DataFrame} df - The dataframe to be added
-     * @param {boolean} notify - If true will try to call this.callback
+     * @param {boolean} notify - If true will try to call notify
      */
     add(df) {
         if (!this.size.equals(df.size)) {
