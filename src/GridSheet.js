@@ -1,4 +1,4 @@
-import { DataFrame } from "./DataFrame.js";
+import { IDBDataFrame as DataFrame } from "./IDBDataFrame.js";
 import { Selector } from "./Selector.js";
 import PrimaryFrame from "./PrimaryGridFrame.js";
 import { Point } from "./Point.js";
@@ -154,13 +154,6 @@ class GridSheet extends HTMLElement {
 
         // Set up the internal frames
         this.dataFrame = new DataFrame([0, 0], [26 * 2, 100]);
-        let initialData = this.dataFrame.mapEachPointRow((row) => {
-            return row.map((point) => {
-                return `${point.x}, ${point.y}`;
-            });
-        });
-
-        this.dataFrame.loadFromArray(initialData);
         this.primaryFrame = new PrimaryFrame(this.dataFrame, [0, 0]);
         this.selector = new Selector(this.primaryFrame);
         this.selector.selectionChangedCallback =
