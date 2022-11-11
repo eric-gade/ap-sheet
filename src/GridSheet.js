@@ -1,4 +1,4 @@
-import { DataFrame } from "./DataFrame.js";
+import { IDBDataFrame as DataFrame } from "./IDBDataFrame.js";
 import { Selector } from "./Selector.js";
 import PrimaryFrame from "./PrimaryGridFrame.js";
 import { Point } from "./Point.js";
@@ -153,14 +153,7 @@ class GridSheet extends HTMLElement {
         this.customRows = {};
 
         // Set up the internal frames
-        this.dataFrame = new DataFrame([0, 0], [1000, 1000]);
-        let initialData = this.dataFrame.mapEachPointRow((row) => {
-            return row.map((point) => {
-                return `${point.x}, ${point.y}`;
-            });
-        });
-        this.dataFrame.loadFromArray(initialData);
-        this.dataFrame.callback = this.onDataChanged.bind(this);
+        this.dataFrame = new DataFrame([0, 0], [26 * 2, 100]);
         this.primaryFrame = new PrimaryFrame(this.dataFrame, [0, 0]);
         this.selector = new Selector(this.primaryFrame);
         this.selector.selectionChangedCallback =
@@ -233,6 +226,9 @@ class GridSheet extends HTMLElement {
         this.addEventListener("selection-changed", this.handleSelectionChanged);
         this.addEventListener("sheet-view-shifted", this.handleViewShift);
         this.addEventListener("cell-edited", this.handleCellEdited);
+
+        // Add the sheet itself as a subscriber to its DataFrame
+        this.dataFrame.subscribers.add(this);
     }
 
     disconnectedCallback() {
@@ -246,6 +242,7 @@ class GridSheet extends HTMLElement {
         );
         this.removeEventListener("sheet-view-shifted", this.handleViewShift);
         this.removeEventListener("cell-edited", this.handleCellEdited);
+        this.dataFrame.subscribers.delete(this);
     }
 
     attributeChangedCallback(name, oldVal, newVal) {
@@ -282,8 +279,10 @@ class GridSheet extends HTMLElement {
                     // Nothing for now
                 },
             });
+            console.log("dispatching data updated!");
             this.dispatchEvent(resizeEvent);
         }
+
         this.dispatchEvent(event);
         this.primaryFrame.updateCellContents();
     }
