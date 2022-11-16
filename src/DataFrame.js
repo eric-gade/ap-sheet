@@ -21,31 +21,17 @@ class DataFrame extends Frame {
         this.subscribers = new Set();
 
         // Bind instance methods
-        this.subscribe = this.subscribe.bind(this);
         this.notify = this.notify.bind(this);
         this.loadFromArray = this.loadFromArray.bind(this);
         this.putAt = this.putAt.bind(this);
-        this.asyncPutAt = this.asyncPutAt.bind(this);
+        this.persistentPutAt = this.persistentPutAt.bind(this);
         this.getAt = this.getAt.bind(this);
-        this.asyncGetAt = this.asyncGetAt.bind(this);
-        this.copyFrom = this.copyFrom.bind(this);
-        this.getDataArrayForFrame = this.getDataArrayForFrame.bind(this);
-        this.getDataSubFrame = this.getDataSubFrame.bind(this);
+        this.persistentGetAt = this.persistentGetAt.bind(this);
+        this.getDataArray = this.getDataArray.bind(this);
         this.clear = this.clear.bind(this);
-        this.clearFrame = this.clearFrame.bind(this);
+        this.clearData = this.clearData.bind(this);
         this.clearAllPersisted = this.clearAllPersisted.bind(this);
-        this.clearPersistedFrame = this.clearPersistedFrame.bind(this);
-    }
-
-    /**
-     * Add a subscriber object to this DataFrame's
-     * Set of known subscribers. Whenever data is
-     * changed, the subscriber will attempt to call
-     * the `onDataChanged` callback on the given
-     * object.
-     */
-    subscribe(anObject) {
-        this.subscribers.add(anObject);
+        this.clearPersistedData = this.clearPersistedData.bind(this);
     }
 
     /**
@@ -94,7 +80,7 @@ class DataFrame extends Frame {
             this.store[key] = value;
         }
         if (checkAsync) {
-            this.asyncPutAt(location, value);
+            this.persistentPutAt(location, value);
         }
         if (notify) {
             this.notify(location);
@@ -108,7 +94,7 @@ class DataFrame extends Frame {
      * Subclasses should override this methods and
      * redefine as needed.
      */
-    async asyncPutAt(location, value, notify = true) {
+    async persistentPutAt(location, value, notify = true) {
         // No-op
     }
 
@@ -141,7 +127,7 @@ class DataFrame extends Frame {
             throw new Error("Invalid Point or Coordinate");
         }
         if (this.store[key] === undefined && checkAsync) {
-            this.asyncGetAt(location);
+            this.persistentGetAt(location);
         }
         return this.store[key];
     }
@@ -155,7 +141,7 @@ class DataFrame extends Frame {
      * Subclasses should override this method and redefine
      * as needed
      */
-    async asyncGetAt(location, notify = true) {
+    async persistentGetAt(location, notify = true) {
         // No-op
     }
 
@@ -175,48 +161,24 @@ class DataFrame extends Frame {
      * @param {Bool} notify - If true, will notify all subscribers
      * after **all** the data is loaded
      */
-    async loadFromArray(data, origin = [0, 0], notify = true) {
-        // work with Points for sanity
-        origin = new Point(origin);
-        if (!this.contains(origin)) {
-            // need to check if this simply an extension of the DF, ie
-            // we are adding rows or columns
-            // Note: appending must continue the row/columns, ie no jumps
-            const appendRows = origin.x == 0 && origin.y == this.size.y;
-            const appendColumns = origin.y == 0 && origin.x == this.size.x;
-            if (!appendRows && !appendColumns) {
-                throw new Error(
-                    `${origin} not contained in this DataFrame and is not an append of rows or columns`
-                );
-            }
-        }
-        let wasResized = false;
-        let rowMax = data.length - 1;
-        let colMax = data[0].length - 1; // Assume all are equal
-        let corner = new Point([colMax + origin.x, rowMax + origin.y]);
-        let comparisonFrame = new Frame(origin, corner);
-        if (!this.contains(comparisonFrame)) {
-            const unionFrame = comparisonFrame.union(this);
-            this.origin = unionFrame.origin;
-            this.corner = unionFrame.corner;
-            wasResized = true;
-        }
-
+    async loadFromArray(data, startCoordinate = [0, 0], notify = true) {
         // Iterate over each row and value, calling putAt
         // without the async or notify callbacks.
+        let maxLength = 0;
         for (let y = 0; y < data.length; y++) {
             let row = data[y];
             let newRow = [];
+            maxLength = Math.max(row.length, maxLength);
             for (let x = 0; x < row.length; x++) {
                 let value = row[x];
                 let adjustedCoord = [
-                    x + comparisonFrame.origin.x,
-                    y + comparisonFrame.origin.y,
+                    x + startCoordinate[0],
+                    y + startCoordinate[1],
                 ];
                 this.putAt(adjustedCoord, value, false, false);
                 newRow.push(value);
             }
-            this.asyncPutRowsAt(origin.y, newRow, notify);
+            this.persistentPutRowsAt(startCoordinate[1], [newRow], notify);
         }
 
         // TODO:
@@ -224,7 +186,8 @@ class DataFrame extends Frame {
         // to whatever async backend is needed
 
         if (notify) {
-            this.notify(comparisonFrame, wasResized);
+            const endCoordinate = [maxLength, data.length];
+            this.notify(startCoordinate, endCoordinate);
         }
 
         return true;
@@ -234,7 +197,7 @@ class DataFrame extends Frame {
      * Asynchronously put the given rows of values
      * starting at the provided rowIndex
      */
-    async asyncPutRowsAt(rowIndex, rows, notify = true) {
+    async persistentPutRowsAt(rowIndex, rows, notify = true) {
         // No-op
     }
 
@@ -247,41 +210,25 @@ class DataFrame extends Frame {
      * @returns {Array[Array]} A y-to-x (row to column)
      * array of array of stored values
      */
-    async getDataArrayForFrame(aFrame) {
-        if (!this.contains(aFrame)) {
-            throw new Error(`Frame is not contained within DataFrame!`);
+    async getDataArray(startCoordinate, endCoordinate) {
+        let result = [];
+        for (let y = startCoordinate[1]; y < endCoordinate[1]; y++) {
+            let row = [];
+            for (let x = startCoordinate[0]; x < endCoordinate[0]; x++) {
+                let cachedVal = this.getAt([x, y], false, false);
+                if (cachedVal === undefined) {
+                    cachedVal = await this.persistentGetAt(
+                        [x, y],
+                        false,
+                        false
+                    );
+                }
+                row.push(cachedVal);
+            }
+            result.push(row);
         }
-        let result = await Promise.all(
-            aFrame.mapEachCoordinateRow(async (row) => {
-                return await Promise.all(
-                    row.map(async (coordinates) => {
-                        let cachedVal = this.getAt(coordinates, false, false);
-                        if (cachedVal === undefined) {
-                            cachedVal = await this.asyncGetAt(
-                                coordinates,
-                                false,
-                                false
-                            );
-                        }
-                        return cachedVal;
-                    })
-                );
-            })
-        );
-        return result;
-    }
 
-    /**
-     * I return a DataFrame which contains the points (and data)
-     * of this frame starting at the specified (new) origin and corner.
-     */
-    async getDataSubFrame(origin, corner) {
-        const subframe = new DataFrame(origin, corner);
-        await subframe.loadFromArray(
-            await this.getDataArrayForFrame(subframe),
-            origin
-        );
-        return subframe;
+        return result;
     }
 
     /**
@@ -324,19 +271,24 @@ class DataFrame extends Frame {
      * Clear out the intersection of the passed in
      * Frame instance and any data within this Frame
      */
-    clearFrame(aFrame, notify = true, clearPersisted = true) {
-        const intersectionFrame = this.intersection(aFrame);
-        if (!intersectionFrame.isEmpty) {
-            intersectionFrame.forEachPoint((point) => {
-                const key = `${point.x},${point.y}`;
+    clearData(
+        startCoordinate,
+        endCoordinate,
+        notify = true,
+        clearPersisted = true
+    ) {
+        for (let y = startCoordinate[1]; y < endCoordinate[1]; y++) {
+            for (let x = startCoordinate[0]; x < endCoordinate[0]; x++) {
+                const key = `${x},${y}`;
                 delete this.store[key];
-            });
-            if (clearPersisted) {
-                this.clearPersistedFrame(aFrame, notify);
             }
-            if (notify) {
-                this.notify(intersectionFrame);
-            }
+        }
+
+        if (clearPersisted) {
+            this.clearPersistedData(startCoordinate, endCoordinate, notify);
+        }
+        if (notify) {
+            this.notify(startCoordinate, endCoordinate);
         }
     }
 
@@ -344,7 +296,7 @@ class DataFrame extends Frame {
      * Clear the persisted stored values for
      * the given frame.
      */
-    async clearPersistedFrame(aFrame, notify = true) {
+    async clearPersistedData(startCoordinate, endCoordinate, notify = true) {
         // No-op for now.
         // subclasses should implement
     }
@@ -383,22 +335,6 @@ class DataFrame extends Frame {
             });
         });
         await this.loadFromArray(this_array, this.origin);
-    }
-
-    /**
-     * I take a new frame and copy it into this DataFrame
-     * starting with the specified origin. If the frame doesn't
-     * "fit" ie if the intersection of frame with this DataFrame
-     * does not contain the frame then I throw an error.
-     **/
-    async copyFrom(frame, origin = [0, 0]) {
-        if (!(frame instanceof DataFrame)) {
-            throw new Error("You must pass in a data frame to copy from");
-        }
-        if (!this.intersection(frame).contains(frame)) {
-            throw new Error("DataFrame too small to copy from frame at origin");
-        }
-        await this.loadFromArray(await frame.toArray(), (origin = origin));
     }
 
     /**
