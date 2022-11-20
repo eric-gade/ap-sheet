@@ -559,11 +559,10 @@ class GridSheet extends HTMLElement {
             },
         });
         this.dispatchEvent(selectionEvent);
-        console.log("going to dispatch")
     }
 
     dispatchViewShifted() {
-        let viewshiftevent = new CustomEvent("sheet-view-shifted", {
+        let viewShiftEvent = new CustomEvent("sheet-view-shifted", {
             detail: {
                 view: this.primaryFrame.viewFrame,
                 lockedColumns: this.primaryFrame.lockedColumnsFrame,
