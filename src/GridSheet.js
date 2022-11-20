@@ -546,6 +546,8 @@ class GridSheet extends HTMLElement {
 
     dispatchSelectionChanged() {
         let selectionEvent = new CustomEvent("selection-changed", {
+            bubbles: true,
+            composed: true,
             detail: {
                 relativeCursor: this.selector.relativeCursor,
                 cursor: new Point(
@@ -557,10 +559,11 @@ class GridSheet extends HTMLElement {
             },
         });
         this.dispatchEvent(selectionEvent);
+        console.log("going to dispatch")
     }
 
     dispatchViewShifted() {
-        let viewShiftEvent = new CustomEvent("sheet-view-shifted", {
+        let viewshiftevent = new CustomEvent("sheet-view-shifted", {
             detail: {
                 view: this.primaryFrame.viewFrame,
                 lockedColumns: this.primaryFrame.lockedColumnsFrame,
