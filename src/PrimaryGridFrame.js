@@ -19,15 +19,16 @@ import GridElementsFrame from "./GridElementsFrame.js";
 import { isCoordinate, Point } from "./Point.js";
 
 class PrimaryGridFrame extends GridElementsFrame {
-    constructor(dataFrame, corner, options) {
+    constructor(dataStore, baseFrame, corner, options) {
         super([0, 0], corner, options);
         this.isPrimaryFrame = true;
 
-        // The underlyng dataframe will
+        // The underlyng datastore will
         // hold values that we can pull out
         // for the current view, rows, and
         // columnds frames
-        this.dataFrame = dataFrame;
+        this.dataStore = dataStore;
+        this.baseFrame = baseFrame;
 
         // We initialize with 0 locked
         // rows or columns
@@ -181,7 +182,7 @@ class PrimaryGridFrame extends GridElementsFrame {
         // if there is one
         if (!this.lockedFramesIntersect.isEmpty) {
             this.lockedFramesIntersect.forEachPoint((aPoint) => {
-                let value = this.dataFrame.getAt(aPoint);
+                let value = this.dataStore.getAt(aPoint);
                 if (value == undefined) {
                     this.setTextContentAt(aPoint, "...");
                 } else {
@@ -202,7 +203,7 @@ class PrimaryGridFrame extends GridElementsFrame {
     updateLockedRowElements() {
         if (this.numLockedRows) {
             this.relativeLockedRowsFrame.forEachPoint((aPoint) => {
-                let dataValue = this.dataFrame.getAt(aPoint);
+                let dataValue = this.dataStore.getAt(aPoint);
                 let translation = new Point([
                     aPoint.x - this.dataOffset.x,
                     aPoint.y,
@@ -234,7 +235,7 @@ class PrimaryGridFrame extends GridElementsFrame {
                     (this.lockedColumnsFrame.origin.y + this.numLockedRows),
             ]);
             relativeColumns.forEachPoint((aPoint) => {
-                let dataValue = this.dataFrame.getAt(aPoint);
+                let dataValue = this.dataStore.getAt(aPoint);
                 let translation = new Point([aPoint.x, aPoint.y - offset.y]);
                 let element = this.elementAt(translation);
                 if (element !== null) {
@@ -264,7 +265,7 @@ class PrimaryGridFrame extends GridElementsFrame {
             this.relativeViewFrame.origin.y - this.viewFrame.origin.y,
         ]);
         this.relativeViewFrame.forEachPoint((aPoint) => {
-            let value = this.dataFrame.getAt(aPoint);
+            let value = this.dataStore.getAt(aPoint);
             let translation = new Point([
                 aPoint.x - offset.x,
                 aPoint.y - offset.y,
@@ -329,9 +330,9 @@ class PrimaryGridFrame extends GridElementsFrame {
         let nextX = this.dataOffset.x + amount;
         let nextRight =
             nextX + (this.viewFrame.size.x - 1 + this.numLockedColumns);
-        if (nextRight >= this.dataFrame.right) {
+        if (nextRight >= this.baseFrame.right) {
             nextX =
-                this.dataFrame.right -
+                this.baseFrame.right -
                 (this.numLockedColumns + (this.viewFrame.size.x - 1));
         }
         this.dataOffset.x = nextX;
@@ -379,9 +380,9 @@ class PrimaryGridFrame extends GridElementsFrame {
         let nextY = this.dataOffset.y + amount;
         let nextBottom =
             nextY + (this.viewFrame.size.y - 1 + this.numLockedRows);
-        if (nextBottom >= this.dataFrame.bottom) {
+        if (nextBottom >= this.baseFrame.bottom) {
             nextY =
-                this.dataFrame.bottom -
+                this.baseFrame.bottom -
                 (this.numLockedRows + (this.viewFrame.size.y - 1));
         }
         this.dataOffset.y = nextY;
@@ -568,7 +569,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * is rightmost relative to the underlying dataFrame
      */
     get isAtRight() {
-        return this.relativeViewFrame.right == this.dataFrame.right;
+        return this.relativeViewFrame.right == this.baseFrame.right;
     }
 
     /**
@@ -589,7 +590,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      * is bottom-most relative to the underlying dataFrame
      */
     get isAtBottom() {
-        return this.relativeViewFrame.bottom == this.dataFrame.bottom;
+        return this.relativeViewFrame.bottom == this.baseFrame.bottom;
     }
 }
 

@@ -310,7 +310,7 @@ class Selector {
     moveToRightEnd(selecting = false) {
         // Move by any amount greather than the dataFrame
         // size
-        this.moveRightBy(this.primaryFrame.dataFrame.right * 2, selecting);
+        this.moveRightBy(this.primaryFrame.baseFrame.right * 2, selecting);
     }
 
     /**
@@ -323,7 +323,7 @@ class Selector {
      */
     moveToLeftEnd(selecting = false) {
         // Move by any amout greather than dataFrame size
-        this.moveLeftBy(this.primaryFrame.dataFrame.size.x * 2, selecting);
+        this.moveLeftBy(this.primaryFrame.baseFrame.size.x * 2, selecting);
     }
 
     /**
@@ -337,7 +337,7 @@ class Selector {
     moveToTopEnd(selecting = false) {
         // Move up by any amount greather than
         // the dataFrame's total height
-        this.moveUpBy(this.primaryFrame.dataFrame.size.y * 2, selecting);
+        this.moveUpBy(this.primaryFrame.baseFrame.size.y * 2, selecting);
     }
 
     /**
@@ -351,7 +351,7 @@ class Selector {
     moveToBottomEnd(selecting = false) {
         // Move down by any amount greather than
         // the dataFrame's total height
-        this.moveDownBy(this.primaryFrame.dataFrame.size.y * 2, selecting);
+        this.moveDownBy(this.primaryFrame.baseFrame.size.y * 2, selecting);
     }
 
     /**
@@ -468,7 +468,7 @@ class Selector {
      * at the current relative cursor point
      */
     get dataAtCursor() {
-        let dataValue = this.primaryFrame.dataFrame.getAt(this.relativeCursor);
+        let dataValue = this.primaryFrame.dataStore.getAt(this.relativeCursor);
         if (dataValue == undefined) {
             return "undefined";
         }

@@ -1,4 +1,4 @@
-import { IDBDataFrame as DataFrame } from "./IDBDataFrame.js";
+import { IDBDataStore as DataStore } from "./IDBDataStore.js";
 import { Selector } from "./Selector.js";
 import PrimaryFrame from "./PrimaryGridFrame.js";
 import { Point } from "./Point.js";
@@ -153,8 +153,13 @@ class GridSheet extends HTMLElement {
         this.customRows = {};
 
         // Set up the internal frames
-        this.dataFrame = new DataFrame([0, 0], [26 * 2, 100]);
-        this.primaryFrame = new PrimaryFrame(this.dataFrame, [0, 0]);
+        this.dataStore = new DataStore();
+        this.baseFrame = new Frame([0, 0], [26 * 2, 100]);
+        this.primaryFrame = new PrimaryFrame(
+            this.dataStore,
+            this.baseFrame,
+            [0, 0]
+        );
         this.selector = new Selector(this.primaryFrame);
         this.selector.selectionChangedCallback =
             this.dispatchSelectionChanged.bind(this);
@@ -183,7 +188,7 @@ class GridSheet extends HTMLElement {
         this.handleColumnAdjustment = this.handleColumnAdjustment.bind(this);
         this.handleRowAdjustment = this.handleRowAdjustment.bind(this);
         this.handleCellEdited = this.handleCellEdited.bind(this);
-        this.handleDataFrameResized = this.handleDataFrameResized.bind(this);
+        this.handleDataStoreResized = this.handleDataStoreResized.bind(this);
     }
 
     connectedCallback() {
@@ -227,8 +232,8 @@ class GridSheet extends HTMLElement {
         this.addEventListener("sheet-view-shifted", this.handleViewShift);
         this.addEventListener("cell-edited", this.handleCellEdited);
 
-        // Add the sheet itself as a subscriber to its DataFrame
-        this.dataFrame.subscribers.add(this);
+        // Add the sheet itself as a subscriber to its DataStore
+        this.dataStore.subscribers.add(this);
     }
 
     disconnectedCallback() {
@@ -242,7 +247,7 @@ class GridSheet extends HTMLElement {
         );
         this.removeEventListener("sheet-view-shifted", this.handleViewShift);
         this.removeEventListener("cell-edited", this.handleCellEdited);
-        this.dataFrame.subscribers.delete(this);
+        this.dataStore.subscribers.delete(this);
     }
 
     attributeChangedCallback(name, oldVal, newVal) {
@@ -342,7 +347,11 @@ class GridSheet extends HTMLElement {
             this.renderColumnTabs();
         }
         let newCorner = new Point([this.numColumns - 1, this.numRows - 1]);
-        this.primaryFrame = new PrimaryFrame(this.dataFrame, newCorner);
+        this.primaryFrame = new PrimaryFrame(
+            this.dataStore,
+            this.baseFrame,
+            newCorner
+        );
         this.primaryFrame.initialBuild();
         this.primaryFrame.labelElements();
         this.append(...this.primaryFrame.elements);
@@ -475,7 +484,7 @@ class GridSheet extends HTMLElement {
         if (event.target.isRowTab && event.button === 0) {
             let rowOrigin = new Point([0, event.target.relativeRow]);
             let rowCorner = new Point([
-                this.dataFrame.right,
+                this.baseFrame.right,
                 event.target.relativeRow,
             ]);
             this.selector.anchor = rowCorner;
@@ -485,7 +494,7 @@ class GridSheet extends HTMLElement {
                     // Set anchor to top right corner of what will be
                     // the union frame.
                     this.selector.anchor = new Point([
-                        this.dataFrame.right,
+                        this.baseFrame.right,
                         this.selector.selectionFrame.origin.y,
                     ]);
                 } else if (
@@ -495,7 +504,7 @@ class GridSheet extends HTMLElement {
                     // The anchor should be set to the bottom right of
                     // what will be the union frame.
                     this.selector.anchor = new Point([
-                        this.dataFrame.right,
+                        this.baseFrame.right,
                         this.selector.selectionFrame.corner.y,
                     ]);
                 }
@@ -510,7 +519,7 @@ class GridSheet extends HTMLElement {
             let colOrigin = new Point([event.target.relativeColumn, 0]);
             let colCorner = new Point([
                 event.target.relativeColumn,
-                this.dataFrame.bottom,
+                this.baseFrame.bottom,
             ]);
             this.selector.anchor = colCorner;
             if (event.shiftKey) {
@@ -520,7 +529,7 @@ class GridSheet extends HTMLElement {
                     // be the union frame.
                     this.selector.anchor = new Point([
                         this.selector.selectionFrame.origin.x,
-                        this.dataFrame.bottom,
+                        this.baseFrame.bottom,
                     ]);
                 } else if (
                     colCorner.x < this.selector.selectionFrame.origin.x
@@ -530,7 +539,7 @@ class GridSheet extends HTMLElement {
                     // of what will be the union frame.
                     this.selector.anchor = new Point([
                         this.selector.selectionFrame.corner.x,
-                        this.dataFrame.bottom,
+                        this.baseFrame.bottom,
                     ]);
                 }
             }
@@ -622,7 +631,7 @@ class GridSheet extends HTMLElement {
             // In this case, the cursor is the lone selection.
             // update the info area to demonstrate that.
             infoArea.querySelector("span:first-child").innerText = "Cursor";
-            editArea.value = this.dataFrame.getAt(this.selector.relativeCursor);
+            editArea.value = this.dataStore.getAt(this.selector.relativeCursor);
         } else {
             // Otherwise, we have selected multiple cells.
             // Display information about the bounds of the
@@ -675,16 +684,17 @@ class GridSheet extends HTMLElement {
     }
 
     handleCellEdited(event) {
-        this.dataFrame.putAt(
+        this.dataStore.putAt(
             event.detail.relativeCoordinate,
             event.detail.content
         );
         this.focus();
     }
 
-    handleDataFrameResized(event) {
-        const maxRows = this.dataFrame.corner.y;
-        const maxCols = this.dataFrame.corner.x;
+    // TODO: Rename properly
+    handleDataStoreResized(event) {
+        const maxRows = this.baseFrame.corner.y;
+        const maxCols = this.baseFrame.corner.x;
         if (this.numRows > maxRows) {
             this.setAttribute("rows", maxRows);
         }
