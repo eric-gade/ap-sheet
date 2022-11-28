@@ -6,3 +6,9 @@
 ** TODO Implement ~getMax~ for IDBStore
  <2022-11-28 Mon>
  In file: [[file:/Users/ecgade/Projects/jl-11-28-22/ap-sheet/src/IDBDataStore.js::164][IDBDataStore.js]]
+** TODO Fix string replacement for undefined data values
+ <2022-11-28 Mon>
+ In file: [[file:/Users/ecgade/Projects/jl-11-28-22/ap-sheet/src/SyntheticClipboardHandler.js::95][SyntheticClipboardHandler.js]]
+ There are two issues here:
+ - [ ] Reconcile undefined values vs empty string values (we shouldn't store empty strings)
+ - [ ] Case this loop for situation where we have undefined values and we are trying to copy
