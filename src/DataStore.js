@@ -112,14 +112,8 @@ class DataStore {
     getAt(location, checkAsync = true) {
         let key;
         if (isCoordinate(location)) {
-            if (!this.contains(location)) {
-                throw new Error(`${location} outside of DataStore`);
-            }
             key = location.toString();
         } else if (location.isPoint) {
-            if (!this.contains(location)) {
-                throw new Error(`${location} outside of DataStore`);
-            }
             key = `${location.x},${location.y}`;
         } else {
             throw new Error("Invalid Point or Coordinate");

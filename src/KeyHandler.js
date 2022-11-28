@@ -150,8 +150,9 @@ class KeyHandler extends Object {
                     undefined
                 );
             } else {
-                this.sheet.dataStore.clearFrame(
-                    this.sheet.selector.selectionFrame
+                this.sheet.dataStore.clearData(
+                    this.sheet.selector.selectionFrame.origin,
+                    this.sheet.selector.selectionFrame.corner
                 );
             }
         });
@@ -162,8 +163,9 @@ class KeyHandler extends Object {
                     undefined
                 );
             } else {
-                this.sheet.dataStore.clearFrame(
-                    this.sheet.selector.selectionFrame
+                this.sheet.dataStore.clearData(
+                    this.sheet.selector.selectionFrame.origin,
+                    this.sheet.selector.selectionFrame.corner
                 );
             }
         });

@@ -98,6 +98,7 @@ class SyntheticClipboardHandler extends Object {
             let line = row
                 .map((point) => {
                     let value = this.sheet.dataStore.getAt(point);
+                    if (!value) value = "";
                     if (value.replace(/ /g, "").match(/[\s,"]/)) {
                         return '"' + value.replace(/"/g, '""') + '"';
                     }

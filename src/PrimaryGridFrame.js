@@ -14,7 +14,6 @@
  * and a Selector for interaction.
  */
 import Frame from "./Frame.js";
-import DataFrame from "./DataFrame.js";
 import GridElementsFrame from "./GridElementsFrame.js";
 import { isCoordinate, Point } from "./Point.js";
 
