@@ -1,7 +1,7 @@
-import { DataFrame } from "./DataFrame.js";
+import { DataStore } from "./DataStore.js";
 import { openDB } from "../utils/idb.js";
 
-class IDBDataFrame extends DataFrame {
+class IDBDataStore extends DataStore {
     constructor(origin, corner, dbName) {
         super(origin, corner);
         if (!dbName || dbName === undefined) {
@@ -160,6 +160,8 @@ class IDBDataFrame extends DataFrame {
         const transaction = this.db.transaction("cells", "readwrite");
         await transaction.store.clear();
     }
+
+    async getMax() {}
 }
 
-export { IDBDataFrame };
+export { IDBDataStore };

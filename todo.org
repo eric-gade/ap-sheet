@@ -1,0 +1,8 @@
+* Project Tasks
+** TODO Rename properly
+ <2022-11-28 Mon>
+ In file: [[file:/Users/ecgade/Projects/jl-11-28-22/ap-sheet/src/GridSheet.js::686][GridSheet.js]]
+ See who is triggering this method and rename / reimplement properly.
+** TODO Implement ~getMax~ for IDBStore
+ <2022-11-28 Mon>
+ In file: [[file:/Users/ecgade/Projects/jl-11-28-22/ap-sheet/src/IDBDataStore.js::164][IDBDataStore.js]]
