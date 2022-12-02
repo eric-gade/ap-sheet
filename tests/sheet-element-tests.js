@@ -2,8 +2,9 @@ import sinon from "sinon";
 import chai from "chai";
 import { expect } from "chai";
 import "../src/GridSheet.js";
+import Frame from "../src/Frame.js";
 import { Point } from "../src/Point.js";
-import { DataFrame } from "../src/DataFrame.js";
+import { DataStore } from "../src/DataStore.js";
 const assert = chai.assert;
 
 describe("GridSheet Element Tests", () => {
@@ -19,27 +20,32 @@ describe("GridSheet Element Tests", () => {
             gridElement.removeEventListener("data-frame-resized", handler);
             gridElement.remove();
         });
-        it("DataFrame has the sheet as a subscriber", () => {
-            expect(gridElement.dataFrame.subscribers).to.include(gridElement);
+        it("DataStore has the sheet as a subscriber", () => {
+            expect(gridElement.dataStore.subscribers).to.include(gridElement);
         });
-        it("updates the dataFrame to a larger size, as needed", async () => {
-            const newFrame = new DataFrame(
+        it("updates the baseFrame to a larger size, as needed", async () => {
+            const newStore = new DataStore();
+            const newFrame = new Frame(
                 [0, 0],
                 [
-                    gridElement.dataFrame.corner.x + 10,
-                    gridElement.dataFrame.corner.y + 15,
+                    gridElement.baseFrame.corner.x + 10,
+                    gridElement.baseFrame.corner.y + 15,
                 ]
             );
-            const newData = await newFrame.toArray();
-            await gridElement.dataFrame.loadFromArray(newData);
-            // await new Promise((resolve) => {
-            //     setTimeout(resolve, 1000);
-            // });
+            newFrame.forEachPoint((aPoint) => {
+                newStore.putAt(aPoint, aPoint);
+            });
+            const newData = await newStore.getDataArray(
+                [newFrame.origin.x, newFrame.origin.y],
+                [newFrame.corner.x, newFrame.corner.y]
+            );
+            await gridElement.dataStore.loadFromArray(newData);
+
             assert.isTrue(handler.calledOnce);
-            assert.equal(gridElement.dataFrame.corner.x, 62);
-            assert.equal(gridElement.dataFrame.corner.y, 115);
+            assert.equal(gridElement.baseFrame.corner.x, 62);
+            assert.equal(gridElement.baseFrame.corner.y, 115);
         });
-        it("calls the handler when loaded data expands the dataFrame", () => {
+        it("calls the handler when loaded data expands the dataStore", () => {
             assert.isTrue(handler.calledOnce);
         });
     });
@@ -61,7 +67,7 @@ describe("GridSheet Element Tests", () => {
 
             assert.isFalse(gridElement.selector.selectionFrame.isEmpty);
             gridElement.selector.selectionFrame.forEachPoint((aPoint) => {
-                assert.equal(gridElement.dataFrame.at(aPoint), undefined);
+                assert.equal(gridElement.dataStore.at(aPoint), undefined);
             });
         });
         it("should delete 0,0 to 50,50 on Backspace keydown", () => {
@@ -70,7 +76,7 @@ describe("GridSheet Element Tests", () => {
 
             assert.isFalse(gridElement.selector.selectionFrame.isEmpty);
             gridElement.selector.selectionFrame.forEachPoint((aPoint) => {
-                assert.equal(gridElement.dataFrame.at(aPoint), undefined);
+                assert.equal(gridElement.dataStore.at(aPoint), undefined);
             });
         });
     });

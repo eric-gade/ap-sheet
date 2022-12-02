@@ -12,7 +12,7 @@
  */
 import { PrimaryGridFrame as PrimaryFrame } from "../src/PrimaryGridFrame.js";
 import { Frame } from "../src/Frame.js";
-import { DataFrame } from "../src/DataFrame.js";
+import { DataStore } from "../src/DataStore.js";
 import { Selector } from "../src/Selector.js";
 import { Point } from "../src/Point.js";
 import chai from "chai";
@@ -31,12 +31,13 @@ assert.pointsEqual = function (firstPoint, secondPoint, msg) {
     );
 };
 
-// We initialize a demo DataFrame 113x133 total.
+// We initialize a demo DataStore 113x133 total.
 // In this frame, we ensure that the stored value
 // for each point is simply the instance of the Point.
-let exampleDataFrame = new DataFrame([0, 0], [100, 100]);
-exampleDataFrame.forEachPoint((aPoint) => {
-    exampleDataFrame.putAt(aPoint, aPoint);
+let exampleDataStore = new DataStore();
+let exampleBaseFrame = new Frame([0, 0], [100, 100]);
+exampleBaseFrame.forEachPoint((aPoint) => {
+    exampleDataStore.putAt(aPoint, aPoint);
 });
 
 describe("Basic Selector instantiation tests.", () => {
@@ -52,7 +53,7 @@ describe("Basic Selector instantiation tests.", () => {
      * (Note: no locked rows or cols here)
      *
      *
-     * Relative to DataFrame:
+     * Relative to DataStore:
      *
      * VVVVVVVDDDDDDDDDDD...
      * VVVVVVVDDDDDDDDDDD...
@@ -62,11 +63,14 @@ describe("Basic Selector instantiation tests.", () => {
      * DDDDDDDDDDDDDDDDDDDD...
      * .......................
      *
-     * D=DataFrame
+     * D=DataStore
      * V= Relative view frame
      */
-
-    let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 15]);
+    let primaryFrame = new PrimaryFrame(
+        exampleDataStore,
+        exampleBaseFrame,
+        [10, 15]
+    );
     let selector = new Selector(primaryFrame);
     it("Has a correct cursor", () => {
         let expected = new Point([0, 0]);
@@ -110,7 +114,7 @@ describe("Basic Selector instantiation tests (shifted PrimaryFrame).", () => {
      * (Note: no locked rows or cols here)
      *
      *
-     * Relative to DataFrame:
+     * Relative to DataStore:
      *
      * DDDDDDDDDDDDDDDDDDD...
      * DDDDDDDDDDDDDDDDDDD...
@@ -122,11 +126,15 @@ describe("Basic Selector instantiation tests (shifted PrimaryFrame).", () => {
      * DDDDDDDDDDDDDDDDDDD...
      * .......................
      *
-     * D=DataFrame
+     * D=DataStore
      * V= Relative view frame
      */
 
-    let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 15]);
+    let primaryFrame = new PrimaryFrame(
+        exampleDataStore,
+        exampleBaseFrame,
+        [10, 15]
+    );
     primaryFrame.shiftRightBy(1);
     primaryFrame.shiftDownBy(2);
     let selector = new Selector(primaryFrame);
@@ -172,7 +180,7 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
      * (Note: no locked rows or cols here)
      *
      *
-     * Relative to DataFrame:
+     * Relative to DataStore:
      *
      * VVVVVVVDDDDDDDDDDD...
      * VVVVVVVDDDDDDDDDDD...
@@ -182,12 +190,16 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
      * DDDDDDDDDDDDDDDDDDDD...
      * .......................
      *
-     * D=DataFrame
+     * D=DataStore
      * V= Relative view frame
      */
 
     it("Move right within PrimaryFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveRightBy(2);
         let expectedCursor = new Point([2, 0]);
@@ -200,7 +212,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         assert.isTrue(selector.selectionFrame.isEmpty);
     });
     it("Move right within PrimaryFrame (selecting=true)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveRightBy(2, true);
         let expectedCursor = new Point([2, 0]);
@@ -215,7 +231,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         assert.isTrue(selector.selectionFrame.equals(expectedSelectionFrame));
     });
     it("Move right out of the PrimaryFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveRightBy(15);
         let expectedCursor = new Point([10, 0]);
@@ -232,7 +252,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         );
     });
     it("Move right out of the PrimaryFrame (selecting=true)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveRightBy(15, true);
         let expectedCursor = new Point([10, 0]);
@@ -251,7 +275,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         );
     });
     it("Move left within PrimaryFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveLeftBy(2);
         // nothing should happen here, we are already at the left corner
@@ -277,7 +305,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         assert.isTrue(selector.selectionFrame.isEmpty);
     });
     it("Move left within PrimaryFrame (selecting=true)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveLeftBy(2, true);
         // nothing should happen here, we are already at the left corner
@@ -307,7 +339,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         assert.isTrue(selector.selectionFrame.equals(expectedSelectionFrame));
     });
     it("Move left out of the PrimaryFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveRightBy(15);
         selector.moveLeftBy(10);
@@ -325,7 +361,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         );
     });
     it("Move left out of the PrimaryFrame (selecting=true)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveRightBy(15);
         selector.moveLeftBy(10, true);
@@ -345,7 +385,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         );
     });
     it("Move down within PrimaryFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveDownBy(2);
         let expectedCursor = new Point([0, 2]);
@@ -358,7 +402,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         assert.isTrue(selector.selectionFrame.isEmpty);
     });
     it("Move down within PrimaryFrame (selecting=true)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveDownBy(2, true);
         let expectedCursor = new Point([0, 2]);
@@ -373,7 +421,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         assert.isTrue(selector.selectionFrame.equals(expectedSelectionFrame));
     });
     it("Move down out of the PrimaryFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveDownBy(25);
         let expectedCursor = new Point([0, 20]);
@@ -390,7 +442,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         );
     });
     it("Move down out of the PrimaryFrame (selecting=true)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveDownBy(25, true);
         let expectedCursor = new Point([0, 20]);
@@ -409,7 +465,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         );
     });
     it("Move up within PrimaryFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveUpBy(2);
         // nothing should happen here, we are already at the up corner
@@ -435,7 +495,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         assert.isTrue(selector.selectionFrame.isEmpty);
     });
     it("Move up within PrimaryFrame (selecting=true)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveUpBy(2, true);
         // nothing should happen here, we are already at the up corner
@@ -465,7 +529,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         assert.isTrue(selector.selectionFrame.equals(expectedSelectionFrame));
     });
     it("Move up out of the PrimaryFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveDownBy(50);
         selector.moveUpBy(30);
@@ -483,7 +551,11 @@ describe("Selector navigation tests (no locked rows or columns).", () => {
         );
     });
     it("Move up out of the PrimaryFrame (selecting=true)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 20]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 20]
+        );
         let selector = new Selector(primaryFrame);
         selector.moveDownBy(50);
         selector.moveUpBy(30, true);
@@ -520,7 +592,7 @@ describe("Selector navigation tests (locked rows and columns).", () => {
      * U=Columns/Rows Overlap
      *
      *
-     * Relative to DataFrame:
+     * Relative to DataStore:
      *
      * UURRRRRRRRDDDDDDDDD...
      * UURRRRRRRRDDDDDDDDD...
@@ -529,14 +601,18 @@ describe("Selector navigation tests (locked rows and columns).", () => {
      * CCVVVVVVVVDDDDDDDDD...
      * DDDDDDDDDDDDDDDDDDDD...
      * .......................
-     * D=DataFrame
+     * D=DataStore
      * R=Relative LockedRows Frame
      * C=Relative LockedColumns Frame
      * V=Relative ViewFrame
      */
 
     it("Move right within PrimaryFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
 
@@ -553,7 +629,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         assert.isTrue(selector.selectionFrame.isEmpty);
     });
     it("Move right within PrimaryFrame (selecting=true)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
 
@@ -571,7 +651,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         assert.isTrue(selector.selectionFrame.equals(expectedSelectionFrame));
     });
     it("Move right out of the PrimaryFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
 
@@ -591,7 +675,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         );
     });
     it("Move right out of the PrimaryFrame (selecting=true)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
 
@@ -613,7 +701,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         );
     });
     it("Move left within PrimaryFrame and within ViewFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
 
@@ -641,7 +733,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         assert.isTrue(selector.selectionFrame.isEmpty);
     });
     it("Move left within PrimaryFrame from ViewFrame to LockedColumns (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
 
@@ -658,7 +754,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         assert.isTrue(selector.selectionFrame.isEmpty);
     });
     it("Move left ViewFrame to ViewFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
         let selector = new Selector(primaryFrame);
@@ -685,7 +785,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         assert.isTrue(selector.selectionFrame.isEmpty);
     });
     it("Move left selecting across locked columns", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
         let selector = new Selector(primaryFrame);
@@ -703,7 +807,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         assert.isTrue(selector.selectionFrame.equals(expectedSelectionFrame));
     });
     it("Move left selecting ViewFrame elements without crossing into locked columns", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
         let selector = new Selector(primaryFrame);
@@ -732,7 +840,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         assert.isTrue(selector.selectionFrame.equals(expectedSelectionFrame));
     });
     it("Move down within PrimaryFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
 
@@ -749,7 +861,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         assert.isTrue(selector.selectionFrame.isEmpty);
     });
     it("Move down within PrimaryFrame (selecting=true)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
 
@@ -767,7 +883,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         assert.isTrue(selector.selectionFrame.equals(expectedSelectionFrame));
     });
     it("Move down out of the PrimaryFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
 
@@ -787,7 +907,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         );
     });
     it("Move down out of the PrimaryFrame (selecting=true)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
 
@@ -809,7 +933,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         );
     });
     it("Move up within PrimaryFrame and within ViewFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
 
@@ -837,7 +965,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         assert.isTrue(selector.selectionFrame.isEmpty);
     });
     it("Move up within PrimaryFrame from ViewFrame to LockedColumns (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
 
@@ -854,7 +986,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         assert.isTrue(selector.selectionFrame.isEmpty);
     });
     it("Move up ViewFrame to ViewFrame (selecting=false)", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
         let selector = new Selector(primaryFrame);
@@ -881,7 +1017,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         assert.isTrue(selector.selectionFrame.isEmpty);
     });
     it("Move up selecting across locked columns", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
         let selector = new Selector(primaryFrame);
@@ -899,7 +1039,11 @@ describe("Selector navigation tests (locked rows and columns).", () => {
         assert.isTrue(selector.selectionFrame.equals(expectedSelectionFrame));
     });
     it("Move up selecting ViewFrame elements without crossing into locked columns", () => {
-        let primaryFrame = new PrimaryFrame(exampleDataFrame, [10, 5]);
+        let primaryFrame = new PrimaryFrame(
+            exampleDataStore,
+            exampleBaseFrame,
+            [10, 5]
+        );
         primaryFrame.lockRows(2);
         primaryFrame.lockColumns(2);
         let selector = new Selector(primaryFrame);
