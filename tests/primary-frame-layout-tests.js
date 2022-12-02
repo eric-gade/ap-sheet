@@ -16,7 +16,8 @@
  *   frame).
  */
 import { PrimaryGridFrame as PrimaryFrame } from "../src/PrimaryGridFrame.js";
-import { DataFrame } from "../src/DataFrame.js";
+import { DataStore } from "../src/DataStore.js";
+import Frame from "../src/Frame.js";
 import { Point } from "../src/Point.js";
 import chai from "chai";
 const assert = chai.assert;
@@ -34,12 +35,13 @@ assert.pointsEqual = function (firstPoint, secondPoint, msg) {
     );
 };
 
-// We initialize a demo DataFrame 113x133 total.
+// We initialize a demo DataStore 113x133 total.
 // In this frame, we ensure that the stored value
 // for each point is simply the instance of the Point.
-let exampleDataFrame = new DataFrame([0, 0], [113, 113]);
-exampleDataFrame.forEachPoint((aPoint) => {
-    exampleDataFrame.putAt(aPoint, aPoint);
+let exampleDataStore = new DataStore();
+let exampleBaseFrame = new Frame([0, 0], [113, 113]);
+exampleBaseFrame.forEachPoint((aPoint) => {
+    exampleDataStore.putAt(aPoint, aPoint);
 });
 
 describe("PrimaryFrame Layout with no locked rows or columns and dataOffset (2,2)", () => {
@@ -55,7 +57,7 @@ describe("PrimaryFrame Layout with no locked rows or columns and dataOffset (2,2
      * (Note: no locked rows or cols here)
      *
      *
-     * Relative to DataFrame:
+     * Relative to DataStore:
      *
      * DDDDDDDDDDDDDDDDDDDD...
      * DDDDDDDDDDDDDDDDDDDD...
@@ -66,11 +68,15 @@ describe("PrimaryFrame Layout with no locked rows or columns and dataOffset (2,2
      * DDDDDDDDDDDDDDDDDDDD...
      * .......................
      *
-     * D=DataFrame
+     * D=DataStore
      * V= Relative view frame
      */
 
-    let primaryFrame = new PrimaryFrame(exampleDataFrame, [6, 3]);
+    let primaryFrame = new PrimaryFrame(
+        exampleDataStore,
+        exampleBaseFrame,
+        [6, 3]
+    );
     primaryFrame.dataOffset.x = 2;
     primaryFrame.dataOffset.y = 2;
     it("Has a correct origin and corner for the internal viewFrame", () => {
@@ -97,8 +103,8 @@ describe("PrimaryFrame Layout with no locked rows or columns and dataOffset (2,2
         let relativeView = primaryFrame.relativeViewFrame;
         let expectedDataOrigin = new Point([2, 2]);
         let expectedDataCorner = new Point([8, 5]);
-        let actualDataOrigin = exampleDataFrame.getAt(relativeView.origin);
-        let actualDataCorner = exampleDataFrame.getAt(relativeView.corner);
+        let actualDataOrigin = exampleDataStore.getAt(relativeView.origin);
+        let actualDataCorner = exampleDataStore.getAt(relativeView.corner);
 
         assert.pointsEqual(actualDataOrigin, expectedDataOrigin);
         assert.pointsEqual(actualDataCorner, expectedDataCorner);
@@ -117,7 +123,7 @@ describe("PrimaryFrame Layout with 2 locked rows, no columns and dataOffset(2,1)
      * R=Internal LockedRows Frame
      * V=Internal View Frame
      *
-     * Relative to DataFrame:
+     * Relative to DataStore:
      *
      * DDRRRRRRRDDDDDDDDDDD...
      * DDRRRRRRRDDDDDDDDDDD...
@@ -129,9 +135,13 @@ describe("PrimaryFrame Layout with 2 locked rows, no columns and dataOffset(2,1)
      * .......................
      * R=Relative LockedRowsFrame
      * V=Relative ViewFrame
-     * D=DataFrame
+     * D=DataStore
      */
-    let primaryFrame = new PrimaryFrame(exampleDataFrame, [6, 3]);
+    let primaryFrame = new PrimaryFrame(
+        exampleDataStore,
+        exampleBaseFrame,
+        [6, 3]
+    );
     primaryFrame.lockRows(2);
     primaryFrame.dataOffset.x = 2;
     primaryFrame.dataOffset.y = 1;
@@ -176,8 +186,8 @@ describe("PrimaryFrame Layout with 2 locked rows, no columns and dataOffset(2,1)
         let expectedOriginData = new Point([2, 0]);
         let expectedCornerData = new Point([8, 1]);
         let relativeRows = primaryFrame.relativeLockedRowsFrame;
-        let actualOriginData = exampleDataFrame.getAt(relativeRows.origin);
-        let actualCornerData = exampleDataFrame.getAt(relativeRows.corner);
+        let actualOriginData = exampleDataStore.getAt(relativeRows.origin);
+        let actualCornerData = exampleDataStore.getAt(relativeRows.corner);
 
         assert.pointsEqual(actualOriginData, expectedOriginData);
         assert.pointsEqual(actualCornerData, expectedCornerData);
@@ -187,8 +197,8 @@ describe("PrimaryFrame Layout with 2 locked rows, no columns and dataOffset(2,1)
         let relativeView = primaryFrame.relativeViewFrame;
         let expectedOriginData = new Point([2, 3]);
         let expectedCornerData = new Point([8, 4]);
-        let actualOriginData = exampleDataFrame.getAt(relativeView.origin);
-        let actualCornerData = exampleDataFrame.getAt(relativeView.corner);
+        let actualOriginData = exampleDataStore.getAt(relativeView.origin);
+        let actualCornerData = exampleDataStore.getAt(relativeView.corner);
 
         assert.pointsEqual(actualOriginData, expectedOriginData);
         assert.pointsEqual(actualCornerData, expectedCornerData);
@@ -210,7 +220,7 @@ describe("PrimaryFrame Layout with 2 locked rows, 2 locked columns, and dataOffs
      * U=Columns/Rows Overlap
      *
      *
-     * Relative to DataFrame:
+     * Relative to DataStore:
      *
      * DDDRRRRRRRDDDDDDDDDD...
      * DDDRRRRRRRDDDDDDDDDD...
@@ -220,12 +230,16 @@ describe("PrimaryFrame Layout with 2 locked rows, 2 locked columns, and dataOffs
      * CCDVVVVVDDDDDDDDDDDD...
      * DDDDDDDDDDDDDDDDDDDD...
      * .......................
-     * D=DataFrame
+     * D=DataStore
      * R=Relative LockedRows Frame
      * C=Relative LockedColumns Frame
      * V=Relative ViewFrame
      */
-    let primaryFrame = new PrimaryFrame(exampleDataFrame, [6, 3]);
+    let primaryFrame = new PrimaryFrame(
+        exampleDataStore,
+        exampleBaseFrame,
+        [6, 3]
+    );
     primaryFrame.lockRows(2);
     primaryFrame.lockColumns(2);
     primaryFrame.dataOffset.x = 1;
@@ -270,8 +284,8 @@ describe("PrimaryFrame Layout with 2 locked rows, 2 locked columns, and dataOffs
         let relativeView = primaryFrame.relativeViewFrame;
         let expectedOriginData = new Point([3, 4]);
         let expectedCornerData = new Point([7, 5]);
-        let actualOriginData = exampleDataFrame.getAt(relativeView.origin);
-        let actualCornerData = exampleDataFrame.getAt(relativeView.corner);
+        let actualOriginData = exampleDataStore.getAt(relativeView.origin);
+        let actualCornerData = exampleDataStore.getAt(relativeView.corner);
 
         assert.pointsEqual(actualOriginData, expectedOriginData);
         assert.pointsEqual(actualCornerData, expectedCornerData);
@@ -296,8 +310,8 @@ describe("PrimaryFrame Layout with 2 locked rows, 2 locked columns, and dataOffs
             primaryFrame.corner.x + primaryFrame.dataOffset.x,
             1,
         ]);
-        let actualOriginData = exampleDataFrame.getAt(relativeRows.origin);
-        let actualCornerData = exampleDataFrame.getAt(relativeRows.corner);
+        let actualOriginData = exampleDataStore.getAt(relativeRows.origin);
+        let actualCornerData = exampleDataStore.getAt(relativeRows.corner);
 
         assert.pointsEqual(actualOriginData, expectedOriginData);
         assert.pointsEqual(actualCornerData, expectedCornerData);
@@ -316,8 +330,8 @@ describe("PrimaryFrame Layout with 2 locked rows, 2 locked columns, and dataOffs
         let relativeColumns = primaryFrame.relativeLockedColumnsFrame;
         let expectedOriginData = new Point([0, 4]);
         let expectedCornerData = new Point([1, 5]);
-        let actualOriginData = exampleDataFrame.getAt(relativeColumns.origin);
-        let actualCornerData = exampleDataFrame.getAt(relativeColumns.corner);
+        let actualOriginData = exampleDataStore.getAt(relativeColumns.origin);
+        let actualCornerData = exampleDataStore.getAt(relativeColumns.corner);
 
         assert.pointsEqual(actualOriginData, expectedOriginData);
         assert.pointsEqual(actualCornerData, expectedCornerData);
@@ -325,7 +339,7 @@ describe("PrimaryFrame Layout with 2 locked rows, 2 locked columns, and dataOffs
 });
 
 describe("Larger PrimaryFrame with 3 locked rows test dataOffset(0,1)", () => {
-    /* DataFrame Relative:
+    /* DataStore Relative:
      *
      * RRRRRRRRDDDDDDDDDDDD...
      * RRRRRRRRDDDDDDDDDDDD...
@@ -341,10 +355,14 @@ describe("Larger PrimaryFrame with 3 locked rows test dataOffset(0,1)", () => {
      * .......................
      *
      * V=Relative ViewFrame
-     * D=DataFrame
+     * D=DataStore
      * R=Relative LockedRows Frame
      */
-    let primaryFrame = new PrimaryFrame(exampleDataFrame, [7, 7]);
+    let primaryFrame = new PrimaryFrame(
+        exampleDataStore,
+        exampleBaseFrame,
+        [7, 7]
+    );
     primaryFrame.lockRows(3);
     primaryFrame.dataOffset.y = 1;
     it("Has correct origin and corner for relative view frame", () => {
