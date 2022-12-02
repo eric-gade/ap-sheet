@@ -12,7 +12,7 @@ class DataStore {
         // We store Point data as keys
         // composed of the values of each
         // Point
-        this.store = {};
+        this._cache = {};
 
         // A set of subscriber objects that
         // will be notified whenever data changes
@@ -73,9 +73,9 @@ class DataStore {
         // We do not actually store undefined
         // as a value
         if (value === undefined) {
-            delete this.store[key];
+            delete this._cache[key];
         } else {
-            this.store[key] = value;
+            this._cache[key] = value;
         }
         if (checkAsync) {
             this.persistentPutAt(location, value);
@@ -118,10 +118,10 @@ class DataStore {
         } else {
             throw new Error("Invalid Point or Coordinate");
         }
-        if (this.store[key] === undefined && checkAsync) {
+        if (this._cache[key] === undefined && checkAsync) {
             this.persistentGetAt(location);
         }
-        return this.store[key];
+        return this._cache[key];
     }
 
     /**
@@ -204,9 +204,9 @@ class DataStore {
      */
     async getDataArray(startCoordinate, endCoordinate) {
         let result = [];
-        for (let y = startCoordinate[1]; y < endCoordinate[1]; y++) {
+        for (let y = startCoordinate[1]; y <= endCoordinate[1]; y++) {
             let row = [];
-            for (let x = startCoordinate[0]; x < endCoordinate[0]; x++) {
+            for (let x = startCoordinate[0]; x <= endCoordinate[0]; x++) {
                 let cachedVal = this.getAt([x, y], false, false);
                 if (cachedVal === undefined) {
                     cachedVal = await this.persistentGetAt(
@@ -228,9 +228,9 @@ class DataStore {
      * points to values.
      */
     clear(clearPersisted = false, notify = true) {
-        this.store = {};
+        this._cache = {};
         if (notify) {
-            this.notify(new Frame(this.origin, this.corner));
+            this.notify();
         }
         if (clearPersisted) {
             this.clearAllPersisted(notify);
@@ -258,7 +258,7 @@ class DataStore {
         for (let y = startCoordinate[1]; y < endCoordinate[1]; y++) {
             for (let x = startCoordinate[0]; x < endCoordinate[0]; x++) {
                 const key = `${x},${y}`;
-                delete this.store[key];
+                delete this._cache[key];
             }
         }
 
@@ -288,7 +288,7 @@ class DataStore {
         // cycle through the local store
         // cache.
         // Database variants should override.
-        Object.keys(this.store).reduce(
+        Object.keys(this._cache).reduce(
             (key, current) => {
                 let [x, y] = key.split(",").map((val) => parseInt(val));
                 if (x > current[0] && y > current[1]) {
