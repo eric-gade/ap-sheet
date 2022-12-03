@@ -227,7 +227,7 @@ class DataStore {
      * Clear out the cached dictionary of
      * points to values.
      */
-    clear(clearPersisted = false, notify = true) {
+    clear(clearPersisted = true, notify = true) {
         this._cache = {};
         if (notify) {
             this.notify();
@@ -255,8 +255,8 @@ class DataStore {
         notify = true,
         clearPersisted = true
     ) {
-        for (let y = startCoordinate[1]; y < endCoordinate[1]; y++) {
-            for (let x = startCoordinate[0]; x < endCoordinate[0]; x++) {
+        for (let y = startCoordinate[1]; y <= endCoordinate[1]; y++) {
+            for (let x = startCoordinate[0]; x <= endCoordinate[0]; x++) {
                 const key = `${x},${y}`;
                 delete this._cache[key];
             }
@@ -288,8 +288,8 @@ class DataStore {
         // cycle through the local store
         // cache.
         // Database variants should override.
-        Object.keys(this._cache).reduce(
-            (key, current) => {
+        return Object.keys(this._cache).reduce(
+            (current, key) => {
                 let [x, y] = key.split(",").map((val) => parseInt(val));
                 if (x > current[0] && y > current[1]) {
                     return [x, y];
