@@ -39,11 +39,13 @@ describe("GridSheet Element Tests", () => {
                 [newFrame.origin.x, newFrame.origin.y],
                 [newFrame.corner.x, newFrame.corner.y]
             );
+            const expectedX = gridElement.baseFrame.corner.x + 10;
+            const expectedY = gridElement.baseFrame.corner.y + 15;
             await gridElement.dataStore.loadFromArray(newData);
 
             assert.isTrue(handler.calledOnce);
-            assert.equal(gridElement.baseFrame.corner.x, 62);
-            assert.equal(gridElement.baseFrame.corner.y, 115);
+            assert.equal(gridElement.baseFrame.corner.x, expectedX);
+            assert.equal(gridElement.baseFrame.corner.y, expectedY);
         });
         it("calls the handler when loaded data expands the dataStore", () => {
             assert.isTrue(handler.calledOnce);

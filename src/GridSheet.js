@@ -268,10 +268,19 @@ class GridSheet extends HTMLElement {
         }
     }
 
-    onDataChanged(frame, wasResized = false) {
-        if (frame.isPoint) {
-            frame = new Frame(frame, frame);
+    onDataChanged(startCoord, endCoord) {
+        // Determine if baseFrame should be resized
+        let wasResized = false;
+        if (this.baseFrame.corner.x < endCoord[0]) {
+            this.baseFrame.corner.x = endCoord[0];
+            wasResized = true;
         }
+        if (this.baseFrame.corner.y < endCoord[1]) {
+            this.baseFrame.corner.y = endCoord[1];
+            wasResized = true;
+        }
+
+        const frame = new Frame(startCoord, endCoord);
         let event = new CustomEvent("data-updated", {
             detail: {
                 frames: [frame],
