@@ -158,7 +158,7 @@ describe("DataStore Method Tests", () => {
             expect(mockSubscriber.onDataChanged).to.have.been.called;
             expect(mockSubscriber.onDataChanged).to.have.been.calledWith(
                 [0, 0],
-                [3, 3]
+                [2, 2]
             );
         });
         it("does not notify at all if the argument is set to false", async () => {

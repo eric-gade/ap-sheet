@@ -309,18 +309,18 @@ describe("PrimaryFrame Shifting with no locked cols or rows", () => {
 
         let expectedA = new Point([
             1,
-            exampleDataStore.bottom - (primaryFrame.viewFrame.size.y - 1),
+            exampleBaseFrame.bottom - (primaryFrame.viewFrame.size.y - 1),
         ]);
         let expectedB = new Point([
             7,
-            exampleDataStore.bottom - (primaryFrame.viewFrame.size.y - 1),
+            exampleBaseFrame.bottom - (primaryFrame.viewFrame.size.y - 1),
         ]);
-        let expectedC = new Point([1, exampleDataStore.bottom]);
-        let expectedE = new Point([7, exampleDataStore.bottom]);
+        let expectedC = new Point([1, exampleBaseFrame.bottom]);
+        let expectedE = new Point([7, exampleBaseFrame.bottom]);
 
         // Now shift down by an impossible
         // amount.
-        primaryFrame.shiftDownBy(exampleDataStore.bottom * 4);
+        primaryFrame.shiftDownBy(exampleBaseFrame.bottom * 4);
         let viewFrame = primaryFrame.relativeViewFrame;
 
         assert.pointsEqual(viewFrame.topLeft, expectedA);
