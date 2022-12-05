@@ -151,8 +151,8 @@ class KeyHandler extends Object {
                 );
             } else {
                 this.sheet.dataStore.clearData(
-                    this.sheet.selector.selectionFrame.origin,
-                    this.sheet.selector.selectionFrame.corner
+                    this.sheet.selector.selectionFrame.origin.toCoord(),
+                    this.sheet.selector.selectionFrame.corner.toCoord()
                 );
             }
         });
@@ -164,8 +164,8 @@ class KeyHandler extends Object {
                 );
             } else {
                 this.sheet.dataStore.clearData(
-                    this.sheet.selector.selectionFrame.origin,
-                    this.sheet.selector.selectionFrame.corner
+                    this.sheet.selector.selectionFrame.origin.toCoord(),
+                    this.sheet.selector.selectionFrame.corner.toCoord()
                 );
             }
         });

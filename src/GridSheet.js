@@ -269,6 +269,9 @@ class GridSheet extends HTMLElement {
     }
 
     onDataChanged(startCoord, endCoord) {
+        if (!endCoord) {
+            endCoord = [startCoord[0], startCoord[1]];
+        }
         // Determine if baseFrame should be resized
         let wasResized = false;
         if (this.baseFrame.corner.x < endCoord[0]) {

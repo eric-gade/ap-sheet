@@ -58,7 +58,9 @@ class IDBDataStore extends DataStore {
         const transaction = this.db.transaction("cells", "readwrite");
         const all = await transaction.store.getAll();
         all.forEach((record) => {
-            this.store[record.id] = record.value;
+            if (record.value !== undefined) {
+                this._cache[record.id] = record.value;
+            }
         });
         this.notify(this, true);
     }
@@ -104,7 +106,7 @@ class IDBDataStore extends DataStore {
         );
     }
 
-    async asyncPutAt(location, value, notify = true) {
+    async persistentPutAt(location, value, notify = true) {
         if (!this.db) {
             this.db = await this.getDB();
         }
@@ -112,11 +114,9 @@ class IDBDataStore extends DataStore {
         const key = this._locationToKey(location);
         const existing = await transaction.store.get(key);
         if (existing) {
-            console.log(`trying to put into existing point: ${key}`);
             existing.value = value;
             return await transaction.store.put(existing);
         } else {
-            console.log(`Trying to put into new point ${key}`);
             return await transaction.store.add({
                 id: key,
                 x: key.split(",")[0],
@@ -126,7 +126,7 @@ class IDBDataStore extends DataStore {
         }
     }
 
-    async asyncGetAt(location, notify = true) {
+    async persistentGetAt(location, notify = true) {
         if (!this.db) {
             this.db = await this.getDB();
         }
@@ -134,26 +134,22 @@ class IDBDataStore extends DataStore {
         const key = this._locationToKey(location);
         const record = await transaction.store.get(key);
         if (record === undefined) {
-            this.store[key] = undefined;
-        } else {
-            this.store[key] = record.value;
-        }
-        if (notify) {
-            console.log(`Async get notify for ${key}`);
+            this._cache[key] = undefined;
+        } else if (record.value !== undefined) {
+            this._cache[key] = record.value;
         }
     }
 
-    async clearPersistedFrame(aFrame, notify = true) {
-        const intersectionFrame = this.intersection(aFrame);
-        if (!intersectionFrame.isEmpty) {
-            const transaction = this.db.transaction("cells", "readwrite");
-            await Promise.all(
-                intersectionFrame.points.map((point) => {
-                    const key = this._locationToKey(point);
-                    return transaction.store.delete(key);
-                })
-            );
+    async clearPersistedData(startCoord, endCoord, notify = true) {
+        const transaction = this.db.transaction("cells", "readwrite");
+        const actions = [];
+        for (let x = startCoord[0]; x <= endCoord[0]; x++) {
+            for (let y = startCoord[1]; y <= endCoord[1]; y++) {
+                const key = this._locationToKey([x, y]);
+                actions.push(transaction.store.delete(key));
+            }
         }
+        await Promise.all(actions);
     }
 
     async clearAllPersisted(notify = true) {

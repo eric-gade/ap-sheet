@@ -76,6 +76,14 @@ class Point {
     toString() {
         return `Point(${this.x}, ${this.y})`;
     }
+
+    /**
+     * I respond with a size 2 array of my
+     * x and y coordinates, respectively
+     */
+    toCoord() {
+        return [this.x, this.y];
+    }
 }
 
 export { Point as default, Point, isCoordinate };
