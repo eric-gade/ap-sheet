@@ -546,6 +546,8 @@ class GridSheet extends HTMLElement {
 
     dispatchSelectionChanged() {
         let selectionEvent = new CustomEvent("selection-changed", {
+            bubbles: true,
+            composed: true,
             detail: {
                 relativeCursor: this.selector.relativeCursor,
                 cursor: new Point(
