@@ -66,8 +66,9 @@ class SyntheticClipboardHandler extends Object {
 
         // Update the clipboard contents
         this.constructor.contents = {
-            data: this.sheet.dataFrame.getDataArrayForFrame(
-                this.sheet.selector.selectionFrame
+            data: this.sheet.dataStore.getDataArray(
+                this.sheet.selector.selectionFrame.origin,
+                this.sheet.selector.selectionFrame.corner
             ),
         };
     }
@@ -76,7 +77,7 @@ class SyntheticClipboardHandler extends Object {
         if (this.constructor.contents) {
             // Insert the data array into this sheet's DataFrame
             // at the provided origin point
-            this.sheet.dataFrame.loadFromArray(
+            this.sheet.dataStore.loadFromArray(
                 this.constructor.contents.data,
                 this.sheet.selector.relativeCursor
             );
@@ -96,7 +97,8 @@ class SyntheticClipboardHandler extends Object {
         this.sheet.selector.selectionFrame.forEachPointRow((row) => {
             let line = row
                 .map((point) => {
-                    let value = this.sheet.dataFrame.getAt(point);
+                    let value = this.sheet.dataStore.getAt(point);
+                    if (!value) value = "";
                     if (value.replace(/ /g, "").match(/[\s,"]/)) {
                         return '"' + value.replace(/"/g, '""') + '"';
                     }
@@ -111,8 +113,9 @@ class SyntheticClipboardHandler extends Object {
     dispatchSyntheticCopyWith(text) {
         let clipboardObject = {
             origin: this.sheet.selector.selectionFrame.origin,
-            data: this.sheet.dataFrame.getDataArrayForFrame(
-                this.sheet.selector.selectionFrame
+            data: this.sheet.dataStore.getDataArray(
+                this.sheet.selector.selectionFrame.origin,
+                this.sheet.selector.selectionFrame.corner
             ),
             text: text,
         };
