@@ -269,7 +269,15 @@ class GridSheet extends HTMLElement {
     }
 
     onDataChanged(startCoord, endCoord) {
-        if (!endCoord) {
+        // if no startCoord is passed, assume that
+        // we start at the origin; if no coordinates are passed
+        // assume we cover the entire sheet
+        if (!startCoord) {
+            startCoord = this.baseFrame.origin;
+            if (!endCoord) {
+                endCoord = this.baseFrame.corner;
+            }
+        } else if (!endCoord) {
             endCoord = [startCoord[0], startCoord[1]];
         }
         // Determine if baseFrame should be resized
