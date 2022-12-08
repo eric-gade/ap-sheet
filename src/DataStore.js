@@ -178,7 +178,10 @@ class DataStore {
         // to whatever async backend is needed
 
         if (notify) {
-            const endCoordinate = [maxLength - 1, data.length - 1];
+            const endCoordinate = [
+                startCoordinate[0] + maxLength - 1,
+                startCoordinate[1] + data.length - 1
+            ];
             this.notify(startCoordinate, endCoordinate);
         }
 
