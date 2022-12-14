@@ -14,11 +14,17 @@ class DataStore {
         // Point
         this._cache = {};
 
+        // The following flag is checked by
+        // any consumer to determine if the
+        // store has completed its init.
+        this.isReady = false;
+
         // A set of subscriber objects that
         // will be notified whenever data changes
         this.subscribers = new Set();
 
         // Bind instance methods
+        this.init = this.init.bind(this);
         this.notify = this.notify.bind(this);
         this.loadFromArray = this.loadFromArray.bind(this);
         this.putAt = this.putAt.bind(this);
@@ -30,6 +36,24 @@ class DataStore {
         this.clearData = this.clearData.bind(this);
         this.clearAllPersisted = this.clearAllPersisted.bind(this);
         this.clearPersistedData = this.clearPersistedData.bind(this);
+    }
+
+    /**
+     * Perform any needed initialization in
+     * order to be marked as 'ready'.
+     * Subclasses should override.
+     */
+    init() {
+        // return new Promise((resolve, reject) => {
+        //     setTimeout(() => {
+        //         this.isReady = true;
+        //         resolve(true);
+        //     }, 1500);
+        // });
+
+        return new Promise((resolve, reject) => {
+            resolve((this.isReady = true));
+        });
     }
 
     /**
