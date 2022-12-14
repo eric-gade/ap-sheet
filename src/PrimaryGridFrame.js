@@ -71,6 +71,7 @@ class PrimaryGridFrame extends GridElementsFrame {
         this.pageDown = this.pageDown.bind(this);
         this.pageLeft = this.pageLeft.bind(this);
         this.pageRight = this.pageRight.bind(this);
+        this.getDataAt = this.getDataAt.bind(this);
         this.triggerAfterShift = this.triggerAfterShift.bind(this);
     }
 
@@ -446,6 +447,19 @@ class PrimaryGridFrame extends GridElementsFrame {
     pageDown() {
         let amount = this.relativeViewFrame.size.y - 1;
         this.shiftDownBy(amount);
+    }
+
+    /**
+     * A wrapper for this.dataStore.getAt
+     * that first checks to make sure the store
+     * is ready. If it isn't, it simply returns
+     * undefined, thus rendering an empty cell.
+     */
+    getDataAt(location) {
+        if (this.dataStore.isReady) {
+            return this.dataStore.getAt(location);
+        }
+        return undefined; // Will render empty cell
     }
 
     /**
