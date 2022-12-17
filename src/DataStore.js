@@ -204,7 +204,7 @@ class DataStore {
         if (notify) {
             const endCoordinate = [
                 startCoordinate[0] + maxLength - 1,
-                startCoordinate[1] + data.length - 1
+                startCoordinate[1] + data.length - 1,
             ];
             this.notify(startCoordinate, endCoordinate);
         }
@@ -269,7 +269,8 @@ class DataStore {
      * from any backing datastore
      */
     async clearAllPersisted(notify = true) {
-        this.clearPersistedFrame(this, notify);
+        // No-op in the default DataStore.
+        // Subclasses should override as needed
     }
 
     /**
