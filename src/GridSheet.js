@@ -235,6 +235,7 @@ class GridSheet extends HTMLElement {
             this.dispatchSelectionChanged.bind(this);
 
         // Bind instace methods
+        this.setDataStore = this.setDataStore.bind(this);
         this.onObservedResize = this.onObservedResize.bind(this);
         this.onDataChanged = this.onDataChanged.bind(this);
         this.onTabClick = this.onTabClick.bind(this);
@@ -348,6 +349,24 @@ class GridSheet extends HTMLElement {
         }
     }
 
+    /**
+     * Deactivate the current dataStore (if any)
+     * and set the new instance, re-rendering
+     * when ready.
+     */
+    async setDataStore(aDataStore) {
+        if (this.dataStore) {
+            await this.dataStore.detach();
+            this.dataStore.subscribers.delete(this);
+        }
+        this.dataStore = aDataStore;
+        this.primaryFrame.dataStore = this.dataStore;
+        this.render(); // to show loading
+        this.dataStore.subscribers.add(this);
+        await this.dataStore.init();
+        this.render();
+    }
+
     onDataChanged(startCoord, endCoord) {
         // if no startCoord is passed, assume that
         // we start at the origin; if no coordinates are passed
@@ -440,8 +459,9 @@ class GridSheet extends HTMLElement {
 
     render() {
         if (!this.dataStore.isReady) {
-            this.shadowRoot.getElementById("loading-display").style.display =
-                "";
+            return (this.shadowRoot.getElementById(
+                "loading-display"
+            ).style.display = "");
         } else {
             this.shadowRoot.getElementById("loading-display").style.display =
                 "none";
