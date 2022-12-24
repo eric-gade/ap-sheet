@@ -1,4 +1,4 @@
-import { IDBDataStore as DataStore } from "./IDBDataStore.js";
+import { DataStore } from "./DataStore.js";
 import { Selector } from "./Selector.js";
 import PrimaryFrame from "./PrimaryGridFrame.js";
 import { Point } from "./Point.js";
@@ -113,8 +113,75 @@ column-tab {
     font-family: monospace;
 }
 
+#loading-display {
+    position: relative;
+    grid-column-start: 1;
+    grid-column-end: -1;
+    grid-row-start: 1;
+    grid-row-end: -1;
+    z-index: 1000;
+    background-color: rgba(50,50,50,0.9);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 6rem;
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+  }
+  .loader:before,
+  .loader:after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    animation: pulsOut 1.8s ease-in-out infinite;
+    filter: drop-shadow(0 0 1rem rgba(255, 255, 255, 0.75));
+  }
+  .loader:before {
+    width: 100%;
+    padding-bottom: 100%;
+    box-shadow: inset 0 0 0 1rem #fff;
+    animation-name: pulsIn;
+  }
+  .loader:after {
+    width: calc(100% - 2rem);
+    padding-bottom: calc(100% - 2rem);
+    box-shadow: 0 0 0 0 #fff;
+  }
+
+  @keyframes pulsIn {
+    0% {
+      box-shadow: inset 0 0 0 1rem #fff;
+      opacity: 1;
+    }
+    50%, 100% {
+      box-shadow: inset 0 0 0 0 #fff;
+      opacity: 0;
+    }
+  }
+
+  @keyframes pulsOut {
+    0%, 50% {
+      box-shadow: 0 0 0 0 #fff;
+      opacity: 0;
+    }
+    100% {
+      box-shadow: 0 0 0 1rem #fff;
+      opacity: 1;
+    }
+  }
+      
+
 </style>
-<div id="edit-bar" style="grid-column: 1 / -1; grid-row: span 1;">
+<div id="edit-bar" style="grid-column: 1 / -1; grid-row: 1 / 1;">
     <div id="info-area"><span>Cursor</span><span>&rarr;</span></div>
     <input id="edit-area" type="text" disabled="true"/>
 </div>
@@ -124,6 +191,9 @@ column-tab {
 <locked-rows id="locked-rows-selection" class="empty"></locked-rows>
 <locked-columns id="locked-columns-selection" class="empty"></locked-columns>
 <sheet-cursor id="cursor"></sheet-cursor>
+<div id="loading-display">
+  <div id="loading-display-inner" class="loader"></div>
+</div>
 `;
 
 class GridSheet extends HTMLElement {
@@ -169,6 +239,8 @@ class GridSheet extends HTMLElement {
         this.onDataChanged = this.onDataChanged.bind(this);
         this.onTabClick = this.onTabClick.bind(this);
         this.render = this.render.bind(this);
+        this.renderLoading = this.renderLoading.bind(this);
+        this.renderError = this.renderError.bind(this);
         this.renderGridTemplate = this.renderGridTemplate.bind(this);
         this.renderRowTabs = this.renderRowTabs.bind(this);
         this.renderColumnTabs = this.renderColumnTabs.bind(this);
@@ -207,20 +279,25 @@ class GridSheet extends HTMLElement {
                 );
             }, 30);
 
-            // Attach a MouseHandler to handle mouse
-            // interaction and events
-            this.mouseHandler = new MouseHandler(this);
-            this.mouseHandler.connect();
+            this.dataStore.init().then(() => {
+                // Attach a MouseHandler to handle mouse
+                // interaction and events
+                this.mouseHandler = new MouseHandler(this);
+                this.mouseHandler.connect();
 
-            // Attach a KeyHandler to handle
-            // keydown events
-            this.keyHandler = new KeyHandler(this);
-            this.keyHandler.connect();
+                // Attach a KeyHandler to handle
+                // keydown events
+                this.keyHandler = new KeyHandler(this);
+                this.keyHandler.connect();
 
-            // Attach ClipboardHandler to handle
-            // copy and paste
-            this.clipboardHandler = new ClipboardHandler(this);
-            this.clipboardHandler.connect();
+                // Attach ClipboardHandler to handle
+                // copy and paste
+                this.clipboardHandler = new ClipboardHandler(this);
+                this.clipboardHandler.connect();
+
+                // Do a new render
+                this.render();
+            });
 
             // Bind the PrimaryFrame's afterChange callback
             // to this instance's viewShifted handler.
@@ -265,6 +342,9 @@ class GridSheet extends HTMLElement {
         } else if (name == "lockedcolumns") {
             this.numLockedColumns = parseInt(newVal);
             this.updateLockedColumns();
+        } else if (name === "name") {
+            if (this.dataStore.storeName !== newVal)
+                this.datasStore.storeName = newVal;
         }
     }
 
@@ -359,6 +439,13 @@ class GridSheet extends HTMLElement {
     }
 
     render() {
+        if (!this.dataStore.isReady) {
+            this.shadowRoot.getElementById("loading-display").style.display =
+                "";
+        } else {
+            this.shadowRoot.getElementById("loading-display").style.display =
+                "none";
+        }
         this.innerHTML = "";
         if (this.showRowTabs) {
             this.renderRowTabs();
@@ -393,6 +480,14 @@ class GridSheet extends HTMLElement {
         } else {
             this.primaryFrame.updateCellContents();
         }
+    }
+
+    renderLoading() {
+        // Do nothing for now
+    }
+
+    renderError() {
+        // Do nothing for now
     }
 
     renderGridTemplate() {
