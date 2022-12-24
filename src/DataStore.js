@@ -57,6 +57,16 @@ class DataStore {
     }
 
     /**
+     * Perform any needed cleanup when being
+     * detached as the store for a given sheet
+     */
+    detach() {
+        return new Promise((resolve, reject) => {
+            resolve((this.isReady = false));
+        });
+    }
+
+    /**
      * Attempt to notify all known subscriber
      * objects that the data in this DataStore
      * has changed
