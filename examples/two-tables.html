@@ -1,32 +1,30 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
     <head>
         <title>Double Connected Tables</title>
-        <link rel="stylesheet" href="style.css">
-        <script type="module" src="../src/GridSheet.js"></script>
+        <link rel="stylesheet" href="style.css" />
+        <script type="module" src="../src/APSheet.js"></script>
         <script type="module" src="../src/SheetCell.js"></script>
         <script type="module" src="../src/Conduit.js"></script>
         <script type="module" src="../src/Frame.js"></script>
         <style>
-         my-grid:first-child {
-             margin-right: 50px;
-         }
-         #container {
-             display: flex;
-             flex-direction: row;
-             align-items: baseline;
-         }
+            ap-sheet:first-child {
+                margin-right: 50px;
+            }
+            #container {
+                display: flex;
+                flex-direction: row;
+                align-items: baseline;
+            }
         </style>
     </head>
     <body>
         <div id="container">
-        <my-grid class="spreadsheet" id="table1" rows="5" columns="3">
-        </my-grid>
-        <my-grid class="spreadsheet" id="table2" rows="4" columns="4">
-        </my-grid>
+            <ap-sheet class="spreadsheet" id="table1" rows="5" columns="3">
+            </ap-sheet>
+            <ap-sheet class="spreadsheet" id="table2" rows="4" columns="4">
+            </ap-sheet>
         </div>
-        <p>
-            You can test copy and paste functionality between these tables.
-        </p>
+        <p>You can test copy and paste functionality between these tables.</p>
     </body>
 </html>

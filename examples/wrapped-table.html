@@ -1,58 +1,64 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
     <head>
         <title>Basic Grid Tests</title>
-        <link rel="stylesheet" href="style.css">
-        <script type="module" src="../src/GridSheet.js"></script>
+        <link rel="stylesheet" href="style.css" />
+        <script type="module" src="../src/APSheet.js"></script>
         <script type="module" src="../src/SheetCell.js"></script>
     </head>
     <body>
         <div id="wrapper">
             <div id="wrap-header">HEADER</div>
-            <div id="wrapped-content" style="background-color:grey;">
-                <my-grid class="spreadsheet" id="table" rows="10" columns="5" expands="both">
-                </my-grid>
+            <div id="wrapped-content" style="background-color: grey">
+                <ap-sheet
+                    class="spreadsheet"
+                    id="table"
+                    rows="10"
+                    columns="5"
+                    expands="both"
+                >
+                </ap-sheet>
             </div>
             <div id="wrap-footer">FOOTER</div>
         </div>
     </body>
     <script>
-     document.addEventListener('DOMContentLoaded', () => {
-         let table = document.getElementById('table');
-         table.focus();
-     });
+        document.addEventListener("DOMContentLoaded", () => {
+            let table = document.getElementById("table");
+            table.focus();
+        });
     </script>
     <style>
-     * {
-         box-sizing: border-box;
-     }
-     #wrapper {
-         padding: 20px;
-         display: flex;
-         flex-direction: column;
-         resize: both;
-         overflow: hidden;
-         width: 50%;
-     }
+        * {
+            box-sizing: border-box;
+        }
+        #wrapper {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            resize: both;
+            overflow: hidden;
+            width: 50%;
+        }
 
-     #wrapped-content {
-         display: block;
-         background-color: yellow;
-         flex: 1;
-         box-sizing: content-box;
-         overflow: auto;
-     }
+        #wrapped-content {
+            display: block;
+            background-color: yellow;
+            flex: 1;
+            box-sizing: content-box;
+            overflow: auto;
+        }
 
-     #wrapped-content > my-grid {
-         width: max-content;
-     }
+        #wrapped-content > ap-sheet {
+            width: max-content;
+        }
 
-     #wrap-header,
-     #wrap-footer {
-         position: relative;
-         display: block;
-         height: 50px;
-         background-color: red;
-     }
+        #wrap-header,
+        #wrap-footer {
+            position: relative;
+            display: block;
+            height: 50px;
+            background-color: red;
+        }
     </style>
 </html>

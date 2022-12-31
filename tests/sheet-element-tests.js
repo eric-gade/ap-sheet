@@ -1,16 +1,16 @@
 import sinon from "sinon";
 import chai from "chai";
 import { expect } from "chai";
-import "../src/GridSheet.js";
+import "../src/APSheet.js";
 import Frame from "../src/Frame.js";
 import { Point } from "../src/Point.js";
 import { DataStore } from "../src/DataStore.js";
 const assert = chai.assert;
 
-describe("GridSheet Element Tests", () => {
+describe.skip("APSheet Element Tests", () => {
     describe("Resize Custom Event Handling", () => {
         const handler = sinon.spy();
-        let gridElement = document.createElement("my-grid");
+        let gridElement = document.createElement("ap-sheet");
         before(() => {
             document.body.append(gridElement);
             gridElement.addEventListener("data-frame-resized", handler);
@@ -54,7 +54,7 @@ describe("GridSheet Element Tests", () => {
     describe("Can clear the primary selector using Delete key", () => {
         let gridElement;
         beforeEach(() => {
-            gridElement = document.createElement("my-grid");
+            gridElement = document.createElement("ap-sheet");
             document.body.append(gridElement);
             gridElement.selector.selectFromAnchorTo(new Point(50, 50));
         });
