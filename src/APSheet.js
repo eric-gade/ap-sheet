@@ -196,7 +196,7 @@ column-tab {
 </div>
 `;
 
-class GridSheet extends HTMLElement {
+class APSheet extends HTMLElement {
     constructor() {
         super();
         this.template = document.createElement("template");
@@ -490,7 +490,7 @@ class GridSheet extends HTMLElement {
 
         // This is HACKY.
         // Issue: the elements have not yet finished appending
-        // themselves to this GridSheet element by the time
+        // themselves to this APSheet element by the time
         // updateCellContents() gets called, so it cannot find
         // elements!
         if (this.primaryFrame.elements.length == 0) {
@@ -885,4 +885,4 @@ class GridSheet extends HTMLElement {
     }
 }
 
-window.customElements.define("my-grid", GridSheet);
+window.customElements.define("ap-sheet", APSheet);

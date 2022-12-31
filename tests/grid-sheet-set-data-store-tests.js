@@ -1,7 +1,7 @@
 import sinon from "sinon";
 import chai from "chai";
 import { expect } from "chai";
-import "../src/GridSheet.js";
+import "../src/APSheet.js";
 import Frame from "../src/Frame.js";
 import { Point } from "../src/Point.js";
 import { IdiotDataStore } from "../src/IdiotDataStore.js";
@@ -19,7 +19,7 @@ describe("#setDataStore tests", () => {
     let initialDataStore;
     let stub;
     before(() => {
-        gridElement = document.createElement("my-grid");
+        gridElement = document.createElement("ap-sheet");
         document.body.append(gridElement);
     });
 
