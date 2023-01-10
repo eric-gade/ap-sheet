@@ -128,10 +128,12 @@ column-tab {
 column-tab {
     border-right: 0px;
     border-top: 0px;
+    border-bottom: 0px;
 }
 
 row-tab {
     border-bottom: 0px;
+    border-right: 0px;
 }
 
 sheet-cursor {
