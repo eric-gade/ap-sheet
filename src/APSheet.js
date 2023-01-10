@@ -30,6 +30,16 @@ const templateString = `
    display: grid;
    user-select: none;
    overflow: hidden; /* For auto-resize without scrolling on */
+   --edit-bar-border-radius: 10px;
+   --edit-bar-border: 1px solid rgba(100, 100, 100, 0.4);
+    --tab-cell-border-radius: 5px;
+    --tab-cell-border: 1px solid rgba(150, 150, 150, 0.4);
+    --cursor-border: 3px solid black;
+    --selection-background-color: lightblue;
+}
+
+sheet-selection {
+    background-color: var(--selection-background-color);
 }
 
 :host(:focus){
@@ -61,14 +71,14 @@ const templateString = `
     display: flex;
     width: 1fr;
     box-sizing: border-box;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    border: 1px solid rgba(100, 100, 100, 0.4);
-    background-color: white;
+    border-top-left-radius: var(--edit-bar-border-radius);
+    border-top-right-radius: var(--edit-bar-border-radius);
+    border: var(--edit-bar-border);
     grid-column: 1 / -1;
     align-items: baseline;
     justify-content: stretch;
 }
+
 #edit-area {
     flex: 1;
     padding: 2px;
@@ -111,6 +121,21 @@ column-tab[locked="true"] {
 row-tab,
 column-tab {
     font-family: monospace;
+    border: var(--tab-cell-border);
+    border-radius: var(--tab-cell-border-radius);
+}
+
+column-tab {
+    border-right: 0px;
+    border-top: 0px;
+}
+
+row-tab {
+    border-bottom: 0px;
+}
+
+sheet-cursor {
+    border: var(--cursor-border);
 }
 
 #loading-display {

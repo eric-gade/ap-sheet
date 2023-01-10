@@ -14,7 +14,6 @@ const templateString = `
         grid-row: var(--row-start-name) var(--row-start) / var(--row-start-name) var(--row-end);
         grid-row: var(--row-start-name) var(--row-start) / span var(--row-end);
         grid-column: var(--col-start-name) var(--col-start) / span var(--col-end);
-        background-color: rgba(0, 0, 100, 0.5);
         pointer-events: none;
     }
     :host(.empty){
