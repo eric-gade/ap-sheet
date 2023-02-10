@@ -143,7 +143,7 @@ class DataStore {
      * value. Errors if the location is out of
      * scope of the frame.
      */
-    getAt(location, checkAsync = false) {
+    getAt(location, checkAsync = true) {
         let key;
         if (isCoordinate(location)) {
             key = location.toString();
