@@ -223,7 +223,7 @@ sheet-cursor {
 </div>
 `;
 
-class APSheet extends HTMLElement {
+export default class APSheet extends HTMLElement {
     constructor() {
         super();
         this.template = document.createElement("template");
