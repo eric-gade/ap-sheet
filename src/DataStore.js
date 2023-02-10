@@ -143,7 +143,7 @@ class DataStore {
      * value. Errors if the location is out of
      * scope of the frame.
      */
-    getAt(location, checkAsync = true) {
+    getAt(location, checkAsync = false) {
         let key;
         if (isCoordinate(location)) {
             key = location.toString();
@@ -204,7 +204,8 @@ class DataStore {
                 this.putAt(adjustedCoord, value, false, false);
                 newRow.push(value);
             }
-            this.persistentPutRowsAt(startCoordinate[1], [newRow], notify);
+            const nextStartCoord = [startCoordinate[0], startCoordinate[1] + y];
+            this.persistentPutRowsAt(nextStartCoord, [newRow], notify);
         }
 
         // TODO:
