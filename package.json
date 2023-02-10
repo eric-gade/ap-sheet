@@ -17,5 +17,6 @@
     },
     "scripts": {
         "test": "mocha --require ./utils/test-setup.js ./tests/"
-    }
+    },
+  "exports": "./index.js"
 }
