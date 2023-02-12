@@ -390,11 +390,32 @@ export default class APSheet extends HTMLElement {
         this.primaryFrame.dataStore = this.dataStore;
         this.render(); // to show loading
         this.dataStore.subscribers.add(this);
-        await this.dataStore.init();
+        const isReady = await this.dataStore.init();
+
         this.render();
+
+        if (isReady) {
+            [
+                this.primaryFrame.relativeViewFrame,
+                this.primaryFrame.relativeLockedRowsFrame,
+                this.primaryFrame.relativeLockedColumnsFrame,
+            ]
+                .filter((aFrame) => {
+                    return !!aFrame;
+                })
+                .forEach(async (aFrame) => {
+                    await this.dataStore.persistentGetRangeAt(
+                        aFrame.origin,
+                        aFrame.corner
+                    );
+                });
+        }
     }
 
     onDataChanged(startCoord, endCoord) {
+        // Before doing anything else, have the PrimaryFrame update itself first
+        this.primaryFrame.handleDataChanged(startCoord, endCoord);
+
         // if no startCoord is passed, assume that
         // we start at the origin; if no coordinates are passed
         // assume we cover the entire sheet
@@ -435,7 +456,6 @@ export default class APSheet extends HTMLElement {
         }
 
         this.dispatchEvent(event);
-        this.primaryFrame.updateCellContents();
     }
 
     onObservedResize(info) {
@@ -525,6 +545,19 @@ export default class APSheet extends HTMLElement {
                 this.primaryFrame.updateCellContents();
             }, 60);
         } else {
+            // Request the _persistent_ version of the currently
+            // view-able data from the DataStore.
+            // For async-backed stores, this will retrieve the
+            // persistent data and later, on notification,
+            // update the PrimaryFrame.
+            const framesToRequest = [
+                this.primaryFrame.relativeViewFrame,
+                this.primaryFrame.relativeLockedRowsFrame,
+                this.primaryFrame.relativeLockedColumnsFrame,
+            ].filter((frame) => !!frame);
+            framesToRequest.forEach((frame) => {
+                this.dataStore.persistentGetRangeAt(frame.origin, frame.corner);
+            });
             this.primaryFrame.updateCellContents();
         }
     }

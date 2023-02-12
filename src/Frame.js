@@ -82,6 +82,21 @@ class Frame {
     }
 
     /**
+     * Given an array of Points, Coordinates, or Frames,
+     * respond true if _any_ of the provided values is
+     * contained within this frame
+     */
+    containsAny(aListOfLocationOrFrame) {
+        for (let i = 0; i < aListOfLocationOrFrame.length; i++) {
+            const item = aListOfLocationOrFrame[i];
+            if (this.contains(item)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Returns true if the Frame given in
      * the argument has the same origin and
      * corner values as this instance.

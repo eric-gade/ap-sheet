@@ -73,6 +73,8 @@ class PrimaryGridFrame extends GridElementsFrame {
         this.pageRight = this.pageRight.bind(this);
         this.getDataAt = this.getDataAt.bind(this);
         this.triggerAfterShift = this.triggerAfterShift.bind(this);
+
+        this.handleDataChanged = this.handleDataChanged.bind(this);
     }
 
     /**
@@ -182,7 +184,7 @@ class PrimaryGridFrame extends GridElementsFrame {
         // if there is one
         if (!this.lockedFramesIntersect.isEmpty) {
             this.lockedFramesIntersect.forEachPoint((aPoint) => {
-                let value = this.dataStore.getAt(aPoint);
+                let value = this.getDataAt(aPoint);
                 if (value == undefined) {
                     this.setTextContentAt(aPoint, "...");
                 } else {
@@ -203,7 +205,7 @@ class PrimaryGridFrame extends GridElementsFrame {
     updateLockedRowElements() {
         if (this.numLockedRows) {
             this.relativeLockedRowsFrame.forEachPoint((aPoint) => {
-                let dataValue = this.dataStore.getAt(aPoint);
+                let dataValue = this.getDataAt(aPoint);
                 let translation = new Point([
                     aPoint.x - this.dataOffset.x,
                     aPoint.y,
@@ -235,7 +237,7 @@ class PrimaryGridFrame extends GridElementsFrame {
                     (this.lockedColumnsFrame.origin.y + this.numLockedRows),
             ]);
             relativeColumns.forEachPoint((aPoint) => {
-                let dataValue = this.dataStore.getAt(aPoint);
+                let dataValue = this.getDataAt(aPoint);
                 let translation = new Point([aPoint.x, aPoint.y - offset.y]);
                 let element = this.elementAt(translation);
                 if (element !== null) {
@@ -265,7 +267,7 @@ class PrimaryGridFrame extends GridElementsFrame {
             this.relativeViewFrame.origin.y - this.viewFrame.origin.y,
         ]);
         this.relativeViewFrame.forEachPoint((aPoint) => {
-            let value = this.dataStore.getAt(aPoint);
+            let value = this.getDataAt(aPoint);
             let translation = new Point([
                 aPoint.x - offset.x,
                 aPoint.y - offset.y,
@@ -282,6 +284,52 @@ class PrimaryGridFrame extends GridElementsFrame {
                 element.setAttribute("data-relative-y", aPoint.y);
             }
         });
+    }
+
+    /**
+     * Handler for onDataChanged events in the owning
+     * APSheet. These will be triggered when the sheet's
+     * DataStore notifies the sheet that the underlying
+     * data has changed.
+     * We only want to update if any of the data-relative
+     * constituent frames contain any of the locations that
+     * had updated data.
+     */
+    handleDataChanged(startCoord, endCoord) {
+        let shouldUpdate = false;
+        const relativeLockedColsFrame = this.relativeLockedColumnsFrame;
+        const relativeLockedRowsFrame = this.relativeLockedRowsFrame;
+        const relativeViewFrame = this.relativeViewFrame;
+        if (startCoord && endCoord) {
+            const updateFrame = new Frame(startCoord, endCoord);
+            const coordinates = updateFrame.coordinates;
+            const inLockedCols =
+                relativeLockedColsFrame &&
+                relativeLockedColsFrame.containsAny(coordinates);
+            const inLockedRows =
+                relativeLockedRowsFrame &&
+                relativeLockedRowsFrame.containsAny(coordinates);
+            const inView = this.relativeViewFrame.containsAny(coordinates);
+            shouldUpdate = inLockedRows || inLockedCols || inView;
+        } else if (startCoord) {
+            const inLockedCols =
+                relativeLockedColsFrame &&
+                relativeLockedColsFrame.contains(startCoord);
+            const inLockedRows =
+                relativeLockedRowsFrame &&
+                relativeLockedRowsFrame.contains(startCoord);
+            const inView = this.relativeViewFrame.contains(startCoord);
+            shouldUpdate = inLockedCols || inLockedRows || inView;
+        } else {
+            // If startCoord and endCoord are both undefined, we
+            // assume the whole DataStore was somehow affected and
+            // update.
+            shouldUpdate = true;
+        }
+
+        if (shouldUpdate) {
+            this.updateCellContents();
+        }
     }
 
     /**
@@ -457,7 +505,7 @@ class PrimaryGridFrame extends GridElementsFrame {
      */
     getDataAt(location) {
         if (this.dataStore.isReady) {
-            return this.dataStore.getAt(location);
+            return this.dataStore.getAt(location, false);
         }
         return undefined; // Will render empty cell
     }
