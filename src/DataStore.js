@@ -172,6 +172,19 @@ class DataStore {
     }
 
     /**
+     * Asynchronously attepmts to retrieve a
+     * _range_ of values, from some start coordinate
+     * to some end coordinate.
+     * The resulting values will be loaded into the cache
+     * and any subscribers will be notified, by default.
+     * This function _does not return_ the values.
+     * For return values, use getDataArray.
+     */
+    async persistentGetRangeAt(startLocation, endLocation, notify = true) {
+        // No-op
+    }
+
+    /**
      * Loads an array of arrays of data values
      * into the store at the appropriate point
      * values. The optional origin argument
@@ -227,7 +240,7 @@ class DataStore {
      * Asynchronously put the given rows of values
      * starting at the provided rowIndex
      */
-    async persistentPutRowsAt(rowIndex, rows, notify = true) {
+    async persistentPutRowsAt(startCoord, rows, notify = true) {
         // No-op
     }
 
@@ -322,7 +335,7 @@ class DataStore {
      * Asynchronously retrieve the maximum coordinate
      * that contains data
      */
-    async getMax() {
+    getMax() {
         // Default implementation is to
         // cycle through the local store
         // cache.
