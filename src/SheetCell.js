@@ -233,5 +233,3 @@ export default class SheetCell extends HTMLElement {
         ];
     }
 }
-
-window.customElements.define("sheet-cell", SheetCell);
