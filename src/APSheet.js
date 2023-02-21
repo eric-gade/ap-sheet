@@ -14,6 +14,7 @@ import {
     LockedColumnsElement,
 } from "./LockedSelectionElement.js";
 import { CursorElement } from "./CursorElement.js";
+import SheetCell from "./SheetCell.js"
 
 // Add any components
 window.customElements.define("row-tab", RowTab);
@@ -22,6 +23,7 @@ window.customElements.define("sheet-selection", SelectionElement);
 window.customElements.define("locked-rows", LockedRowsElement);
 window.customElements.define("locked-columns", LockedColumnsElement);
 window.customElements.define("sheet-cursor", CursorElement);
+window.customElements.define("sheet-cell", SheetCell);
 
 // Simple grid-based sheet component
 const templateString = `
