@@ -128,14 +128,25 @@ column-tab {
 }
 
 column-tab {
-    border-right: 0px;
+    border-right: var(--cell-border);
     border-top: 0px;
+    border-left: var(--cell-border);
     border-bottom: 0px;
 }
 
+column-tab[data-x="0"] {
+    border-left: var(--tab-border);
+}
+
 row-tab {
-    border-bottom: 0px;
+    border-bottom: var(--cell-border);
+    border-top: var(--cell-border);
+    border-left: 0px;
     border-right: 0px;
+}
+
+row-tab[data-y="0"] {
+    border-top: var(--tab-border);
 }
 
 sheet-cursor {
