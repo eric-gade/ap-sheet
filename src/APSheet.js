@@ -14,7 +14,7 @@ import {
     LockedColumnsElement,
 } from "./LockedSelectionElement.js";
 import { CursorElement } from "./CursorElement.js";
-import SheetCell from "./SheetCell.js"
+import SheetCell from "./SheetCell.js";
 
 // Add any components
 window.customElements.define("row-tab", RowTab);
@@ -283,6 +283,12 @@ export default class APSheet extends HTMLElement {
             this.trackSelectionWithRowTabs.bind(this);
         this.trackSelectionWithColumnTabs =
             this.trackSelectionWithColumnTabs.bind(this);
+        this.setupContextMenuEvents = this.setupContextMenuEvents.bind(this);
+        this.tearDownContextMenuEvents =
+            this.tearDownContextMenuEvents.bind(this);
+        this.tabContextMenuListener = this.tabContextMenuListener.bind(this);
+        this.dispatchContextMenuEvent =
+            this.dispatchContextMenuEvent.bind(this);
 
         // Bind event handlers
         this.handleSelectionChanged = this.handleSelectionChanged.bind(this);
@@ -291,6 +297,7 @@ export default class APSheet extends HTMLElement {
         this.handleRowAdjustment = this.handleRowAdjustment.bind(this);
         this.handleCellEdited = this.handleCellEdited.bind(this);
         this.handleDataStoreResized = this.handleDataStoreResized.bind(this);
+        this.handleContextMenu = this.handleContextMenu.bind(this);
     }
 
     connectedCallback() {
@@ -375,6 +382,8 @@ export default class APSheet extends HTMLElement {
         } else if (name === "name") {
             if (this.dataStore.storeName !== newVal)
                 this.datasStore.storeName = newVal;
+        } else if (name === "contextmenu" && newVal === "true") {
+            this.setupContextMenuEvents();
         }
     }
 
@@ -640,6 +649,13 @@ export default class APSheet extends HTMLElement {
             }
             tab.addEventListener("click", this.onTabClick.bind(this));
 
+            if (this.wantsContextMenuEvents) {
+                tab.addEventListener(
+                    "contextmenu",
+                    this.tabContextMenuListener
+                );
+            }
+
             // Add event listener for row adjustment
             tab.addEventListener("row-adjustment", this.handleRowAdjustment);
         }
@@ -668,6 +684,13 @@ export default class APSheet extends HTMLElement {
             }
 
             tab.addEventListener("click", this.onTabClick.bind(this));
+
+            if (this.wantsContextMenuEvents) {
+                tab.addEventListener(
+                    "contextmenu",
+                    this.tabContextMenuListener
+                );
+            }
 
             // Add event listener for width adjustment
             tab.addEventListener(
@@ -942,8 +965,85 @@ export default class APSheet extends HTMLElement {
         );
     }
 
+    setupContextMenuEvents() {
+        Array.from(this.shadowRoot.querySelectorAll("row-tab")).forEach(
+            (rowTab) => {
+                rowTab.addEventListener(
+                    "contextmenu",
+                    this.tabContextMenuListener
+                );
+            }
+        );
+        Array.from(this.shadowRoot.querySelectorAll("column-tab")).forEach(
+            (colTab) => {
+                colTab.addEventListener(
+                    "contextmenu",
+                    this.tabContextMenuListener
+                );
+            }
+        );
+
+        this.addEventListener("contextmenu", this.handleContextMenu);
+    }
+
+    tearDownContextMenuEvents() {
+        Array.from(this.shadowRoot.querySelectorAll("row-tab")).forEach(
+            (rowTab) => {
+                rowTab.removeEventListener(
+                    "contextmenu",
+                    this.tabContextMenuListener
+                );
+            }
+        );
+        Array.from(this.shadowRoot.querySelectorAll("column-tab")).forEach(
+            (colTab) => {
+                colTab.removeEventListener(
+                    "contextmenu",
+                    this.tabContextMenuListener
+                );
+            }
+        );
+
+        this.removeEventListener("contextmenu", this.handleContextMenu);
+    }
+
+    handleContextMenu(event) {
+        event.preventDefault();
+        this.dispatchContextMenuEvent(event.target, event.currentTarget, event);
+    }
+
+    dispatchContextMenuEvent(target, currentTarget, event) {
+        this.dispatchEvent(
+            new CustomEvent("sheetcontextmenu", {
+                detail: {
+                    target,
+                    currentTarget,
+                    clientX: event.clientX,
+                    clientY: event.clientY,
+                },
+            })
+        );
+    }
+
+    tabContextMenuListener(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        this.dispatchContextMenuEvent(event.target, event.currentTarget, event);
+    }
+
+    get wantsContextMenuEvents() {
+        return this.getAttribute("contextmenu") === "true";
+    }
+
     static get observedAttributes() {
-        return ["rows", "columns", "lockedrows", "lockedcolumns", "expands"];
+        return [
+            "rows",
+            "columns",
+            "lockedrows",
+            "lockedcolumns",
+            "expands",
+            "contextmenu",
+        ];
     }
 }
 
