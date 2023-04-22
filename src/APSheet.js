@@ -395,23 +395,6 @@ export default class APSheet extends HTMLElement {
         const isReady = await this.dataStore.init();
 
         this.render();
-
-        if (isReady) {
-            [
-                this.primaryFrame.relativeViewFrame,
-                this.primaryFrame.relativeLockedRowsFrame,
-                this.primaryFrame.relativeLockedColumnsFrame,
-            ]
-                .filter((aFrame) => {
-                    return !!aFrame;
-                })
-                .forEach(async (aFrame) => {
-                    await this.dataStore.persistentGetRangeAt(
-                        aFrame.origin,
-                        aFrame.corner
-                    );
-                });
-        }
     }
 
     onDataChanged(startCoord, endCoord) {
