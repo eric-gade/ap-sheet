@@ -14,7 +14,7 @@ import {
     LockedColumnsElement,
 } from "./LockedSelectionElement.js";
 import { CursorElement } from "./CursorElement.js";
-import SheetCell from "./SheetCell.js"
+import SheetCell from "./SheetCell.js";
 
 // Add any components
 window.customElements.define("row-tab", RowTab);
@@ -760,7 +760,6 @@ export default class APSheet extends HTMLElement {
                     this.selector.cursor.y
                 ),
                 frame: this.selector.selectionFrame,
-                data: this.selector.dataAtCursor,
             },
         });
         this.dispatchEvent(selectionEvent);
