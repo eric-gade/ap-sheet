@@ -77,7 +77,6 @@ class KeyHandler extends Object {
             }
             event.preventDefault();
             event.stopPropagation();
-            this.sheet.dispatchSelectionChanged();
         });
         this.registerHandler("ArrowLeft", (event) => {
             if (event.ctrlKey) {
@@ -87,7 +86,6 @@ class KeyHandler extends Object {
             }
             event.preventDefault();
             event.stopPropagation();
-            this.sheet.dispatchSelectionChanged();
         });
         this.registerHandler("ArrowDown", (event) => {
             if (event.ctrlKey) {
@@ -97,7 +95,6 @@ class KeyHandler extends Object {
             }
             event.preventDefault();
             event.stopPropagation();
-            this.sheet.dispatchSelectionChanged();
         });
         this.registerHandler("ArrowUp", (event) => {
             if (event.ctrlKey) {
@@ -107,7 +104,6 @@ class KeyHandler extends Object {
             }
             event.preventDefault();
             event.stopPropagation();
-            this.sheet.dispatchSelectionChanged();
         });
         this.registerHandler("PageUp", (event) => {
             if (event.altKey) {
@@ -117,7 +113,6 @@ class KeyHandler extends Object {
             }
             event.preventDefault();
             event.stopPropagation();
-            this.sheet.dispatchSelectionChanged();
         });
         this.registerHandler("PageDown", (event) => {
             if (event.altKey) {
@@ -127,7 +122,6 @@ class KeyHandler extends Object {
             }
             event.preventDefault();
             event.stopPropagation();
-            this.sheet.dispatchSelectionChanged();
         });
         this.registerHandler("Enter", (event) => {
             if (this.sheet.selector.selectionFrame.isEmpty) {
