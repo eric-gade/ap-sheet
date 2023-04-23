@@ -401,6 +401,14 @@ export default class APSheet extends HTMLElement {
         // Before doing anything else, have the PrimaryFrame update itself first
         this.primaryFrame.handleDataChanged(startCoord, endCoord);
 
+        // If there is currently a max value in the DataFrame, we
+        // update the baseFrame to have that corner
+        const dataMax = this.dataStore.getMax();
+        if (dataMax[0] && dataMax[1]) {
+            this.baseFrame.corner.x = dataMax[0];
+            this.baseFrame.corner.y = dataMax[1];
+        }
+
         // if no startCoord is passed, assume that
         // we start at the origin; if no coordinates are passed
         // assume we cover the entire sheet
