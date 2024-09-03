@@ -336,20 +336,21 @@ class DataStore {
      * that contains data
      */
     getMax() {
-        // Default implementation is to
-        // cycle through the local store
-        // cache.
-        // Database variants should override.
-        return Object.keys(this._cache).reduce(
-            (current, key) => {
-                let [x, y] = key.split(",").map((val) => parseInt(val));
-                if (x > current[0] && y > current[1]) {
-                    return [x, y];
-                } else {
-                    return current;
+        const coords = Object.keys(this._cache).map(str => {
+            return str.split(",").map(num => parseInt(num));
+        });
+        return coords.reduce(
+            (current, coord) => {
+                if(coord[0] > current[0] && coord[1] > current[1]){
+                    return coord;
+                } else if(coord[0] > current[0]) {
+                    return [coord[0], current[1]];
+                } else if(coord[1] > current[1]){
+                    return [current[0], coord[1]];
                 }
+                return current;
             },
-            [0, 0]
+            [0,0]
         );
     }
 }

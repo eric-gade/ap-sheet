@@ -7,8 +7,8 @@ import { Point } from "../src/Point.js";
 import { DataStore } from "../src/DataStore.js";
 const assert = chai.assert;
 
-describe.skip("APSheet Element Tests", () => {
-    describe("Resize Custom Event Handling", () => {
+describe("APSheet Element Tests", () => {
+    describe.skip("Resize Custom Event Handling", () => {
         const handler = sinon.spy();
         let gridElement = document.createElement("ap-sheet");
         before(() => {
@@ -79,6 +79,36 @@ describe.skip("APSheet Element Tests", () => {
             assert.isFalse(gridElement.selector.selectionFrame.isEmpty);
             gridElement.selector.selectionFrame.forEachPoint((aPoint) => {
                 assert.equal(gridElement.dataStore.at(aPoint), undefined);
+            });
+        });
+    });
+
+    describe("#setDataStore tests", () => {
+        describe("baseFrame responds to DataStore resizing during loadFromArray", () => {
+            let sheet;
+            before(async () => {
+                sheet = document.createElement('ap-sheet');
+                const store = new DataStore();
+                let data = [];
+                for(let rowNum = 1; rowNum <= 100; rowNum++){
+                    let row = [];
+                    for(let colNum = 1; colNum <= 1000; colNum++){
+                        row.push(`${colNum},${rowNum}`);
+                    }
+                    data.push(row);
+                }
+                await sheet.setDataStore(store);
+                await sheet.dataStore.loadFromArray(data, [0,0]);
+            });
+
+            it("baseFrame extent should match the max value for the dataStore", () => {
+                const expected = [999, 99];
+                const actual = [
+                    sheet.baseFrame.corner.x,
+                    sheet.baseFrame.corner.y
+                ];
+
+                assert.deepEqual(expected, actual);
             });
         });
     });

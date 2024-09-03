@@ -367,6 +367,27 @@ describe("DataStore Method Tests", () => {
             assert.equal(expected[1], actual[1]);
         });
     });
+
+    describe(".getMax (loadFromArray case)", () => {
+        let store = new DataStore();
+        before(async () => {
+            const data = [];
+            for(let rowNum = 1; rowNum <= 1000; rowNum++){
+                let row = [];
+                for(let charCode = 65; charCode <= 90; charCode++){
+                    row.push(`${String.fromCharCode(charCode)}${rowNum}`);
+                }
+                data.push(row);
+            }
+            await store.loadFromArray(data, [0, 0]);
+        });
+        it("returns the correct max stored value", async () => {
+            const expected = [25, 999];
+            const actual = await store.getMax();
+
+            assert.deepEqual(expected, actual);
+        });
+    });
 });
 
 after(() => {
