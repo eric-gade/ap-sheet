@@ -1,13 +1,17 @@
 import sinon from "sinon";
 import chai from "chai";
 import { expect } from "chai";
-import "../src/APSheet.js";
+import APSheet from "../src/APSheet.js";
 import Frame from "../src/Frame.js";
 import { Point } from "../src/Point.js";
 import { DataStore } from "../src/DataStore.js";
 const assert = chai.assert;
 
+
 describe("APSheet Element Tests", () => {
+    beforeEach(() => {
+        Array.from(document.querySelectorAll('ap-sheet')).forEach(el => el.remove());
+    });
     describe.skip("Resize Custom Event Handling", () => {
         const handler = sinon.spy();
         let gridElement = document.createElement("ap-sheet");
@@ -85,9 +89,9 @@ describe("APSheet Element Tests", () => {
 
     describe("#setDataStore tests", () => {
         describe("baseFrame responds to DataStore resizing during loadFromArray", () => {
-            let sheet;
-            before(async () => {
-                sheet = document.createElement('ap-sheet');
+            beforeEach(async () => {
+                let sheet = document.createElement('ap-sheet');
+                document.body.append(sheet);
                 const store = new DataStore();
                 let data = [];
                 for(let rowNum = 1; rowNum <= 100; rowNum++){
@@ -102,6 +106,7 @@ describe("APSheet Element Tests", () => {
             });
 
             it("baseFrame extent should match the max value for the dataStore", () => {
+                const sheet = document.querySelector('ap-sheet');
                 const expected = [999, 99];
                 const actual = [
                     sheet.baseFrame.corner.x,
@@ -112,8 +117,4 @@ describe("APSheet Element Tests", () => {
             });
         });
     });
-});
-
-after(() => {
-    resetDOM();
 });
