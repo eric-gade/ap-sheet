@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Basic Example</title>
+        <link rel="stylesheet" href="style.css" />
+        <script type="module" src="../src/APSheet.js"></script>
+        <script type="module" src="../src/SheetCell.js"></script>
+    </head>
+    <body>
+        <h1> 1000 rows x 1000 cols (1 million cells)</h1>
+        <main>
+            <ap-sheet
+                class="spreadsheet"
+                id="table"
+                rows="12"
+                columns="3"
+            >
+            </ap-sheet>
+        </main>
+        <script type="module">
+         import DataStore from "../src/DataStore.js";
+         document.addEventListener("DOMContentLoaded", async () => {
+             const sheet = document.querySelector("ap-sheet");
+             // Let's compose some simple data of column and row name
+             const data = [];
+             for(let rowNum = 0; rowNum < 1000; rowNum++){
+                 let row = [];
+                 for(let colNum = 0; colNum < 1000; colNum++){
+                     row.push(`(${rowNum}, ${colNum})`);
+                 }
+                 data.push(row);
+             }
+
+             // Create a new DataStore and attach it
+             const store = new DataStore();
+             await sheet.setDataStore(store);
+
+             // Load data from the data array
+             await store.loadFromArray(data, [0,0]);
+
+         });
+        </script>
+    </body>
+</html>
