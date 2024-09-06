@@ -8,7 +8,7 @@ const templateString = `
         --row-start: 1;
         grid-column: var(--col-start-name) var(--col-start) / span 1;
         grid-row: var(--row-start-name) var(--row-start) / span 1;
-        border: 3px solid black;
+        border: var(--cursor-border);
     }
 </style>
 `;

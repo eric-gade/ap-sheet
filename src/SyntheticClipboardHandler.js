@@ -13,6 +13,7 @@ class SyntheticClipboardHandler extends Object {
         this.connect = this.connect.bind(this);
         this.disconnect = this.disconnect.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleSyntheticPaste = this.handleSyntheticPaste.bind(this);
         this.triggerSyntheticCopy = this.triggerSyntheticCopy.bind(this);
         this.triggerSyntheticPaste = this.triggerSyntheticPaste.bind(this);
         this.selectionToCsv = this.selectionToCsv.bind(this);
@@ -22,10 +23,12 @@ class SyntheticClipboardHandler extends Object {
 
     connect() {
         this.sheet.addEventListener("keydown", this.handleKeyDown);
+        this.sheet.addEventListener("synthetic-paste", this.handleSyntheticPaste);
     }
 
     disconnect() {
         this.sheet.removeEventListener("keydown", this.handleKeyDown);
+        this.sheet.removeEventListener("synthetic-paste", this.handleSyntheticPaste);
     }
 
     handleKeyDown(event) {
@@ -40,7 +43,7 @@ class SyntheticClipboardHandler extends Object {
         }
     }
 
-    triggerSyntheticCopy() {
+    async triggerSyntheticCopy () {
         let container = document.getElementById("hidden-clip-area");
         if (!container) {
             container = document.createElement("textarea");
@@ -63,20 +66,13 @@ class SyntheticClipboardHandler extends Object {
         document.execCommand("copy");
         this.dispatchSyntheticCopyWith(container.textContent);
         container.remove();
-
-        // Update the clipboard contents
-        this.constructor.contents = {
-            data: this.sheet.dataFrame.getDataArrayForFrame(
-                this.sheet.selector.selectionFrame
-            ),
-        };
     }
 
     triggerSyntheticPaste() {
         if (this.constructor.contents) {
             // Insert the data array into this sheet's DataFrame
             // at the provided origin point
-            this.sheet.dataFrame.loadFromArray(
+            this.sheet.dataStore.loadFromArray(
                 this.constructor.contents.data,
                 this.sheet.selector.relativeCursor
             );
@@ -96,7 +92,8 @@ class SyntheticClipboardHandler extends Object {
         this.sheet.selector.selectionFrame.forEachPointRow((row) => {
             let line = row
                 .map((point) => {
-                    let value = this.sheet.dataFrame.getAt(point);
+                    let value = this.sheet.dataStore.getAt(point);
+                    if (!value) value = "";
                     if (value.replace(/ /g, "").match(/[\s,"]/)) {
                         return '"' + value.replace(/"/g, '""') + '"';
                     }
@@ -108,11 +105,12 @@ class SyntheticClipboardHandler extends Object {
         return lines.join("\n");
     }
 
-    dispatchSyntheticCopyWith(text) {
+    async dispatchSyntheticCopyWith(text) {
         let clipboardObject = {
             origin: this.sheet.selector.selectionFrame.origin,
-            data: this.sheet.dataFrame.getDataArrayForFrame(
-                this.sheet.selector.selectionFrame
+            data: await this.sheet.dataStore.getDataArray(
+                this.sheet.selector.selectionFrame.origin.toCoord(),
+                this.sheet.selector.selectionFrame.corner.toCoord()
             ),
             text: text,
         };
@@ -121,6 +119,14 @@ class SyntheticClipboardHandler extends Object {
         });
         this.constructor.contents = clipboardObject;
         this.sheet.dispatchEvent(event);
+    }
+
+    async handleSyntheticPaste(event){
+        const sheet = event.target;
+        await sheet.dataStore.loadFromArray(
+            event.detail.data,
+            event.detail.cursor.toCoord()
+        );
     }
 }
 

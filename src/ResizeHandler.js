@@ -78,7 +78,6 @@ class ResizeHandler extends Object {
             if (this.vertical) {
                 this._updateHeight(containerRect.height, sheetRect.height);
             }
-            this.sheet.render();
         }, 100);
     }
 

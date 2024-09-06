@@ -1,4 +1,4 @@
-import { DataFrame } from "./DataFrame.js";
+import { DataStore } from "./DataStore.js";
 import { Selector } from "./Selector.js";
 import PrimaryFrame from "./PrimaryGridFrame.js";
 import { Point } from "./Point.js";
@@ -14,6 +14,7 @@ import {
     LockedColumnsElement,
 } from "./LockedSelectionElement.js";
 import { CursorElement } from "./CursorElement.js";
+import SheetCell from "./SheetCell.js";
 
 // Add any components
 window.customElements.define("row-tab", RowTab);
@@ -22,6 +23,7 @@ window.customElements.define("sheet-selection", SelectionElement);
 window.customElements.define("locked-rows", LockedRowsElement);
 window.customElements.define("locked-columns", LockedColumnsElement);
 window.customElements.define("sheet-cursor", CursorElement);
+window.customElements.define("sheet-cell", SheetCell);
 
 // Simple grid-based sheet component
 const templateString = `
@@ -30,6 +32,16 @@ const templateString = `
    display: grid;
    user-select: none;
    overflow: hidden; /* For auto-resize without scrolling on */
+   --edit-bar-border-radius: 10px;
+   --edit-bar-border: 1px solid rgba(100, 100, 100, 0.4);
+    --tab-cell-border-radius: 5px;
+    --tab-cell-border: 1px solid rgba(150, 150, 150, 0.4);
+    --cursor-border: 3px solid black;
+    --selection-background-color: lightblue;
+}
+
+sheet-selection {
+    background-color: var(--selection-background-color);
 }
 
 :host(:focus){
@@ -61,14 +73,14 @@ const templateString = `
     display: flex;
     width: 1fr;
     box-sizing: border-box;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    border: 1px solid rgba(100, 100, 100, 0.4);
-    background-color: white;
+    border-top-left-radius: var(--edit-bar-border-radius);
+    border-top-right-radius: var(--edit-bar-border-radius);
+    border: var(--edit-bar-border);
     grid-column: 1 / -1;
     align-items: baseline;
     justify-content: stretch;
 }
+
 #edit-area {
     flex: 1;
     padding: 2px;
@@ -111,10 +123,94 @@ column-tab[locked="true"] {
 row-tab,
 column-tab {
     font-family: monospace;
+    border: var(--tab-cell-border);
+    border-radius: var(--tab-cell-border-radius);
 }
 
+column-tab {
+    border-right: 0px;
+    border-top: 0px;
+    border-bottom: 0px;
+}
+
+row-tab {
+    border-bottom: 0px;
+    border-right: 0px;
+}
+
+sheet-cursor {
+    border: var(--cursor-border);
+}
+
+#loading-display {
+    position: relative;
+    grid-column-start: 1;
+    grid-column-end: -1;
+    grid-row-start: 1;
+    grid-row-end: -1;
+    z-index: 1000;
+    background-color: rgba(50,50,50,0.9);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 6rem;
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+  }
+  .loader:before,
+  .loader:after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    animation: pulsOut 1.8s ease-in-out infinite;
+    filter: drop-shadow(0 0 1rem rgba(255, 255, 255, 0.75));
+  }
+  .loader:before {
+    width: 100%;
+    padding-bottom: 100%;
+    box-shadow: inset 0 0 0 1rem #fff;
+    animation-name: pulsIn;
+  }
+  .loader:after {
+    width: calc(100% - 2rem);
+    padding-bottom: calc(100% - 2rem);
+    box-shadow: 0 0 0 0 #fff;
+  }
+
+  @keyframes pulsIn {
+    0% {
+      box-shadow: inset 0 0 0 1rem #fff;
+      opacity: 1;
+    }
+    50%, 100% {
+      box-shadow: inset 0 0 0 0 #fff;
+      opacity: 0;
+    }
+  }
+
+  @keyframes pulsOut {
+    0%, 50% {
+      box-shadow: 0 0 0 0 #fff;
+      opacity: 0;
+    }
+    100% {
+      box-shadow: 0 0 0 1rem #fff;
+      opacity: 1;
+    }
+  }
+      
+
 </style>
-<div id="edit-bar" style="grid-column: 1 / -1; grid-row: span 1;">
+<div id="edit-bar" style="grid-column: 1 / -1; grid-row: 1 / 1;">
     <div id="info-area"><span>Cursor</span><span>&rarr;</span></div>
     <input id="edit-area" type="text" disabled="true"/>
 </div>
@@ -124,9 +220,12 @@ column-tab {
 <locked-rows id="locked-rows-selection" class="empty"></locked-rows>
 <locked-columns id="locked-columns-selection" class="empty"></locked-columns>
 <sheet-cursor id="cursor"></sheet-cursor>
+<div id="loading-display">
+  <div id="loading-display-inner" class="loader"></div>
+</div>
 `;
 
-class GridSheet extends HTMLElement {
+export default class APSheet extends HTMLElement {
     constructor() {
         super();
         this.template = document.createElement("template");
@@ -153,24 +252,25 @@ class GridSheet extends HTMLElement {
         this.customRows = {};
 
         // Set up the internal frames
-        this.dataFrame = new DataFrame([0, 0], [1000, 1000]);
-        let initialData = this.dataFrame.mapEachPointRow((row) => {
-            return row.map((point) => {
-                return `${point.x}, ${point.y}`;
-            });
-        });
-        this.dataFrame.loadFromArray(initialData);
-        this.dataFrame.callback = this.onDataChanged.bind(this);
-        this.primaryFrame = new PrimaryFrame(this.dataFrame, [0, 0]);
+        this.dataStore = new DataStore();
+        this.baseFrame = new Frame([0, 0], [26 * 2, 100]);
+        this.primaryFrame = new PrimaryFrame(
+            this.dataStore,
+            this.baseFrame,
+            [0, 0]
+        );
         this.selector = new Selector(this.primaryFrame);
         this.selector.selectionChangedCallback =
             this.dispatchSelectionChanged.bind(this);
 
         // Bind instace methods
+        this.setDataStore = this.setDataStore.bind(this);
         this.onObservedResize = this.onObservedResize.bind(this);
         this.onDataChanged = this.onDataChanged.bind(this);
         this.onTabClick = this.onTabClick.bind(this);
         this.render = this.render.bind(this);
+        this.renderLoading = this.renderLoading.bind(this);
+        this.renderError = this.renderError.bind(this);
         this.renderGridTemplate = this.renderGridTemplate.bind(this);
         this.renderRowTabs = this.renderRowTabs.bind(this);
         this.renderColumnTabs = this.renderColumnTabs.bind(this);
@@ -190,7 +290,7 @@ class GridSheet extends HTMLElement {
         this.handleColumnAdjustment = this.handleColumnAdjustment.bind(this);
         this.handleRowAdjustment = this.handleRowAdjustment.bind(this);
         this.handleCellEdited = this.handleCellEdited.bind(this);
-        this.handleDataFrameResized = this.handleDataFrameResized.bind(this);
+        this.handleDataStoreResized = this.handleDataStoreResized.bind(this);
     }
 
     connectedCallback() {
@@ -209,20 +309,25 @@ class GridSheet extends HTMLElement {
                 );
             }, 30);
 
-            // Attach a MouseHandler to handle mouse
-            // interaction and events
-            this.mouseHandler = new MouseHandler(this);
-            this.mouseHandler.connect();
+            this.dataStore.init().then(() => {
+                // Attach a MouseHandler to handle mouse
+                // interaction and events
+                this.mouseHandler = new MouseHandler(this);
+                this.mouseHandler.connect();
 
-            // Attach a KeyHandler to handle
-            // keydown events
-            this.keyHandler = new KeyHandler(this);
-            this.keyHandler.connect();
+                // Attach a KeyHandler to handle
+                // keydown events
+                this.keyHandler = new KeyHandler(this);
+                this.keyHandler.connect();
 
-            // Attach ClipboardHandler to handle
-            // copy and paste
-            this.clipboardHandler = new ClipboardHandler(this);
-            this.clipboardHandler.connect();
+                // Attach ClipboardHandler to handle
+                // copy and paste
+                this.clipboardHandler = new ClipboardHandler(this);
+                this.clipboardHandler.connect();
+
+                // Do a new render
+                this.render();
+            });
 
             // Bind the PrimaryFrame's afterChange callback
             // to this instance's viewShifted handler.
@@ -233,6 +338,9 @@ class GridSheet extends HTMLElement {
         this.addEventListener("selection-changed", this.handleSelectionChanged);
         this.addEventListener("sheet-view-shifted", this.handleViewShift);
         this.addEventListener("cell-edited", this.handleCellEdited);
+
+        // Add the sheet itself as a subscriber to its DataStore
+        this.dataStore.subscribers.add(this);
     }
 
     disconnectedCallback() {
@@ -246,6 +354,7 @@ class GridSheet extends HTMLElement {
         );
         this.removeEventListener("sheet-view-shifted", this.handleViewShift);
         this.removeEventListener("cell-edited", this.handleCellEdited);
+        this.dataStore.subscribers.delete(this);
     }
 
     attributeChangedCallback(name, oldVal, newVal) {
@@ -263,13 +372,66 @@ class GridSheet extends HTMLElement {
         } else if (name == "lockedcolumns") {
             this.numLockedColumns = parseInt(newVal);
             this.updateLockedColumns();
+        } else if (name === "name") {
+            if (this.dataStore.storeName !== newVal)
+                this.datasStore.storeName = newVal;
         }
     }
 
-    onDataChanged(frame, wasResized = false) {
-        if (frame.isPoint) {
-            frame = new Frame(frame, frame);
+    /**
+     * Deactivate the current dataStore (if any)
+     * and set the new instance, re-rendering
+     * when ready.
+     */
+    async setDataStore(aDataStore) {
+        if (this.dataStore) {
+            await this.dataStore.detach();
+            this.dataStore.subscribers.delete(this);
         }
+        this.dataStore = aDataStore;
+        this.primaryFrame.dataStore = this.dataStore;
+        this.render(); // to show loading
+        this.dataStore.subscribers.add(this);
+        const isReady = await this.dataStore.init();
+
+        this.render();
+    }
+
+    onDataChanged(startCoord, endCoord) {
+        // Before doing anything else, have the PrimaryFrame update itself first
+        this.primaryFrame.handleDataChanged(startCoord, endCoord);
+
+        // If there is currently a max value in the DataFrame, we
+        // update the baseFrame to have that corner
+        const dataMax = this.dataStore.getMax();
+        if (dataMax[0] && dataMax[1]) {
+            this.baseFrame.corner.x = dataMax[0];
+            this.baseFrame.corner.y = dataMax[1];
+        }
+
+        // if no startCoord is passed, assume that
+        // we start at the origin; if no coordinates are passed
+        // assume we cover the entire sheet
+        if (!startCoord) {
+            startCoord = this.baseFrame.origin;
+            if (!endCoord) {
+                endCoord = this.baseFrame.corner;
+            }
+        } else if (!endCoord) {
+            endCoord = [startCoord[0], startCoord[1]];
+        }
+        // Determine if baseFrame should be resized
+        let wasResized = false;
+        if (this.baseFrame.corner.x < endCoord[0]) {
+            this.baseFrame.corner.x = endCoord[0];
+            wasResized = true;
+        }
+        if (this.baseFrame.corner.y < endCoord[1]) {
+            this.baseFrame.corner.y = endCoord[1];
+            wasResized = true;
+        }
+
+        const frame = new Frame(startCoord, endCoord);
         let event = new CustomEvent("data-updated", {
             detail: {
                 frames: [frame],
@@ -282,10 +444,11 @@ class GridSheet extends HTMLElement {
                     // Nothing for now
                 },
             });
+            console.log("dispatching data updated!");
             this.dispatchEvent(resizeEvent);
         }
+
         this.dispatchEvent(event);
-        this.primaryFrame.updateCellContents();
     }
 
     onObservedResize(info) {
@@ -335,6 +498,14 @@ class GridSheet extends HTMLElement {
     }
 
     render() {
+        if (!this.dataStore.isReady) {
+            return (this.shadowRoot.getElementById(
+                "loading-display"
+            ).style.display = "");
+        } else {
+            this.shadowRoot.getElementById("loading-display").style.display =
+                "none";
+        }
         this.innerHTML = "";
         if (this.showRowTabs) {
             this.renderRowTabs();
@@ -343,7 +514,11 @@ class GridSheet extends HTMLElement {
             this.renderColumnTabs();
         }
         let newCorner = new Point([this.numColumns - 1, this.numRows - 1]);
-        this.primaryFrame = new PrimaryFrame(this.dataFrame, newCorner);
+        this.primaryFrame = new PrimaryFrame(
+            this.dataStore,
+            this.baseFrame,
+            newCorner
+        );
         this.primaryFrame.initialBuild();
         this.primaryFrame.labelElements();
         this.append(...this.primaryFrame.elements);
@@ -355,7 +530,7 @@ class GridSheet extends HTMLElement {
 
         // This is HACKY.
         // Issue: the elements have not yet finished appending
-        // themselves to this GridSheet element by the time
+        // themselves to this APSheet element by the time
         // updateCellContents() gets called, so it cannot find
         // elements!
         if (this.primaryFrame.elements.length == 0) {
@@ -363,8 +538,29 @@ class GridSheet extends HTMLElement {
                 this.primaryFrame.updateCellContents();
             }, 60);
         } else {
+            // Request the _persistent_ version of the currently
+            // view-able data from the DataStore.
+            // For async-backed stores, this will retrieve the
+            // persistent data and later, on notification,
+            // update the PrimaryFrame.
+            const framesToRequest = [
+                this.primaryFrame.relativeViewFrame,
+                this.primaryFrame.relativeLockedRowsFrame,
+                this.primaryFrame.relativeLockedColumnsFrame,
+            ].filter((frame) => !!frame);
+            framesToRequest.forEach((frame) => {
+                this.dataStore.persistentGetRangeAt(frame.origin, frame.corner);
+            });
             this.primaryFrame.updateCellContents();
         }
+    }
+
+    renderLoading() {
+        // Do nothing for now
+    }
+
+    renderError() {
+        // Do nothing for now
     }
 
     renderGridTemplate() {
@@ -476,7 +672,7 @@ class GridSheet extends HTMLElement {
         if (event.target.isRowTab && event.button === 0) {
             let rowOrigin = new Point([0, event.target.relativeRow]);
             let rowCorner = new Point([
-                this.dataFrame.right,
+                this.baseFrame.right,
                 event.target.relativeRow,
             ]);
             this.selector.anchor = rowCorner;
@@ -486,7 +682,7 @@ class GridSheet extends HTMLElement {
                     // Set anchor to top right corner of what will be
                     // the union frame.
                     this.selector.anchor = new Point([
-                        this.dataFrame.right,
+                        this.baseFrame.right,
                         this.selector.selectionFrame.origin.y,
                     ]);
                 } else if (
@@ -496,7 +692,7 @@ class GridSheet extends HTMLElement {
                     // The anchor should be set to the bottom right of
                     // what will be the union frame.
                     this.selector.anchor = new Point([
-                        this.dataFrame.right,
+                        this.baseFrame.right,
                         this.selector.selectionFrame.corner.y,
                     ]);
                 }
@@ -511,7 +707,7 @@ class GridSheet extends HTMLElement {
             let colOrigin = new Point([event.target.relativeColumn, 0]);
             let colCorner = new Point([
                 event.target.relativeColumn,
-                this.dataFrame.bottom,
+                this.baseFrame.bottom,
             ]);
             this.selector.anchor = colCorner;
             if (event.shiftKey) {
@@ -521,7 +717,7 @@ class GridSheet extends HTMLElement {
                     // be the union frame.
                     this.selector.anchor = new Point([
                         this.selector.selectionFrame.origin.x,
-                        this.dataFrame.bottom,
+                        this.baseFrame.bottom,
                     ]);
                 } else if (
                     colCorner.x < this.selector.selectionFrame.origin.x
@@ -531,7 +727,7 @@ class GridSheet extends HTMLElement {
                     // of what will be the union frame.
                     this.selector.anchor = new Point([
                         this.selector.selectionFrame.corner.x,
-                        this.dataFrame.bottom,
+                        this.baseFrame.bottom,
                     ]);
                 }
             }
@@ -555,7 +751,6 @@ class GridSheet extends HTMLElement {
                     this.selector.cursor.y
                 ),
                 frame: this.selector.selectionFrame,
-                data: this.selector.dataAtCursor,
             },
         });
         this.dispatchEvent(selectionEvent);
@@ -625,7 +820,7 @@ class GridSheet extends HTMLElement {
             // In this case, the cursor is the lone selection.
             // update the info area to demonstrate that.
             infoArea.querySelector("span:first-child").innerText = "Cursor";
-            editArea.value = this.dataFrame.getAt(this.selector.relativeCursor);
+            editArea.value = this.dataStore.getAt(this.selector.relativeCursor);
         } else {
             // Otherwise, we have selected multiple cells.
             // Display information about the bounds of the
@@ -678,16 +873,17 @@ class GridSheet extends HTMLElement {
     }
 
     handleCellEdited(event) {
-        this.dataFrame.putAt(
+        this.dataStore.putAt(
             event.detail.relativeCoordinate,
             event.detail.content
         );
         this.focus();
     }
 
-    handleDataFrameResized(event) {
-        const maxRows = this.dataFrame.corner.y;
-        const maxCols = this.dataFrame.corner.x;
+    // TODO: Rename properly
+    handleDataStoreResized(event) {
+        const maxRows = this.baseFrame.corner.y;
+        const maxCols = this.baseFrame.corner.x;
         if (this.numRows > maxRows) {
             this.setAttribute("rows", maxRows);
         }
@@ -743,4 +939,4 @@ class GridSheet extends HTMLElement {
     }
 }
 
-window.customElements.define("my-grid", GridSheet);
+window.customElements.define("ap-sheet", APSheet);

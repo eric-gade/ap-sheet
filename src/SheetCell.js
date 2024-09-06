@@ -54,7 +54,7 @@ const templateString = `
 </span>
 `;
 
-class SheetCell extends HTMLElement {
+export default class SheetCell extends HTMLElement {
     constructor() {
         super();
         this.template = document.createElement("template");
@@ -233,5 +233,3 @@ class SheetCell extends HTMLElement {
         ];
     }
 }
-
-window.customElements.define("sheet-cell", SheetCell);
